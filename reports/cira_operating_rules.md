@@ -12,7 +12,7 @@ Generated 2026-09-24 by `pumpcopilot rules cira` from 8 files. Rule text: header
 
 ## Motor vibration confirmation (ACR_Mot.SV, m/s^2)
 
-Same derivation as pressure, on log10 of the motor accelerometer peak value, with class quantiles [0.99, 0.01] (the peak value is heavy-tailed). A motor reading counts only if it was taken after the current pressure state began; the sensor is sample-and-hold, and a reading held from before a start says nothing about the start.
+Same derivation as pressure, on log10 of the motor accelerometer peak value, with class quantiles [0.99, 0.01] (the peak value is heavy-tailed). Pressure decides the state; a motor reading can only veto running (idle reading: off, pressurized while stopped), and only if it was taken after the current pressure state began: the sensor is sample-and-hold, and a reading held from before a start says nothing about the start. Running without such a reading stays running, with the segment attribute motor_unconfirmed.
 
 | pump | idle median | idle ceiling | lower | upper | running floor | running median | update s (running) | min state s |
 |---|---|---|---|---|---|---|---|---|
@@ -53,13 +53,13 @@ A reading event is a value change; the gateway repeats the last reading at 1 Hz 
 | ACR_Mot.PV | 6700 | 3264 | 8 | 8 | 65.4 |
 | ACR_Mot.SV | 5461 | 3247 | 8 | 8 | 66 |
 | ACR_Mot.TV | 5920 | 2876 | 8 | 8 | 69 |
-| ACR_Pmp.PV | 4343 | 1418 | 9 | 56 | 67 |
-| ACR_Pmp.SV | 3259 | 1412 | 14 | 56 | 71.5 |
-| ACR_Pmp.TV | 3843 | 1314 | 10 | 57 | 123 |
-| Barometer | 12630 | 3479 | 8 | 8 | 62 |
-| Pres.PV | 2517 | 950 | 60 | 60 | 64 |
-| Temp.PV | 6341 | 3173 | 9 | 8 | 62 |
-| Temperature | 12154 | 3453 | 8 | 8 | 62 |
+| ACR_Pmp.PV | 4343 | 1419 | 9 | 56 | 67 |
+| ACR_Pmp.SV | 3259 | 1413 | 14 | 56 | 86.1 |
+| ACR_Pmp.TV | 3843 | 1315 | 10 | 57 | 123 |
+| Barometer | 12630 | 3839 | 8 | 8 | 62 |
+| Pres.PV | 2517 | 1014 | 60 | 60 | 64 |
+| Temp.PV | 6341 | 3239 | 9 | 8 | 62 |
+| Temperature | 12154 | 3811 | 8 | 8 | 62 |
 
 ## Stale before and after
 
@@ -67,16 +67,16 @@ Before: step 2a rule, held at least max(60 s, 3 x median interval). After: held 
 
 | signal | limit before s | limit after s | stale % all: before | after | stale % running: before | after |
 |---|---|---|---|---|---|---|
-| ACR_Mot.PV | 60 | 65.4 | 54.88 | 37.76 | 37.99 | 9.49 |
-| ACR_Mot.SV | 60 | 66 | 57.89 | 43.52 | 37.99 | 8.55 |
-| ACR_Mot.TV | 60 | 69 | 55.43 | 38.06 | 39.11 | 10.41 |
-| ACR_Pmp.PV | 60 | 67 | 64.83 | 37.13 | 58.32 | 8.63 |
-| ACR_Pmp.SV | 60 | 71.5 | 69.01 | 46.47 | 58.84 | 9.7 |
-| ACR_Pmp.TV | 60 | 123 | 65.39 | 36.39 | 59.32 | 7.13 |
-| Barometer | 60 | 62 | 13.24 | 1.16 | 17.39 | 1.42 |
-| Pres.PV | 180 | 64 | 0.11 | 0.87 | 0.14 | 0.49 |
-| Temp.PV | 60 | 62 | 45.39 | 2.1 | 40.76 | 1.69 |
-| Temperature | 60 | 62 | 13.17 | 0.86 | 17.33 | 0.99 |
+| ACR_Mot.PV | 60 | 65.4 | 54.88 | 37.76 | 41.94 | 15.26 |
+| ACR_Mot.SV | 60 | 66 | 57.89 | 43.52 | 41.94 | 14.38 |
+| ACR_Mot.TV | 60 | 69 | 55.43 | 38.06 | 42.99 | 16.12 |
+| ACR_Pmp.PV | 60 | 67 | 64.83 | 37.13 | 60.86 | 14.34 |
+| ACR_Pmp.SV | 60 | 86.1 | 69.01 | 46.33 | 61.35 | 15.22 |
+| ACR_Pmp.TV | 60 | 123 | 65.39 | 36.39 | 61.79 | 12.94 |
+| Barometer | 60 | 62 | 13.24 | 1.16 | 17.37 | 1.33 |
+| Pres.PV | 180 | 64 | 0.11 | 0.87 | 0.13 | 0.46 |
+| Temp.PV | 60 | 62 | 45.39 | 2.1 | 41.99 | 1.7 |
+| Temperature | 60 | 62 | 13.17 | 0.86 | 17.38 | 0.93 |
 
 ## Spike decision delay
 
@@ -88,7 +88,7 @@ A reading with robust z above 8 is only flagged once a later reading returns to 
 | ACR_Mot.SV | 16 | 132 |
 | ACR_Mot.TV | 16 | 138 |
 | ACR_Pmp.PV | 112 | 134 |
-| ACR_Pmp.SV | 112 | 143 |
+| ACR_Pmp.SV | 112 | 172.2 |
 | ACR_Pmp.TV | 114 | 246 |
 | Barometer | 16 | 124 |
 | Pres.PV | 120 | 128 |
@@ -97,15 +97,15 @@ A reading with robust z above 8 is only flagged once a later reading returns to 
 
 ## Check against descriptor Table 1
 
-Start and stop are changes of the final state (pressure plus motor confirmation). Our stop is the first sample below the threshold, so +1 s is an exact match.
+Start and stop are changes of the final state (pressure, with the motor veto). Our stop is the first sample below the threshold, so +1 s is an exact match.
 
-| pump-day | Table 1 startup | ours | diff s | first confirmed running | Table 1 shutdown | ours | diff s | pressurized while stopped s | running unconfirmed s |
-|---|---|---|---|---|---|---|---|---|---|
-| A_2024-04-10 | 12:28:30 | 12:30:30 | 120 | 12:32:30 | 12:49:28 | 12:49:29 | 1 | 0 | 0 |
-| A_2024-06-11 | 10:00:25 | 10:00:25 | 0 | 10:04:06 | 11:21:24 | 11:21:20 | -4 | 5 | 103 |
-| A_2024-10-30 | 10:59:15 | 10:59:15 | 0 | 11:05:06 | 13:19:13 | 13:19:05 | -8 | 9 | 233 |
-| B_2024-04-10 | 12:51:42 | 12:51:42 | 0 | 12:53:44 | 12:56:41 | 12:56:42 | 1 | 0 | 0 |
-| B_2024-06-11 | 07:08:08 | 07:08:08 | 0 | 07:30:49 | 13:07:33 | 13:07:34 | 1 | 0 | 1239 |
-| B_2024-10-30 | 08:28:33 | 08:28:33 | 0 | 08:45:04 | 11:05:56 | 15:10:28 | 14672 | 0 | 869 |
-| C_2024-04-10 | 12:58:16 | 12:58:16 | 0 | 13:00:16 | 13:10:14 | 13:10:05 | -9 | 10 | 0 |
-| C_2024-06-11 | 10:52:55 | 10:52:55 | 0 | 11:18:10 | 11:19:54 | 11:19:55 | 1 | 0 | 1395 |
+| pump-day | Table 1 startup | ours | diff s | first confirmed running | Table 1 shutdown | ours | diff s | pressurized while stopped s | running s: motor confirmed | motor unconfirmed |
+|---|---|---|---|---|---|---|---|---|---|---|
+| A_2024-04-10 | 12:28:30 | 12:30:30 | 120 | 12:32:30 | 12:49:28 | 12:49:29 | 1 | 0 | 1019 | 0 |
+| A_2024-06-11 | 10:00:25 | 10:00:25 | 0 | 10:04:06 | 11:21:24 | 11:21:20 | -4 | 5 | 4166 | 103 |
+| A_2024-10-30 | 10:59:15 | 10:59:15 | 0 | 11:05:06 | 13:19:13 | 13:19:05 | -8 | 9 | 8039 | 233 |
+| B_2024-04-10 | 12:51:42 | 12:51:42 | 0 | 12:53:44 | 12:56:41 | 12:56:42 | 1 | 0 | 178 | 0 |
+| B_2024-06-11 | 07:08:08 | 07:08:08 | 0 | 07:30:49 | 13:07:33 | 13:07:34 | 1 | 0 | 19755 | 1239 |
+| B_2024-10-30 | 08:28:33 | 08:28:33 | 0 | 08:45:04 | 11:05:56 | 15:10:28 | 14672 | 0 | 23124 | 869 |
+| C_2024-04-10 | 12:58:16 | 12:58:16 | 0 | 13:00:16 | 13:10:14 | 13:10:05 | -9 | 10 | 589 | 0 |
+| C_2024-06-11 | 10:52:55 | 10:52:55 | 0 | 11:18:10 | 11:19:54 | 11:19:55 | 1 | 0 | 105 | 1395 |

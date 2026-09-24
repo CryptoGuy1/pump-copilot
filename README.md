@@ -9,7 +9,7 @@ on public data; no refinery data, no plant alarms, no control actions.
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest                          # 60 tests on synthetic fixtures
+pytest                          # 62 tests on synthetic fixtures
 pumpcopilot acquire             # downloads ZeMA (UCI) and CIRA (Zenodo API) into data/raw/
 pumpcopilot audit zema          # -> reports/zema_audit.json
 pumpcopilot audit cira          # -> reports/cira_audit.json

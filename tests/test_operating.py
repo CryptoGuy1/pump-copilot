@@ -109,33 +109,64 @@ def _pumped(v):
     return t, p, np.zeros(len(p), bool), np.asarray(v, dtype=float)
 
 
-def test_running_is_confirmed_by_motor_vibration():
+def _segs(r):
+    return [(g["state"], g["start_s"], g["end_s"], g.get("motor_unconfirmed"),
+             g.get("pressurized_while_stopped")) for g in r.segments]
+
+
+def test_pressure_decides_and_a_fresh_motor_reading_confirms():
     # the motor accelerometer reports running from 125 s (new reading every sample)
     t, p, bad, v = _pumped(np.r_[np.full(125, 0.47), 20 + 0.01 * np.arange(355)])
     r = operating.classify_states(t, p, bad, RULE, v=v, vib_rule=VIB)
-    assert r.states[122] == S.UNKNOWN  # pressure says running, no motor reading since start
-    assert r.states[130] == S.RUNNING
+    # before the first motor reading the pump is still running, just motor-unconfirmed
+    assert r.states[122] == S.RUNNING and r.states[130] == S.RUNNING
     assert not r.denied.any()
     assert [(c["at_s"], c["to"]) for c in r.changes] == [(120.0, S.RUNNING)]
+    assert _segs(r) == [(S.OFF, 0.0, 119.0, None, False),
+                        (S.RUNNING, 120.0, 124.0, True, None),
+                        (S.RUNNING, 125.0, 479.0, False, None)]
 
 
-def test_pressurized_while_stopped_is_off():
-    # motor stops at 300 s while the outlet pressure holds
+def test_fresh_idle_motor_reading_vetoes_running():
+    # motor stops at 300 s while the outlet pressure holds: pressurized while stopped
     v = np.r_[np.full(125, 0.47), 20 + 0.01 * np.arange(175), 0.3 + 0.001 * np.arange(180)]
     t, p, bad, v = _pumped(v)
     r = operating.classify_states(t, p, bad, RULE, v=v, vib_rule=VIB)
     assert r.states[400] == S.OFF and r.denied[400]
     assert r.denied.sum() == 180
     assert [(c["at_s"], c["to"]) for c in r.changes] == [(120.0, S.RUNNING), (300.0, S.OFF)]
+    assert _segs(r)[-1] == (S.OFF, 300.0, 479.0, None, True)
 
 
-def test_frozen_motor_sensor_leaves_running_unconfirmed():
-    # the accelerometer never reports after the start: no evidence either way
+def test_frozen_motor_sensor_leaves_running_with_segment_attribute():
+    # the accelerometer never reports after the start: no veto, so pressure's state stands
     t, p, bad, v = _pumped(np.full(480, 0.47))
     r = operating.classify_states(t, p, bad, RULE, v=v, vib_rule=VIB)
-    assert (r.states[120:] == S.UNKNOWN).all()
-    assert r.unconfirmed[120:].all() and not r.denied.any()
-    assert [c["to"] for c in r.changes] == [S.RUNNING]  # the pressure start still counts
+    assert (r.states[120:] == S.RUNNING).all()
+    assert not r.denied.any()
+    assert [c["to"] for c in r.changes] == [S.RUNNING]
+    assert _segs(r) == [(S.OFF, 0.0, 119.0, None, False),
+                        (S.RUNNING, 120.0, 479.0, True, None)]
+
+
+def test_unknown_samples_do_not_split_segments():
+    t, p, bad, v = _pumped(np.full(480, 0.47))
+    bad[200:205] = True
+    r = operating.classify_states(t, p, bad, RULE, v=v, vib_rule=VIB)
+    assert (r.states[200:205] == S.UNKNOWN).all()
+    assert _segs(r)[-1] == (S.RUNNING, 120.0, 479.0, True, None)
+
+
+def test_motor_unconfirmed_is_not_a_quality_flag(cira_dir, make_cira_frame, rules):
+    df = make_cira_frame("A", "2024-04-10 08:00:00", 40)
+    df["A_ACR_Mot.SV"] = 0.47  # frozen motor sensor
+    path = cira_dir / "A_2024-04-10.csv"
+    df.to_csv(path, index=False)
+    spec = yaml.safe_load((RULES_FILE.parent / "cira_columns.yaml").read_text())
+    ev = list(cira.to_events(path, spec, rules=rules))
+    assert S.RUNNING in {e.operating_state for e in ev}
+    assert "motor_unconfirmed" not in {f.value for f in QualityFlag}
+    assert all(QualityFlag.SPIKE_SUSPECTED not in e.quality_flags for e in ev)
 
 
 # --- quality flags -----------------------------------------------------------------------
@@ -238,7 +269,10 @@ def test_state_report_per_pump_day(cira_dir, rules):
     assert sum(secs.values()) == pytest.approx(390.0)  # 40 samples at 10 s
     assert day["state_changes"] == 1
     assert day["pressurized_while_stopped_s"] == 0.0
-    assert "running_unconfirmed_s" in day and day["first_confirmed_running"] is not None
+    assert day["running_confirmed_s"] + day["running_unconfirmed_s"] == pytest.approx(
+        secs["running"])
+    assert day["first_confirmed_running"] is not None
+    assert all("motor_unconfirmed" in g for g in day["segments"] if g["state"] == "running")
     assert set(day["stale"]) == set(day["spike"]) == set(day["stale_running"])
     assert len(day["stale"]) == 10
     assert all(day["stale_running"][k] <= day["stale"][k] for k in day["stale"])

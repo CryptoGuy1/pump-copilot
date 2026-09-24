@@ -8,10 +8,10 @@
 #   idle_ceiling_bar and running_floor_bar (quantiles of the Otsu idle/running classes).
 #   A candidate change must last min_state_s (1.5 pressure readings), else it is a flicker
 #   and labelled transition. Samples in settings.unknown_if are unknown before any rule runs.
-#   Motor confirmation (vibration.signal, derived the same way on log10): where pressure says
-#   running, the latest motor reading taken since that pressure state began decides: above
-#   the motor idle level -> running; at idle -> off ("pressurized while stopped"); no such
-#   reading -> unknown ("running unconfirmed").
+#   Motor veto (vibration.signal, derived the same way on log10): pressure decides; where it
+#   says running, a motor reading taken since that pressure state began and showing idle
+#   vetoes it -> off ("pressurized while stopped"). With no such reading the sample stays
+#   running and its segment carries motor_unconfirmed (an attribute, not a quality flag).
 #   The first transition_s (2 pressure readings) after each change are transition.
 # Stale: a reading held longer than per_signal[signal] seconds, the 99th percentile of that
 #   signal's time between readings while running (default_s if too few readings).
@@ -42,7 +42,7 @@ stale:
   default_s: 60.0
   quantile: 0.99
   min_readings: 50
-  per_signal: {ACR_Mot.PV: 65.4, ACR_Mot.SV: 66.0, ACR_Mot.TV: 69.0, ACR_Pmp.PV: 67.0, ACR_Pmp.SV: 71.5,
+  per_signal: {ACR_Mot.PV: 65.4, ACR_Mot.SV: 66.0, ACR_Mot.TV: 69.0, ACR_Pmp.PV: 67.0, ACR_Pmp.SV: 86.1,
     ACR_Pmp.TV: 123.0, Barometer: 62.0, Pres.PV: 64.0, Temp.PV: 62.0, Temperature: 62.0}
 spike: {z_threshold: 8.0, window_updates: 30, min_history: 10, scale_floor_fraction: 0.01, revert_within: 2,
   return_z: 3.5}

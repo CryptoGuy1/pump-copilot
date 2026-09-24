@@ -7,14 +7,14 @@ value: every output is a label or a flag next to the original sample.
 Why the rules look the way they do (measured on the raw files, 2026-09-24):
 * Outlet pressure is bimodal per pump: idle about 0.5 bar, running about 40 bar, with an
   almost empty gap between. Thresholds sit inside that gap, with hysteresis.
-* Pressure alone can stay up after a stop, so running also needs the motor accelerometer's
-  peak value (ACR_Mot.SV) above that pump's idle level, derived the same way on a log10 scale
-  (idle about 0.5 m/s^2, running 10-200 m/s^2).
+* Pressure alone can stay up after a stop, so a fresh motor accelerometer peak reading
+  (ACR_Mot.SV) at that pump's idle level vetoes running. The idle level is derived the same
+  way on a log10 scale (idle about 0.5 m/s^2, running 10-200 m/s^2).
 * Readings are sample-and-hold (A5 in docs/ASSUMPTIONS.md): each sensor sends a new reading
   every few seconds to a minute, and the gateway repeats the last one at 1 Hz. So we work on
   reading events (value changes): stale limits come from the time between readings while
-  running, a motor reading only counts as evidence if it was taken after the current
-  pressure state began, and spikes are scored per reading.
+  running, a motor reading can only veto if it was taken after the current pressure state
+  began, and spikes are scored per reading.
 """
 
 from __future__ import annotations
@@ -195,6 +195,7 @@ class StateResult:
     flickers: int  # candidate pressure changes shorter than min_state_s (labelled transition)
     denied: np.ndarray  # pressure says running, fresh motor reading says idle: off
     unconfirmed: np.ndarray  # pressure says running, no motor reading since that began
+    segments: list[dict]  # maximal stretches of one state, with segment attributes
 
 
 def _debounce(t: np.ndarray, x: np.ndarray, lower: float, upper: float,
@@ -250,15 +251,15 @@ def vibration_evidence(t: np.ndarray, v: np.ndarray, rule: dict) -> tuple[np.nda
 
 def classify_states(t: np.ndarray, p: np.ndarray, bad: np.ndarray, rule: dict,
                     v: np.ndarray | None = None, vib_rule: dict | None = None) -> StateResult:
-    """Pressure hysteresis and minimum duration, motor confirmation, then transition windows.
+    """Pressure decides the state; a fresh motor reading can only veto running.
 
     Order: bad-quality samples are unknown first and never update the state. Pressure inside
     the band before any state is known is unknown. A pressure change that does not last
-    min_state_s is a flicker (transition, no change). Where pressure says running, the latest
-    motor reading decides, if it was taken after that pressure state began: running if above
-    the motor idle level, off ("pressurized while stopped") if at idle; with no such reading
-    the sample is unknown ("running unconfirmed"). The first transition_s after each change of
-    the resulting state are transition.
+    min_state_s is a flicker (transition, no change). Where pressure says running, a motor
+    reading taken after that pressure state began and showing idle vetoes it: off, "pressurized
+    while stopped". Without such a reading the sample stays running; the running segment gets
+    the attribute motor_unconfirmed (not a quality flag, not unknown). The first transition_s
+    after each change of the resulting state are transition.
     """
     n = len(p)
     code, flick = np.full(n, -1), np.zeros(n, dtype=bool)
@@ -296,9 +297,30 @@ def classify_states(t: np.ndarray, p: np.ndarray, bad: np.ndarray, rule: dict,
     for ch in changes:
         in_window |= (t >= ch["at_s"]) & (t < ch["at_s"] + rule["transition_s"])
     states[flick | (in_window & (code >= 0))] = S.TRANSITION
-    states[unconfirmed & ~in_window] = S.UNKNOWN
     return StateResult(states, episode, changes, int(_count_runs(flick[good])),
-                       denied, unconfirmed)
+                       denied, unconfirmed, _segments(t, states, unconfirmed, denied))
+
+
+def _segments(t: np.ndarray, states: np.ndarray, unconfirmed: np.ndarray,
+              denied: np.ndarray) -> list[dict]:
+    """Maximal stretches of one state; unknown samples do not split a stretch. Running
+    stretches carry motor_unconfirmed, off stretches pressurized_while_stopped."""
+    known = np.flatnonzero((states != S.UNKNOWN) & np.isfinite(t))
+    if len(known) == 0:
+        return []
+    st = states[known]
+    attr = np.where(st == S.RUNNING, unconfirmed[known], (st == S.OFF) & denied[known])
+    starts = np.flatnonzero(np.r_[True, (st[1:] != st[:-1]) | (attr[1:] != attr[:-1])])
+    ends = np.r_[starts[1:], len(known)]
+    segs = []
+    for a, e in zip(starts, ends, strict=True):
+        g = {"state": st[a], "start_s": float(t[known[a]]), "end_s": float(t[known[e - 1]])}
+        if st[a] == S.RUNNING:
+            g["motor_unconfirmed"] = bool(attr[a])
+        elif st[a] == S.OFF:
+            g["pressurized_while_stopped"] = bool(attr[a])
+        segs.append(g)
+    return segs
 
 
 def _count_runs(mask: np.ndarray) -> int:
@@ -559,11 +581,11 @@ def pump_day_report(ann: Annotation, max_interval_s: float) -> dict:
     seconds = {s: float(dur[ann.states == s].sum()) for s in STATES}
     seconds[S.UNKNOWN] += float((iv - np.minimum(iv, max_interval_s)).sum())
     res = ann.result
-    unconfirmed = res.unconfirmed & (ann.states == S.UNKNOWN)
+    running = ann.states == S.RUNNING
 
     starts = [c["at_s"] for c in res.changes if c["to"] == S.RUNNING]
     stops = [c["at_s"] for c in res.changes if c["to"] == S.OFF]
-    confirmed = np.flatnonzero(ann.states == S.RUNNING)
+    confirmed = np.flatnonzero(running & ~res.unconfirmed)
     key = f"{ann.pump}_{ann.day}"
     rep = {
         "samples": {str(s): int((ann.states == s).sum()) for s in STATES},
@@ -573,7 +595,14 @@ def pump_day_report(ann: Annotation, max_interval_s: float) -> dict:
         "stops": len(stops),
         "flickers": res.flickers,
         "pressurized_while_stopped_s": round(float(dur[res.denied].sum()), 1),
-        "running_unconfirmed_s": round(float(dur[unconfirmed].sum()), 1),
+        "running_confirmed_s": round(float(dur[running & ~res.unconfirmed].sum()), 1),
+        "running_unconfirmed_s": round(float(dur[running & res.unconfirmed].sum()), 1),
+        "segments": [{"state": str(g["state"]), "start": _clock(ann, g["start_s"]),
+                      "end": _clock(ann, g["end_s"]),
+                      "duration_s": round(g["end_s"] - g["start_s"], 1),
+                      **{k: v for k, v in g.items()
+                         if k in ("motor_unconfirmed", "pressurized_while_stopped")}}
+                     for g in res.segments],
         "changes": [{"at": _clock(ann, c["at_s"]), "to": str(c["to"])} for c in res.changes],
         "first_start": _clock(ann, starts[0] if starts else None),
         "first_confirmed_running": (str(ann.df[ann.ts_col].iloc[confirmed[0]])
@@ -615,10 +644,10 @@ RULES_HEADER = """\
 #   idle_ceiling_bar and running_floor_bar (quantiles of the Otsu idle/running classes).
 #   A candidate change must last min_state_s (1.5 pressure readings), else it is a flicker
 #   and labelled transition. Samples in settings.unknown_if are unknown before any rule runs.
-#   Motor confirmation (vibration.signal, derived the same way on log10): where pressure says
-#   running, the latest motor reading taken since that pressure state began decides: above
-#   the motor idle level -> running; at idle -> off ("pressurized while stopped"); no such
-#   reading -> unknown ("running unconfirmed").
+#   Motor veto (vibration.signal, derived the same way on log10): pressure decides; where it
+#   says running, a motor reading taken since that pressure state began and showing idle
+#   vetoes it -> off ("pressurized while stopped"). With no such reading the sample stays
+#   running and its segment carries motor_unconfirmed (an attribute, not a quality flag).
 #   The first transition_s (2 pressure readings) after each change are transition.
 # Stale: a reading held longer than per_signal[signal] seconds, the 99th percentile of that
 #   signal's time between readings while running (default_s if too few readings).
@@ -673,9 +702,11 @@ def derivation_markdown(rules: dict, derivation: dict, report: dict) -> str:
     out += ["", f"## Motor vibration confirmation ({vib['signal']}, m/s^2)", "",
             f"Same derivation as pressure, on {'log10 of ' if vib['log10'] else ''}the motor "
             f"accelerometer peak value, with class quantiles {vib['gap_quantiles']} (the peak "
-            "value is heavy-tailed). A motor reading counts only if it was taken after the "
-            "current pressure state began; the sensor is sample-and-hold, and a reading held "
-            "from before a start says nothing about the start.", "",
+            "value is heavy-tailed). Pressure decides the state; a motor reading can only veto "
+            "running (idle reading: off, pressurized while stopped), and only if it was taken "
+            "after the current pressure state began: the sensor is sample-and-hold, and a "
+            "reading held from before a start says nothing about the start. Running without "
+            "such a reading stays running, with the segment attribute motor_unconfirmed.", "",
             "| pump | idle median | idle ceiling | lower | upper | running floor | running median"
             " | update s (running) | min state s |", "|---|---|---|---|---|---|---|---|---|"]
     for pump, r in rules["pumps"].items():
@@ -728,11 +759,12 @@ def derivation_markdown(rules: dict, derivation: dict, report: dict) -> str:
                    f" {_cell(None if p99 is None else round(m * p99, 1))} |")
 
     out += ["", "## Check against descriptor Table 1", "",
-            "Start and stop are changes of the final state (pressure plus motor confirmation). "
+            "Start and stop are changes of the final state (pressure, with the motor veto). "
             "Our stop is the first sample below the threshold, so +1 s is an exact match.", "",
             "| pump-day | Table 1 startup | ours | diff s | first confirmed running"
             " | Table 1 shutdown | ours | diff s | pressurized while stopped s"
-            " | running unconfirmed s |", "|---|---|---|---|---|---|---|---|---|---|"]
+            " | running s: motor confirmed | motor unconfirmed |",
+            "|---|---|---|---|---|---|---|---|---|---|---|"]
     for key, d in report["pump_days"].items():
         t1 = d.get("descriptor_table1")
         if not t1:
@@ -742,5 +774,6 @@ def derivation_markdown(rules: dict, derivation: dict, report: dict) -> str:
             f" | {_cell(t1['first_start_minus_startup_s'])}"
             f" | {(d['first_confirmed_running'] or '-')[11:19]} | {t1['shutdown'][11:19]}"
             f" | {(d['last_stop'] or '-')[11:19]} | {_cell(t1['last_stop_minus_shutdown_s'])}"
-            f" | {d['pressurized_while_stopped_s']:g} | {d['running_unconfirmed_s']:g} |")
+            f" | {d['pressurized_while_stopped_s']:g} | {d['running_confirmed_s']:g}"
+            f" | {d['running_unconfirmed_s']:g} |")
     return "\n".join(out) + "\n"

@@ -146,8 +146,9 @@ export repeats the last reading on every 1 Hz row until the next one arrives. So
 is a reading event, and a run of identical values is one reading being held, not many equal
 measurements. The step 2 rules work on reading events (`operating.reading_events`):
 - stale limits come from the time between readings while running;
-- a motor reading confirms or denies running only if it was taken after the current pressure
-  state began;
+- pressure decides the state, and a motor reading can veto running (idle reading: off,
+  "pressurized while stopped") only if it was taken after the current pressure state began;
+  without one, the running segment carries the attribute `motor_unconfirmed`;
 - spikes are scored per reading, and a spike decision waits for up to 2 further readings
   (the decision delay in `reports/cira_operating_rules.md`).
 
@@ -168,8 +169,8 @@ measurements. The step 2 rules work on reading events (`operating.reading_events
 **Impact if wrong.** If the repeats were genuine 1 Hz measurements that happened to be equal,
 then:
 - stale flags would mark real steady values;
-- the "running unconfirmed" spans (1,395 s on C_2024-06-11, 1,239 s on B_2024-06-11) would
-  instead be motor-idle readings under full pressure, i.e. "pressurized while stopped";
+- the `motor_unconfirmed` running spans (1,395 s on C_2024-06-11, 1,239 s on B_2024-06-11)
+  would instead be motor-idle readings under full pressure, i.e. "pressurized while stopped";
 - per-reading spike scoring would under-count samples.
 
 **How to revisit.** Ask the authors for the WirelessHART update (burst) period of each device
