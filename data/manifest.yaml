@@ -1,0 +1,28 @@
+# Source manifest. Raw files are downloaded locally and never committed or redistributed.
+# acquire.py writes observed hashes, sizes and retrieval times to data/manifest.lock.json.
+sources:
+  zema:
+    title: Condition monitoring of hydraulic systems (UCI 447)
+    citation: Helwig, Pignanelli and Schutze. UCI Machine Learning Repository. DOI 10.24432/C5CW21
+    landing_page: https://archive.ics.uci.edu/dataset/447/condition+monitoring+of+hydraulic+systems
+    download: {kind: url, url: "https://archive.ics.uci.edu/static/public/447/condition+monitoring+of+hydraulic+systems.zip"}
+    license: CC BY 4.0
+    expected_sha256: null   # pin after first verified download
+    role: supervised benchmark (hydraulic test rig pump leakage state only)
+
+  cira:
+    title: Centrifugal Pump Dataset, CIRA
+    citation: Martone and Zazzaro. Zenodo. Data descriptor in Data 2025, 10(6), 91, DOI 10.3390/data10060091
+    landing_page: https://zenodo.org/records/18479728
+    download: {kind: zenodo, record_id: "18479728"}   # scope says v2; an earlier record is 15301820. acquire prints version metadata to confirm.
+    license: UNVERIFIED  # confirm reuse terms with the dataset authors before redistributing anything
+    expected_sha256: null
+    role: real centrifugal pump telemetry replay; normal operation only, no fault labels
+
+  # Candidate, not yet in scope (see ADR-0001): labeled faults on a real motor-driven centrifugal pump.
+  tata_4tu:
+    title: Motor current and vibration monitoring dataset for various faults in an E-motor-driven centrifugal pump
+    landing_page: https://data.4tu.nl/datasets/2b61183e-c14f-4131-829b-cc4822c369d0
+    download: {kind: manual}
+    license: CHECK ON LANDING PAGE
+    role: candidate labeled centrifugal pump fault benchmark

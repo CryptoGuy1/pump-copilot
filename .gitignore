@@ -1,0 +1,6 @@
+data/raw/
+data/manifest.lock.json
+reports/*.json
+__pycache__/
+.venv/
+*.egg-info/

@@ -1,0 +1,5 @@
+# Fill in AFTER running `pumpcopilot audit cira` and reading the data descriptor
+# (Data 2025, 10(6), 91). Keys are headers with the pump prefix removed.
+# Set unit_verified: true only when the unit is confirmed from the descriptor.
+# example:
+# pump_vibration_header_here: {signal: pump_vibration, unit: "mm/s", unit_verified: false}
