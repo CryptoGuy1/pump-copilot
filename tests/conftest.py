@@ -32,22 +32,41 @@ def zema_dir(tmp_path: Path) -> Path:
     return tmp_path / "zema"
 
 
+# Header layout of the real files: 8 pump-prefixed measurements, then 2 unprefixed ambient ones.
+CIRA_PUMP_HEADERS = ("ACR_Mot.PV", "ACR_Mot.SV", "ACR_Mot.TV", "ACR_Pmp.PV", "ACR_Pmp.SV",
+                     "ACR_Pmp.TV", "Pres.PV", "Temp.PV")
+
+
 def _cira_frame(
-    pump: str, start: str, n: int, dup_at: int | None = None, gap_at: int | None = None
+    pump: str,
+    start: str | None = None,
+    n: int | None = None,
+    dup_at: int | None = None,
+    gap_at: int | None = None,
+    ts_fmt: str = "%Y-%m-%d %H:%M:%S",
+    timestamps: list[pd.Timestamp] | None = None,
 ):
-    ts = pd.date_range(start, periods=n, freq="10s")
-    if gap_at is not None:
-        ts = ts.append(pd.date_range(ts[-1] + pd.Timedelta("10min"), periods=5, freq="10s"))
-    ts = list(ts)
+    if timestamps is None:
+        ts = pd.date_range(start, periods=n, freq="10s")
+        if gap_at is not None:
+            ts = ts.append(pd.date_range(ts[-1] + pd.Timedelta("10min"), periods=5, freq="10s"))
+        ts = list(ts)
+    else:
+        ts = list(timestamps)
     if dup_at is not None:
         ts[dup_at] = ts[dup_at - 1]
     rng = np.random.default_rng(len(pump))
-    return pd.DataFrame({
-        "Timestamp": [t.strftime("%Y-%m-%d %H:%M:%S") for t in ts],
-        f"{pump}_vib_pump": rng.normal(2, 0.1, len(ts)),
-        f"{pump}_temp_casing": rng.normal(40, 1, len(ts)),
-        f"{pump}_pressure_out": rng.normal(12, 0.2, len(ts)),
-    })
+    frame = {"Timestamp": [t.strftime(ts_fmt) for t in ts]}
+    for h in CIRA_PUMP_HEADERS:
+        frame[f"{pump}_{h}"] = rng.normal(20, 1, len(ts))
+    frame["Barometer"] = rng.normal(1018, 0.1, len(ts))
+    frame["Temperature"] = rng.normal(20, 0.3, len(ts))
+    return pd.DataFrame(frame)
+
+
+@pytest.fixture
+def make_cira_frame():
+    return _cira_frame
 
 
 @pytest.fixture

@@ -9,7 +9,7 @@ on public data; no refinery data, no plant alarms, no control actions.
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest                          # 16 tests on synthetic fixtures
+pytest                          # 36 tests on synthetic fixtures
 pumpcopilot acquire             # downloads ZeMA (UCI) and CIRA (Zenodo API) into data/raw/
 pumpcopilot audit zema          # -> reports/zema_audit.json
 pumpcopilot audit cira          # -> reports/cira_audit.json
@@ -35,4 +35,6 @@ docs/adr/                      decisions that adjust the original scope
 
 ## Data
 Raw data is never committed. See `data/manifest.yaml` for sources, citations and license status.
-CIRA reuse terms are unverified; do not redistribute raw files.
+CIRA is CC BY 4.0 (from Zenodo metadata, retrieved 2026-09-24; the data descriptor states the
+same). We use Zenodo record 18479728, version 2 of 2. Any reuse must credit the authors
+(citation in the manifest).

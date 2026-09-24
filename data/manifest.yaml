@@ -14,8 +14,26 @@ sources:
     title: Centrifugal Pump Dataset, CIRA
     citation: Martone and Zazzaro. Zenodo. Data descriptor in Data 2025, 10(6), 91, DOI 10.3390/data10060091
     landing_page: https://zenodo.org/records/18479728
-    download: {kind: zenodo, record_id: "18479728"}   # scope says v2; an earlier record is 15301820. acquire prints version metadata to confirm.
-    license: UNVERIFIED  # confirm reuse terms with the dataset authors before redistributing anything
+    download: {kind: zenodo, record_id: "18479728"}
+    # Versions of concept record 15301819, listed via the Zenodo API (retrieved 2026-09-24);
+    # acquire re-lists them into manifest.lock.json on every run.
+    concept_record_id: "15301819"
+    versions:
+      - {record_id: "15301820", version_number: 1, version_label: "1.0", published: 2025-05-15, files: 10}
+      - {record_id: "18479728", version_number: 2, version_label: null, published: 2026-02-04, files: 9}
+    downloaded: {record_id: "18479728", version_number: 2, of: 2, latest: true}   # the scope's "v2"
+    # Version 1 is the one cited by the data descriptor. Its other 9 files have the same md5 as
+    # the 9 files in version 2.
+    not_used:
+      - record_id: "15301820"
+        file: C_2024-10-30.csv
+        bytes: 6144055
+        zenodo_checksum: "md5:1ee09c859372756f6232300363d1476b"
+        reason: >-
+          Present only in version 1; version 2 (downloaded) drops it. The descriptor and both
+          READMEs say pump C was turned off on 2024-10-30, so this file is not used and not
+          downloaded. Its contents have not been inspected.
+    license: cc-by-4.0  # from Zenodo metadata, retrieved 2026-09-24; the data descriptor also states CC-BY 4.0
     expected_sha256: null
     role: real centrifugal pump telemetry replay; normal operation only, no fault labels
 

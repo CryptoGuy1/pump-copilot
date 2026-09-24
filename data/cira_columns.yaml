@@ -1,5 +1,75 @@
-# Fill in AFTER running `pumpcopilot audit cira` and reading the data descriptor
-# (Data 2025, 10(6), 91). Keys are headers with the pump prefix removed.
-# Set unit_verified: true only when the unit is confirmed from the descriptor.
-# example:
-# pump_vibration_header_here: {signal: pump_vibration, unit: "mm/s", unit_verified: false}
+# CIRA column map. Keys are the headers found in reports/cira_audit.json (all 8 files carry the
+# same 10 measurement headers) with the pump prefix ("A_", "B_", "C_") removed.
+# Units and descriptions: data descriptor, Martone et al., Data 2025, 10(6), 91,
+# Table 2 "CSV header column names, their descriptions, and UoM".
+# unit_verified: true only where Table 2 states the unit for this exact header.
+#
+# Discrepancies between the documentation and the files:
+# - Table 2 and the Zenodo README list X_Temp.SV and X_Pres.SV. Every file has X_Temp.PV and
+#   X_Pres.PV instead (the descriptor's own statistics, Tables 4-6, also use .PV). Their units
+#   below come from the .SV rows matched by description, so they stay unit_verified: false.
+#   This is more than a naming slip. The sensors are WirelessHART devices (descriptor sec. 3.1),
+#   and in HART PV, SV, TV and QV are different device variables: Primary, Secondary, Tertiary
+#   and Quaternary. Each device's configuration decides which physical quantity sits in which
+#   slot, and each slot can carry its own unit. The accelerometer headers show this: .PV is
+#   velocity, .SV the acceleration peak, .TV the contact temperature. So a unit stated for
+#   X_Temp.SV does not automatically apply to X_Temp.PV. Confirm with the authors or the
+#   device configuration before setting these to true.
+# - The Zenodo README calls X_ACR_*.PV "displacement"; Table 2 calls it "vibrational velocity".
+#   Both give m/s. We follow Table 2.
+# - X_ACR_*.SV: "calculated internally by the accelerometer as the maximum acceleration detected
+#   within the one-second interval preceding each measurement", after a 1 kHz high-pass (sec. 2).
+# - Table 2 gives outlet pressure in bar without saying gauge or absolute.
+# - Timestamps: README and Table 2 give YYYY-MM-DD hh:mm:ss with no timezone; the files carry a
+#   Z suffix, and section 3.1 says the gateway timestamps in UTC with 1 s resolution.
+
+ACR_Mot.PV:
+  signal: motor_vibration_velocity
+  unit: "m/s"
+  unit_verified: true
+  description: vibrational velocity measured by the motor accelerometer
+ACR_Mot.SV:
+  signal: motor_acceleration_peak
+  unit: "m/s^2"
+  unit_verified: true
+  description: peak value measured by the motor accelerometer
+ACR_Mot.TV:
+  signal: motor_accelerometer_contact_temperature
+  unit: degC
+  unit_verified: true
+  description: contact temperature of the motor accelerometer
+ACR_Pmp.PV:
+  signal: pump_vibration_velocity
+  unit: "m/s"
+  unit_verified: true
+  description: vibrational velocity measured by the pump accelerometer
+ACR_Pmp.SV:
+  signal: pump_acceleration_peak
+  unit: "m/s^2"
+  unit_verified: true
+  description: peak value measured by the pump accelerometer
+ACR_Pmp.TV:
+  signal: pump_accelerometer_contact_temperature
+  unit: degC
+  unit_verified: true
+  description: contact temperature of the pump accelerometer
+Pres.PV:
+  signal: outlet_pressure
+  unit: bar
+  unit_verified: false  # Table 2 states bar for X_Pres.SV, not for this header
+  description: outlet fluid pressure from the pump
+Temp.PV:
+  signal: motor_casing_temperature
+  unit: degC
+  unit_verified: false  # Table 2 states degC for X_Temp.SV, not for this header
+  description: motor casing temperature
+Barometer:
+  signal: ambient_pressure
+  unit: mbar
+  unit_verified: true
+  description: atmospheric pressure
+Temperature:
+  signal: ambient_temperature
+  unit: degC
+  unit_verified: true
+  description: ambient temperature

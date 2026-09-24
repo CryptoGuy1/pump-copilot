@@ -71,10 +71,40 @@ def acquire_url(name: str, spec: dict, raw_root: Path) -> dict:
     return {"source": name, "files": [entry]}
 
 
+def _zenodo_versions(conceptrecid: str) -> list[dict]:
+    """All versions of a Zenodo concept record, oldest first (sorted by relations index)."""
+    # size is capped at 25 for anonymous requests (larger values return HTTP 400)
+    url = (f"https://zenodo.org/api/records?q=conceptrecid:{conceptrecid}"
+           "&allversions=true&sort=version&size=25")
+    hits = []
+    while url:
+        page = _fetch_json(url)
+        hits += page["hits"]["hits"]
+        url = page.get("links", {}).get("next")
+    versions = []
+    for h in hits:
+        md = h.get("metadata", {})
+        rel = (md.get("relations", {}).get("version") or [{}])[0]
+        index = rel.get("index")
+        versions.append({
+            "record_id": str(h["id"]),
+            "doi": h.get("doi"),
+            "version": md.get("version"),
+            "publication_date": md.get("publication_date"),
+            "version_number": None if index is None else index + 1,
+            "is_latest": rel.get("is_last"),
+            "files": len(h.get("files", [])),
+        })
+    return sorted(versions, key=lambda v: (v["version_number"] is None, v["version_number"]))
+
+
 def acquire_zenodo(name: str, spec: dict, raw_root: Path) -> dict:
-    rec_id = spec["download"]["record_id"]
+    rec_id = str(spec["download"]["record_id"])
     meta = _fetch_json(f"https://zenodo.org/api/records/{rec_id}")
     md = meta.get("metadata", {})
+    conceptrecid = meta.get("conceptrecid")
+    versions = _zenodo_versions(conceptrecid) if conceptrecid else []
+    ours = next((v for v in versions if v["record_id"] == rec_id), {})
     files = []
     for f in meta.get("files", []):
         url = f["links"]["self"]
@@ -95,6 +125,15 @@ def acquire_zenodo(name: str, spec: dict, raw_root: Path) -> dict:
             "title": md.get("title"),
             "license": (md.get("license") or {}).get("id", "NOT STATED"),
             "access_right": md.get("access_right"),
+            "conceptrecid": conceptrecid,
+            "conceptdoi": meta.get("conceptdoi"),
+            "versions": versions,
+            "downloaded": {
+                "record_id": rec_id,
+                "version_number": ours.get("version_number"),
+                "of": len(versions),
+                "is_latest": ours.get("is_latest"),
+            },
         },
         "files": files,
     }
