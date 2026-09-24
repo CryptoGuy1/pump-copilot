@@ -59,6 +59,13 @@ def _cira_frame(
     frame = {"Timestamp": [t.strftime(ts_fmt) for t in ts]}
     for h in CIRA_PUMP_HEADERS:
         frame[f"{pump}_{h}"] = rng.normal(20, 1, len(ts))
+    # outlet pressure like the real pumps: idle about 0.5 bar, then running about 40 bar
+    n_off = len(ts) // 3
+    frame[f"{pump}_Pres.PV"] = np.r_[rng.normal(0.5, 0.01, n_off),
+                                     rng.normal(40, 0.5, len(ts) - n_off)]
+    # motor peak acceleration follows: idle about 0.47 m/s^2, running about 20 m/s^2
+    frame[f"{pump}_ACR_Mot.SV"] = np.r_[rng.normal(0.47, 0.01, n_off),
+                                        rng.normal(20, 1.0, len(ts) - n_off)]
     frame["Barometer"] = rng.normal(1018, 0.1, len(ts))
     frame["Temperature"] = rng.normal(20, 0.3, len(ts))
     return pd.DataFrame(frame)

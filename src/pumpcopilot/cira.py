@@ -281,34 +281,50 @@ def audit(raw_dir: Path) -> dict:
     }
 
 
+def timestamp_flags(ts: pd.Series) -> tuple[np.ndarray, np.ndarray]:
+    """Per row: (duplicate of an earlier timestamp, earlier than the latest timestamp so far)."""
+    dup = (ts.duplicated() & ts.notna()).to_numpy()
+    prev_max = ts.cummax().ffill().shift()
+    nonmono = (ts < prev_max).fillna(False).to_numpy(dtype=bool)
+    return dup, nonmono
+
+
 def to_events(
-    path: Path, column_map: dict[str, dict], asset_prefix: str = "cira-pump-"
+    path: Path, column_map: dict[str, dict], asset_prefix: str = "cira-pump-",
+    rules: dict | None = None,
 ) -> Iterator[TelemetryEvent]:
     """Emit canonical events. column_map: {original_header_without_pump_prefix: {signal, unit}}.
 
     Unmapped measurement columns are an error: we never silently drop or guess a signal.
+    With rules (data/operating_rules.yaml), events carry the derived operating state and the
+    stale/spike flags; without, the state is unknown. Values are never changed either way.
     """
     pump, day = parse_name(path)
-    df, ts_col, _ = load(path)
+    ann = None
+    if rules is not None:
+        from .operating import annotate
+
+        ann = annotate(path, rules)
+        df, ts_col = ann.df, ann.ts_col
+    else:
+        df, ts_col, _ = load(path)
     strip = re.compile(rf"^{pump}_")  # "Barometer" must not lose its B for pump B
     rename = {c: strip.sub("", str(c)) for c in df.columns if c != ts_col}
     unmapped = sorted(set(rename.values()) - set(column_map))
     if unmapped:
         raise KeyError(f"{path.name}: unmapped columns {unmapped}; add them to cira_columns.yaml")
 
-    seen_ts: set = set()
-    prev = None
-    for row_idx, row in df.iterrows():
+    dup, nonmono = timestamp_flags(df[ts_col])
+    for pos, (row_idx, row) in enumerate(df.iterrows()):
         ts = row[ts_col]
         if pd.isna(ts):
             continue
         base_flags: list[QualityFlag] = []
-        if ts in seen_ts:
+        if dup[pos]:
             base_flags.append(QualityFlag.DUPLICATE_TIMESTAMP)
-        if prev is not None and ts < prev:
+        if nonmono[pos]:
             base_flags.append(QualityFlag.NON_MONOTONIC)
-        seen_ts.add(ts)
-        prev = ts if prev is None or ts > prev else prev
+        state = ann.states[pos] if ann else OperatingState.UNKNOWN
         for orig, short in rename.items():
             spec = column_map[short]
             raw = pd.to_numeric(row[orig], errors="coerce")
@@ -320,6 +336,10 @@ def to_events(
                 flags.append(QualityFlag.PLACEHOLDER_SUSPECTED)
             if spec.get("unit_verified") is not True:
                 flags.append(QualityFlag.UNIT_UNVERIFIED)
+            if ann and ann.stale[orig][pos]:
+                flags.append(QualityFlag.STALE_SUSPECTED)
+            if ann and ann.spike[orig][pos]:
+                flags.append(QualityFlag.SPIKE_SUSPECTED)
             yield TelemetryEvent(
                 asset_id=f"{asset_prefix}{pump}",
                 source_dataset=SourceDataset.CIRA,
@@ -330,7 +350,7 @@ def to_events(
                 signal_name=spec["signal"],
                 value=value,
                 unit=spec["unit"],
-                operating_state=OperatingState.UNKNOWN,  # set by explicit rules in step 2
+                operating_state=state,
                 quality_flags=tuple(flags),
                 provenance_hash=record_hash("cira", path.name, f"{row_idx}:{orig}", value),
             )

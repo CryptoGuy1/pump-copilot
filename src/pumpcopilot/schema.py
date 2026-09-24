@@ -41,6 +41,8 @@ class QualityFlag(StrEnum):
     GAP_BEFORE = "gap_before"
     PLACEHOLDER_SUSPECTED = "placeholder_suspected"
     UNIT_UNVERIFIED = "unit_unverified"
+    STALE_SUSPECTED = "stale_suspected"  # same value held longer than the signal's stale limit
+    SPIKE_SUSPECTED = "spike_suspected"  # robust z-score outlier, evaluated in running state only
 
 
 class PresentationState(StrEnum):
