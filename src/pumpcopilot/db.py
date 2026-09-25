@@ -88,6 +88,59 @@ def migrate(conn: psycopg.Connection, directory: Path = MIGRATIONS) -> list[str]
         conn.execute("SELECT pg_advisory_unlock(%s)", [_LOCK])
 
 
+# --- reset (local development only) ------------------------------------------------------
+
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
+PROTECTED_DATABASES = {"postgres", "template0", "template1"}
+
+
+def is_local_url(url: str) -> bool:
+    """True only if every host the URL can reach is this machine (loopback or a unix socket).
+    An unset host falls back to PGHOST/PGHOSTADDR, as libpq does."""
+    from psycopg.conninfo import conninfo_to_dict
+
+    d = conninfo_to_dict(url)
+    hosts = d.get("host") or os.environ.get("PGHOST") or ""
+    addrs = d.get("hostaddr") or os.environ.get("PGHOSTADDR") or ""
+    for a in filter(None, (x.strip() for x in str(addrs).split(","))):
+        if a not in ("127.0.0.1", "::1"):
+            return False
+    for h in (x.strip() for x in str(hosts).split(",")):
+        if h and not h.startswith("/") and h.strip("[]") not in LOCAL_HOSTS:
+            return False
+    return True
+
+
+def _describe(url: str) -> str:
+    """host/dbname without the password, for messages."""
+    from psycopg.conninfo import conninfo_to_dict
+
+    d = conninfo_to_dict(url)
+    return f"{d.get('host') or os.environ.get('PGHOST') or '(local socket)'}/{d.get('dbname')}"
+
+
+def reset_database(url: str, confirm: bool = False) -> dict:
+    """Drop and recreate the database at `url`, then apply all migrations. Refuses anything
+    that is not on this machine, and needs confirm=True."""
+    from psycopg import sql
+    from psycopg.conninfo import conninfo_to_dict, make_conninfo
+
+    if not is_local_url(url):
+        raise ValueError(f"refusing to reset {_describe(url)}: not a local database")
+    if not confirm:
+        raise ValueError("reset drops the whole database; pass confirm=True (--yes-i-mean-it)")
+    name = conninfo_to_dict(url).get("dbname")
+    if not name or name in PROTECTED_DATABASES:
+        raise ValueError(f"refusing to reset database {name!r}")
+    with psycopg.connect(make_conninfo(url, dbname="postgres"), autocommit=True) as admin:
+        admin.execute(sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(
+            sql.Identifier(name)))
+        admin.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(name)))
+    with connect(url) as c:
+        applied = migrate(c)
+    return {"database": _describe(url), "applied": applied}
+
+
 # --- loading -----------------------------------------------------------------------------
 
 TELEMETRY_COLS = ("observed_at", "asset_id", "source_day", "source_file", "sample_id",
@@ -256,6 +309,38 @@ def fetch_segments(conn: psycopg.Connection, asset_id: str, source_day: dt.date,
 
 
 QUERY_FUNCTIONS = (fetch_raw, fetch_day_1m, fetch_readings, fetch_segments)
+
+
+# --- storage -----------------------------------------------------------------------------
+
+def storage_report(conn: psycopg.Connection) -> dict:
+    """Bytes per hypertable (table, index, toast, total), rows, and compression state."""
+    out: dict = {}
+    for t in ("telemetry", "readings"):
+        tb, ib, toast, tot = conn.execute(
+            "SELECT table_bytes, index_bytes, toast_bytes, total_bytes FROM"
+            " hypertable_detailed_size(%s)", [t]).fetchone()
+        chunks = conn.execute(
+            "SELECT count(*), count(*) FILTER (WHERE is_compressed) FROM"
+            " timescaledb_information.chunks WHERE hypertable_name = %s", [t]).fetchone()
+        out[t] = {"table_bytes": tb, "index_bytes": ib, "toast_bytes": toast,
+                  "total_bytes": tot or 0,
+                  "rows": conn.execute(f"SELECT count(*) FROM {t}").fetchone()[0],
+                  "chunks": chunks[0], "compressed_chunks": chunks[1]}
+        stats = conn.execute(
+            "SELECT sum(before_compression_total_bytes), sum(after_compression_total_bytes)"
+            " FROM chunk_compression_stats(%s)", [t]).fetchone()
+        if stats[0]:
+            out[t]["before_compression_bytes"] = int(stats[0])
+            out[t]["after_compression_bytes"] = int(stats[1])
+    out["telemetry_1m"] = {"total_bytes": conn.execute(
+        "SELECT hypertable_size(format('%I.%I', materialization_hypertable_schema,"
+        " materialization_hypertable_name)::regclass) FROM"
+        " timescaledb_information.continuous_aggregates WHERE view_name = 'telemetry_1m'"
+    ).fetchone()[0] or 0}
+    out["database"] = {"total_bytes": conn.execute(
+        "SELECT pg_database_size(current_database())").fetchone()[0]}
+    return out
 
 
 # --- performance check -------------------------------------------------------------------

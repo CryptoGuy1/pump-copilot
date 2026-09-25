@@ -407,8 +407,11 @@ def score_frame(prep: Prepared, base: Baseline, cfg: dict,
                 st, why = P.DATA_UNAVAILABLE, f"no samples for {sig} in window"
             elif stale_sig is not None and len(held := stale_sig[
                     (stale_sig.start < row.end) & (stale_sig.end > row.start)]):
+                # 4a: the hold as known at the window end, not the full hold (known only later)
+                read_at = held.end - pd.to_timedelta(held.held_s, unit="s")
+                so_far = np.minimum(held.held_s, (row.end - read_at).dt.total_seconds())
                 st, why = P.INSUFFICIENT_EVIDENCE, (
-                    f"stale_suspected: {sig} reading held {held.held_s.max():.0f} s "
+                    f"stale_suspected: {sig} reading held {so_far.max():.0f} s "
                     "(stuck sensor suspected)")
             elif row.fresh < band["min_fresh"]:
                 st = P.INSUFFICIENT_EVIDENCE
@@ -1136,7 +1139,8 @@ def score_within_run_steady(prep: Prepared, cfg: dict, feats: pd.DataFrame | Non
                         x, mid, _hash(versions)[:16], prep.normalization)
         bases.append(base)
         g = f[f.stretch == k]
-        cut_of = g.signal_name.map(cuts)
+        # 4a fix: with no baseline in the run the map is all-NaN (object) and cannot be compared
+        cut_of = pd.to_datetime(g.signal_name.map(cuts), utc=True)
         scored = g[g.signal_name.isin(cuts) & (g.start >= cut_of)]
         rest = g[~g.signal_name.isin(cuts) & (g.start >= a + pd.Timedelta(seconds=x))]
         rows = pd.concat([scored, rest])

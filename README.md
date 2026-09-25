@@ -21,6 +21,14 @@ pumpcopilot db load cira        # idempotent: a second run inserts 0 rows
 pumpcopilot db perf             # -> reports/db_perf.json
 pumpcopilot score tune          # B June only -> data/scoring_config.yaml (frozen)
 pumpcopilot score eval          # fit June, score October -> reports/cira_scoring_eval.md
+pumpcopilot db storage          # bytes per hypertable, compression state
+pumpcopilot db reset --yes-i-mean-it  # drop, recreate and migrate; refuses non-local URLs
+pumpcopilot replay create cira-pump-B 2024-10-30 --speed 60 [--scenario B_stuck_pressure]
+pumpcopilot worker --until-idle # claims sessions (FOR UPDATE SKIP LOCKED), scores with 3a-3
+pumpcopilot replay pause|resume|rewind|latency|verify <id>
+                                # rewind replays from the start; stored scores and case
+                                # events are kept and nothing is appended twice
+pumpcopilot case list|show|ack|note|dispose|close|export [<id>] [--by NAME]
 ```
 
 ## Step 1 exit criteria (scope Week 1 stop rule)

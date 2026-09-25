@@ -607,6 +607,17 @@ Review episodes merged into cases (same asset and run, less than 15 min apart). 
 | 3a-3 within-run steady | B | 1 | [1] | 0.15 | 90.5% |
 | 3a-3 within-run steady | A | 2 | [2] | 0.8704 | 55.9% |
 
+## Post-pre-registration corrections
+
+Two changes were made to `src/pumpcopilot/scoring.py` after the pre-registration commit and after October was scored, while building the Step 4a replay worker. Neither is a detector revision.
+
+1. **`score_within_run_steady` no longer crashes on a run with no baseline yet.** With no signal's baseline complete, the per-signal cut times were all missing, and comparing window starts with them raised an error. Replay reaches that state early in every run; batch scoring of the scored days never did. The cut times are now typed as timestamps, so such a run simply scores nothing yet.
+2. **The stale-evidence reason reports the hold known at the window end.** It said `reading held N s` with the full hold of the reading, which is only known once the hold ends. It now gives the hold up to the window's end. Only the text changes: the window's state (`insufficient_evidence`, stale_suspected) is decided as before.
+
+**All states and cases above are unchanged.** October was re-scored with the corrected code for 3a, 3a-2 and 3a-3, in memory and without overwriting anything. States per signal, review episodes, cases per mode and the synthetic detections (detected or not, delay, detected-as state) all equal the stored results. The only differences are in the `reasons` text of synthetic stuck detections in the stored JSON results: 89 in 3a-2 and 45 in 3a-3 now give the shorter, as-known hold. The stored JSON keeps the text as scored; this report does not show it. **This report regenerates identically** from the stored results; this section is the only addition.
+
+`pumpcopilot score eval-3a3 --prereg 385263d` now refuses to run, because `src/pumpcopilot` has changed since that commit. That is intended: the pre-registered scoring happened once, before these corrections.
+
 ## This is the last detector revision
 
 3a-3 is the last detector revision for CIRA. The detector code and configuration are frozen as scored above; further ideas are recorded here as future work and are not implemented.

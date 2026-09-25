@@ -259,3 +259,44 @@ baseline start at the run start, and it made the baseline rule depend on the tun
 from the operator or the dataset authors. Or estimate settling per signal from several
 labelled normal starts. Not from the scored days, and not as part of 3a-3, which is the last
 detector revision.
+
+---
+
+## A8: Replay uses declared per-day constants and stored ingest annotations
+
+**Assumption.** A replay session (Step 4a) scores only readings observed at or before its
+cursor, but two kinds of input come from the whole stored day:
+
+1. **Day constants**, recorded on the session (`replay_sessions.day_constants`):
+   - each scored signal's median reading interval over the day, which sets the 3a-3 window
+     length (`window_readings` x interval);
+   - the day's scored signals;
+   - the stale limits from `data/operating_rules.yaml`.
+2. **Ingest annotations** stored with each reading at load time: operating state, the
+   `stale_suspected` and `spike_suspected` flags, and the operating-state segments.
+
+Batch 3a-3 uses the same values, so replay reproduces batch scoring exactly. That is what the
+equivalence tests check.
+
+**Evidence.**
+- The intervals are a real lookahead. Taken from the readings known when a signal's baseline
+  completes, instead of from the whole day, the window length differs on the real days. For
+  example, B October motor peak is 420 s instead of 360 s. On B June the pump accelerometer's
+  window is 60 s instead of 360 s, because its cadence changed during the day.
+- The annotations have a bounded lookahead:
+  - operating state: the minimum state duration of 1.5 pressure readings and the 2-reading
+    transition window;
+  - spike flag: the revert within 2 readings;
+  - stale flag: set on a reading once its hold passes the limit, 64–123 s by signal. Scoring
+    already uses stale evidence only from reading time + limit.
+
+**Impact if wrong.** Live, none of these would be known in advance.
+- A cadence change during a run would give a different window length than replay uses.
+- A reading could be counted as eligible for up to one spike-revert window or one stale limit
+  before it would be excluded live.
+- Replay latency and scores are therefore those of the frozen 3a-3 detector fed its batch
+  inputs, not of a fully causal detector.
+
+**How to revisit.** A causal detector would fix the window length per signal when its
+baseline completes, and derive state and flags online with an explicit decision delay. That
+is a detector change and belongs to future work (3a-3 is the last detector revision).

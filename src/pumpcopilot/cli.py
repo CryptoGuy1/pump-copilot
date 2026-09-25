@@ -1,4 +1,4 @@
-"""pumpcopilot acquire | audit zema|cira | rules cira | state cira | db migrate|load|perf"""
+"""pumpcopilot acquire | audit | rules | state | db | score | replay | worker | case"""
 
 from __future__ import annotations
 
@@ -35,13 +35,40 @@ def main(argv: list[str] | None = None) -> None:
     st = sub.add_parser("state", help="operating state and quality flags per pump-day")
     st.add_argument("dataset", choices=["cira"])
     dbp = sub.add_parser("db", help="Timescale: migrate, load cira, perf (uses DATABASE_URL)")
-    dbp.add_argument("action", choices=["migrate", "load", "perf"])
+    dbp.add_argument("action", choices=["migrate", "load", "perf", "storage", "reset"])
     dbp.add_argument("dataset", nargs="?", choices=["cira"], default="cira")
+    dbp.add_argument("--yes-i-mean-it", action="store_true",
+                     help="reset: drop and recreate the (local only) database")
     sc = sub.add_parser("score", help="tune (B June only, freezes config) or eval (fit/score)")
     sc.add_argument("action", choices=["tune", "tune-revision", "eval", "tune-3a3", "report",
                                        "eval-3a3"])
     sc.add_argument("dataset", nargs="?", choices=["cira"], default="cira")
     sc.add_argument("--prereg", help="eval-3a3: the pre-registration commit")
+    rp = sub.add_parser("replay", help="replay sessions: create, list, pause, resume, rewind,"
+                        " latency, verify")
+    rp.add_argument("action", choices=["create", "list", "pause", "resume", "rewind",
+                                       "latency", "verify"])
+    rp.add_argument("target", nargs="?", help="session id, or the asset for create")
+    rp.add_argument("day", nargs="?", help="create: the source day (YYYY-MM-DD)")
+    rp.add_argument("--speed", type=int, default=60, choices=[1, 10, 60])
+    rp.add_argument("--scenario", help="create: a synthetic scenario (in memory only)")
+    wk = sub.add_parser("worker", help="claim replay sessions and advance their cursors")
+    wk.add_argument("--poll", type=float, default=0.1, help="seconds between idle polls")
+    wk.add_argument("--until-idle", action="store_true",
+                    help="exit when no session is pending or running")
+    wk.add_argument("--max-seconds", type=float)
+    cs = sub.add_parser("case", help="cases: list, show, ack, note, dispose, close, export")
+    cs.add_argument("action", choices=["list", "show", "ack", "note", "dispose", "close",
+                                       "export"])
+    cs.add_argument("case_id", nargs="?", type=int)
+    cs.add_argument("--session", type=int)
+    cs.add_argument("--by", help="who is acting (default: $USER)")
+    cs.add_argument("--text", help="note text")
+    cs.add_argument("--disposition", help="one of: " + "; ".join(
+        ["monitor", "known condition, no action", "data quality issue",
+         "escalate to reliability engineer (export only)"]))
+    cs.add_argument("--reason", help="why (required for a disposition)")
+    cs.add_argument("--out", help="export: file to write (default reports/case_<id>.json)")
     args = p.parse_args(argv)
 
     if args.cmd == "acquire":
@@ -54,8 +81,21 @@ def main(argv: list[str] | None = None) -> None:
         _derive_rules()
     elif args.cmd == "state":
         _state_report()
+    elif args.cmd == "db" and args.action == "reset":
+        _db_reset(args.yes_i_mean_it)
     elif args.cmd == "db":
         _db(args.action)
+    elif args.cmd == "replay":
+        _replay(args)
+    elif args.cmd == "worker":
+        from . import db, replay
+
+        with db.connect() as conn:
+            db.migrate(conn)
+            replay.Worker(conn).run(poll_s=args.poll, until_idle=args.until_idle,
+                                    max_s=args.max_seconds)
+    elif args.cmd == "case":
+        _case(args)
     elif args.cmd == "score":
         if args.action in ("tune-3a3", "report", "eval-3a3"):
             _score_3a3(args.action, args.prereg)
@@ -112,6 +152,20 @@ if __name__ == "__main__":
     main()
 
 
+def _db_reset(confirmed: bool) -> None:
+    from . import db
+
+    url = db.database_url()
+    if not db.is_local_url(url):
+        raise SystemExit(f"refusing to reset {db._describe(url)}: not a local database")
+    if not confirmed:
+        raise SystemExit(f"db reset drops {db._describe(url)} entirely; rerun with "
+                         "--yes-i-mean-it")
+    res = db.reset_database(url, confirm=True)
+    print(f"[reset] {res['database']} dropped, recreated and migrated "
+          f"({len(res['applied'])} migrations); load data again with `pumpcopilot db load cira`")
+
+
 def _db(action: str) -> None:
     import datetime as dt
 
@@ -133,6 +187,9 @@ def _db(action: str) -> None:
                 print(f"  {r['file']:18} {r['telemetry_inserted']:12d} {r['telemetry_skipped']:9d}"
                       f" {r['readings_inserted']:11d} {r['readings_skipped']:8d}"
                       f" {r['segments_inserted']:10d} {r['segments_skipped']:8d}")
+        elif action == "storage":
+            rep = db.storage_report(conn)
+            print(json.dumps(rep, indent=2, default=str))
         elif action == "perf":
             res = db.perf_check(conn, "cira-pump-B", dt.date(2024, 6, 11),
                                 dt.datetime(2024, 6, 11, 10, 0, tzinfo=dt.UTC))
@@ -142,6 +199,86 @@ def _db(action: str) -> None:
             for k in ("day_1m", "hour_raw"):
                 print(f"    {k:9} {res[k]['rows']:7d} rows  median {res[k]['median_ms']} ms"
                       f"  best {res[k]['best_ms']} ms  ({res['repeats']} runs)")
+
+
+def _replay(args) -> None:
+    import datetime as dt
+
+    from . import db, replay
+
+    with db.connect() as conn:
+        db.migrate(conn)
+        if args.action == "create":
+            if not (args.target and args.day):
+                raise SystemExit("replay create needs ASSET DAY, e.g. cira-pump-B 2024-10-30")
+            sid = replay.create_session(conn, args.target, dt.date.fromisoformat(args.day),
+                                        args.speed, scenario=args.scenario,
+                                        stale_limits=_stale_limits())
+            print(f"[created] replay session {sid}: {args.target} {args.day} at "
+                  f"{args.speed}x" + (f", SYNTHETIC scenario {args.scenario}"
+                                      if args.scenario else "") + " (status pending)")
+            return
+        if args.action == "list":
+            for s in replay.list_sessions(conn):
+                print(f"  {s['session_id']:4d} {s['asset_id']} {s['source_day']} "
+                      f"{s['speed']:2d}x {s['status']:9} cursor {s['cursor_at']}"
+                      + (f"  SYNTHETIC {s['scenario']}" if s["synthetic"] else ""))
+            return
+        if not args.target:
+            raise SystemExit(f"replay {args.action} needs a session id")
+        sid = int(args.target)
+        if args.action == "pause":
+            replay.pause_session(conn, sid)
+        elif args.action == "resume":
+            replay.resume_session(conn, sid)
+        elif args.action == "rewind":
+            replay.rewind_session(conn, sid)
+        elif args.action == "latency":
+            res = replay.latency(conn, sid)
+            REPORTS.mkdir(exist_ok=True)
+            (REPORTS / f"replay_latency_{sid}.json").write_text(json.dumps(res, indent=2))
+            print(json.dumps(res, indent=2))
+            return
+        elif args.action == "verify":
+            print(json.dumps(replay.verify(conn, sid), indent=2))
+            return
+        s = replay.get_session(conn, sid)
+        print(f"[{args.action}] session {sid}: {s['status']}, cursor {s['cursor_at']}")
+
+
+def _case(args) -> None:
+    import getpass
+
+    from . import cases, db
+
+    actor = args.by or getpass.getuser()
+    with db.connect() as conn:
+        db.migrate(conn)
+        if args.action == "list":
+            for c in cases.list_cases(conn, session_id=args.session):
+                print(f"  {c['case_id']:5d} session {c['session_id']} {c['asset_id']} run "
+                      f"{c['stretch']} {c['evidence_start']:%H:%M}-{c['evidence_end']:%H:%M} "
+                      f"{c['status']:13} {c['episodes']} episodes {sorted(c['signals'])}"
+                      + ("  SYNTHETIC" if c["synthetic"] else ""))
+            return
+        if args.case_id is None:
+            raise SystemExit(f"case {args.action} needs a case id")
+        cid = args.case_id
+        if args.action == "ack":
+            cases.acknowledge(conn, cid, actor)
+        elif args.action == "note":
+            cases.note(conn, cid, actor, args.text or "")
+        elif args.action == "dispose":
+            cases.dispose(conn, cid, actor, args.disposition or "", args.reason or "")
+        elif args.action == "close":
+            cases.close(conn, cid, actor)
+        elif args.action == "export":
+            out = Path(args.out) if args.out else REPORTS / f"case_{cid}.json"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps(cases.export(conn, cid), indent=2, default=str))
+            print(f"[exported] case {cid} -> {out}")
+            return
+        print(json.dumps(cases.get_case(conn, cid), indent=2, default=str))
 
 
 TUNING_GRID = {"k": [3.0, 4.0, 5.0, 6.0, 8.0], "consecutive_windows": [2, 3, 5],

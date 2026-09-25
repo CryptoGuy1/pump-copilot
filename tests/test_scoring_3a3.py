@@ -267,3 +267,9 @@ def test_3a3_report_has_protocol_prereg_cases_and_final_section():
                                                    "changed": []}, results=res, cases=cases)
     assert "abc1234" in md and "last detector revision" in md.lower()
     assert "Future work" in md and "cases per running hour" in md
+    corr = md.split("## Post-pre-registration corrections")[1].split("\n## ")[0]
+    assert "score_within_run_steady" in corr and "reading held" in corr
+    assert "unchanged" in corr and "regenerates identically" in corr
+    assert md.index("Post-pre-registration corrections") < md.index("last detector revision")
+    # the section only appears once October is scored
+    assert "Post-pre-registration corrections" not in protocol_only
