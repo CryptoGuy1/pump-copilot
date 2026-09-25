@@ -1,4 +1,4 @@
-"""pumpcopilot acquire | audit zema | audit cira"""
+"""pumpcopilot acquire | audit zema|cira | rules cira | state cira | db migrate|load|perf"""
 
 from __future__ import annotations
 
@@ -34,6 +34,9 @@ def main(argv: list[str] | None = None) -> None:
     ru.add_argument("dataset", choices=["cira"])
     st = sub.add_parser("state", help="operating state and quality flags per pump-day")
     st.add_argument("dataset", choices=["cira"])
+    dbp = sub.add_parser("db", help="Timescale: migrate, load cira, perf (uses DATABASE_URL)")
+    dbp.add_argument("action", choices=["migrate", "load", "perf"])
+    dbp.add_argument("dataset", nargs="?", choices=["cira"], default="cira")
     args = p.parse_args(argv)
 
     if args.cmd == "acquire":
@@ -46,6 +49,8 @@ def main(argv: list[str] | None = None) -> None:
         _derive_rules()
     elif args.cmd == "state":
         _state_report()
+    elif args.cmd == "db":
+        _db(args.action)
     elif args.dataset == "zema":
         _write("zema_audit", zema.audit(DATA / "raw" / "zema"))
     else:
@@ -95,3 +100,35 @@ def _state_report() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+def _db(action: str) -> None:
+    import datetime as dt
+
+    import yaml
+
+    from . import db
+
+    with db.connect() as conn:
+        applied = db.migrate(conn)
+        print(f"[migrate] applied {applied or 'nothing (up to date)'}")
+        if action == "load":
+            column_map = yaml.safe_load((DATA / "cira_columns.yaml").read_text())
+            runs = db.load_cira(conn, DATA / "raw" / "cira", column_map,
+                                DATA / "operating_rules.yaml")
+            conn.execute("ANALYZE telemetry; ANALYZE readings")
+            print(f"  {'file':18} {'telemetry +':>12} {'skipped':>9} {'readings +':>11}"
+                  f" {'skipped':>8} {'segments +':>10} {'skipped':>8}")
+            for r in runs:
+                print(f"  {r['file']:18} {r['telemetry_inserted']:12d} {r['telemetry_skipped']:9d}"
+                      f" {r['readings_inserted']:11d} {r['readings_skipped']:8d}"
+                      f" {r['segments_inserted']:10d} {r['segments_skipped']:8d}")
+        elif action == "perf":
+            res = db.perf_check(conn, "cira-pump-B", dt.date(2024, 6, 11),
+                                dt.datetime(2024, 6, 11, 10, 0, tzinfo=dt.UTC))
+            REPORTS.mkdir(exist_ok=True)
+            (REPORTS / "db_perf.json").write_text(json.dumps(res, indent=2))
+            print(f"  {res['asset_id']} {res['source_day']}:")
+            for k in ("day_1m", "hour_raw"):
+                print(f"    {k:9} {res[k]['rows']:7d} rows  median {res[k]['median_ms']} ms"
+                      f"  best {res[k]['best_ms']} ms  ({res['repeats']} runs)")

@@ -3,19 +3,22 @@
 Read-only decision support prototype for a refinery-style pump service. Portfolio demonstration
 on public data; no refinery data, no plant alarms, no control actions.
 
-**Status: Step 2a of the build (CIRA operating state and data-quality flags).**
+**Status: Step 2b of the build (CIRA loaded into Timescale).**
 
 ## Quick start
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest                          # 62 tests on synthetic fixtures
+pytest                          # 72 tests on synthetic fixtures; 7 need the db (skipped if down)
 pumpcopilot acquire             # downloads ZeMA (UCI) and CIRA (Zenodo API) into data/raw/
 pumpcopilot audit zema          # -> reports/zema_audit.json
 pumpcopilot audit cira          # -> reports/cira_audit.json
 pumpcopilot rules cira          # -> data/operating_rules.yaml, reports/cira_operating_rules.md
 pumpcopilot state cira          # -> reports/cira_state.json (state time, changes, stale/spike)
-docker compose up -d db         # Timescale, used from step 2
+docker compose up -d db         # Timescale; DATABASE_URL overrides the local default
+pumpcopilot db migrate          # applies migrations/NNNN_*.sql in order
+pumpcopilot db load cira        # idempotent: a second run inserts 0 rows
+pumpcopilot db perf             # -> reports/db_perf.json
 ```
 
 ## Step 1 exit criteria (scope Week 1 stop rule)
@@ -33,6 +36,8 @@ src/pumpcopilot/acquire.py     manifest-driven download, hash verify, lock file
 src/pumpcopilot/zema.py        ZeMA loader, audit, confounding tables, split preflight
 src/pumpcopilot/cira.py        CIRA per-file audit, canonical event conversion
 src/pumpcopilot/operating.py   CIRA operating state rules, stale/spike flags, state report
+src/pumpcopilot/db.py          migration runner, COPY + ON CONFLICT loader, per-asset-day queries
+migrations/                    numbered SQL: telemetry/readings hypertables, segments, runs, 1-min view
 docs/adr/                      decisions that adjust the original scope
 docs/ASSUMPTIONS.md            assumptions register: evidence, impact if wrong, how to revisit
 ```
