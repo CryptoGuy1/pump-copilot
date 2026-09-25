@@ -225,3 +225,21 @@ def test_load_succeeds_while_the_refresh_policy_is_running(conn, cira_dir, tmp_p
     raw = [r for r in db.fetch_raw(conn, "cira-pump-A", DAY, signals=["outlet_pressure"])
            if r["value"] is not None]
     assert agg and sum(a["sample_count"] for a in agg) == len(raw)
+
+
+# --- Timescale telemetry -----------------------------------------------------------------
+
+def test_compose_turns_timescale_telemetry_off_for_the_server():
+    compose = yaml.safe_load((ROOT / "docker-compose.yml").read_text())
+    command = compose["services"]["db"]["command"]
+    assert "timescaledb.telemetry_level=off" in command
+    assert command[command.index("timescaledb.telemetry_level=off") - 1] == "-c"
+
+
+@pytest.mark.db
+def test_timescale_telemetry_is_off_on_the_server(conn):
+    assert conn.execute("SHOW timescaledb.telemetry_level").fetchone()[0] == "off"
+    # set on the server, not per session or per database
+    source = conn.execute("SELECT source FROM pg_settings WHERE name ="
+                          " 'timescaledb.telemetry_level'").fetchone()[0]
+    assert source == "command line"

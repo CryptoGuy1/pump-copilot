@@ -6,6 +6,8 @@ services:
       POSTGRES_USER: pump
       POSTGRES_PASSWORD: pump_dev_only
       POSTGRES_DB: pumpcopilot
+    # server-wide: no usage telemetry is sent to Timescale (tests/test_db.py checks this)
+    command: ["postgres", "-c", "timescaledb.telemetry_level=off"]
     ports: ["5432:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
     healthcheck:
