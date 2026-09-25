@@ -25,7 +25,9 @@ import hashlib
 import itertools
 import json
 import math
-from dataclasses import dataclass, field
+import subprocess
+from dataclasses import dataclass, field, replace
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -66,8 +68,9 @@ DEFAULT_CONFIG = {
                   "ramp_s": 600, "drift_s": 7200, "offset_horizon_s": 3600},
     "tuning": {"split_fraction": 0.6},
 }
-MODEL_SECTIONS = ("features", "baseline", "review", "normalization", "within_run")
+MODEL_SECTIONS = ("features", "baseline", "review", "normalization", "within_run", "onset")
 REVISION_LABEL = "post-hoc revision after 3a results"
+PREREG_LABEL = "3a-3: pre-registered final revision"
 # 3a-2 feature keys (absent from 3a configs, which therefore hash exactly as before):
 #   features.window_readings  per-signal window = that many typical reading intervals
 #   features.window_floor_s   shortest window
@@ -630,14 +633,18 @@ def _across_scorer(base: Baseline, cfg: dict):
 
 
 def _run_injections(day: DayData, cfg: dict, starts_per_fault: int, clean: pd.DataFrame,
-                    scorer, sigma_for, prep_all: Prepared, offset_s: float = 0.0) -> list[dict]:
+                    scorer, sigma_for, prep_all: Prepared, offset_s: float = 0.0,
+                    offset_for=None) -> list[dict]:
     results = []
     for signal in cfg["injection"]["signals"]:
         name = scored_name(signal, prep_all)
+        off = offset_for(name) if offset_for else offset_s
+        if off is None:
+            continue
         for fault in FAULTS:
             for size in fault_sizes(cfg, fault):
                 h = horizon_s(cfg, fault, size)
-                for t0 in start_times(day, cfg, h, starts_per_fault, offset_s):
+                for t0 in start_times(day, cfg, h, starts_per_fault, off):
                     sigma = sigma_for(name, t0)
                     if sigma is None:
                         continue
@@ -739,12 +746,13 @@ def _feature_combos(grid: dict) -> list[dict]:
     return [dict(zip(keys, v, strict=True)) for v in itertools.product(*(grid[k] for k in keys))]
 
 
-def _best(table: list[dict], extra: tuple = ()) -> dict:
+def _best(table: list[dict], extra: tuple = (),
+          rate_key: str = "unlabelled_reviews_per_running_hour") -> dict:
     """3a-2 rows carry evaluable_windows: a setting that places no injection or evaluates no
     window scores nothing, so its zero reviews mean nothing and it cannot be selected."""
     usable = [r for r in table if "evaluable_windows" not in r
               or (r["evaluable_windows"] > 0 and r["injections"] > 0)]
-    return min(usable or table, key=lambda r: (r["unlabelled_reviews_per_running_hour"],
+    return min(usable or table, key=lambda r: (r[rate_key],
                                      -r["mean_detection_rate"],
                                      r["median_delay_s"] if r["median_delay_s"] is not None
                                      else math.inf, -r["k"], -r["consecutive_windows"],
@@ -1054,4 +1062,335 @@ def _diagnostics(fit: Prepared, score: Prepared) -> dict:
             "fit_median": float(a.value.median()) if len(a) else None,
             "score_median": float(b.value.median()) if len(b) else None,
         }
+    return out
+
+
+# --- 3a-3: pre-registered final revision -------------------------------------------------
+
+SIGNAL_TYPES = (("pressure", "pressure"), ("vibration", "vibration"),
+                ("acceleration", "vibration"), ("temperature", "temperature"))
+
+
+def signal_type(sig: str) -> str | None:
+    """Settling class of a scored signal, by name (A7): pressure, vibration or temperature."""
+    for key, kind in SIGNAL_TYPES:
+        if key in sig:
+            return kind
+    return None
+
+
+def settled_at(sig: str, a: pd.Timestamp, cfg: dict) -> pd.Timestamp | None:
+    """Run start plus the fixed settling time of the signal's type (A7); None if it has none."""
+    s = cfg["onset"]["settling_s"].get(signal_type(sig) or "")
+    return None if s is None else a + pd.Timedelta(seconds=s)
+
+
+def score_within_run_steady(prep: Prepared, cfg: dict, feats: pd.DataFrame | None = None
+                            ) -> tuple[pd.DataFrame, list[Baseline]]:
+    """Within-run scoring where each signal's baseline starts at the later of its first fresh
+    reading in the run and its fixed settling time (A7), and lasts within_run.baseline_s.
+    Windows of a signal are scored only after its baseline ends."""
+    wr = cfg["within_run"]
+    x = wr["baseline_s"]
+    if x < wr["min_baseline_s"]:
+        raise ValueError(f"within_run.baseline_s {x:g} s is below the minimum "
+                         f"{wr['min_baseline_s']:g} s")
+    f = feats if feats is not None else features(prep, cfg)
+    bcfg = merge_config(cfg, {"baseline": {
+        "min_fit_running_s": x, "min_fit_readings": wr["min_baseline_readings"],
+        "min_fit_windows": wr.get("min_baseline_windows", 5)}})
+    mid, _ = model_ids(bcfg, "")
+    frames, bases = [], []
+    for k, (a, b) in enumerate(prep.running):
+        bands, abst, versions, cuts = {}, {}, [], {}
+        for sig in prep.signals:
+            g = prep.readings[(prep.readings.signal_name == sig)
+                              & (prep.readings.observed_at >= a) & (prep.readings.observed_at < b)]
+            if g.empty:
+                abst[sig] = "no fresh reading in this run"
+                continue
+            first = g.observed_at.min()
+            onset = settled_at(sig, a, cfg)
+            if onset is None:
+                abst[sig] = f"no settling time for signal type {signal_type(sig)}"
+                continue
+            start = max(first, onset)
+            cut = start + pd.Timedelta(seconds=x)
+            if cut > b:
+                abst[sig] = (f"run ends {(b - start).total_seconds() / 60:.0f} min after the "
+                             f"baseline start, before the {x / 60:g} min baseline is complete")
+                continue
+            sub = replace(slice_prepared(prep, start, cut), signals=[sig])
+            fb = fit_baseline(sub, bcfg, f[(f.signal_name == sig) & (f.stretch == k)
+                                           & (f.start >= start) & (f.end <= cut)])
+            if fb.abstained or sig not in fb.bands:
+                abst[sig] = fb.abstained or fb.signal_abstentions.get(sig, "no band")
+                continue
+            bands[sig] = {**fb.bands[sig], "first_fresh": first, "onset": onset,
+                          "baseline_start": start, "baseline_end": cut}
+            versions.append(fb.model_version)
+            cuts[sig] = cut
+        base = Baseline(prep.asset_id, prep.source_day, bands, abst,
+                        None if bands else "3a-3 baseline abstained: no signal reached a steady "
+                                           "baseline in this run",
+                        x, mid, _hash(versions)[:16], prep.normalization)
+        bases.append(base)
+        g = f[f.stretch == k]
+        cut_of = g.signal_name.map(cuts)
+        scored = g[g.signal_name.isin(cuts) & (g.start >= cut_of)]
+        rest = g[~g.signal_name.isin(cuts) & (g.start >= a + pd.Timedelta(seconds=x))]
+        rows = pd.concat([scored, rest])
+        if len(rows):
+            frames.append(score_frame(prep, base, cfg, rows))
+    frame = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=FRAME_COLS)
+    return frame, bases
+
+
+def cases_from_episodes(episodes: list[dict], running, gap_s: float) -> list[dict]:
+    """Merge review episodes of one asset into cases: same run, and less than gap_s between
+    the end of one and the start of the next (across signals)."""
+    eps = []
+    for e in episodes:
+        start, end = pd.Timestamp(e["start"]), pd.Timestamp(e["end"])
+        eps.append((_stretch_of(running, start), start, end, e))
+    eps.sort(key=lambda x: (x[0] if x[0] is not None else -1, x[1]))
+    cases: list[dict] = []
+    for run, start, end, e in eps:
+        c = cases[-1] if cases else None
+        if c and c["run"] == run and (start - c["_end"]).total_seconds() < gap_s:
+            c["_end"] = max(c["_end"], end)
+            c["signals"].add(e["signal_name"])
+            c["episodes"] += 1
+            c["max_score"] = max(c["max_score"], e.get("max_score") or 0.0)
+        else:
+            cases.append({"run": run, "_start": start, "_end": end,
+                          "signals": {e["signal_name"]}, "episodes": 1,
+                          "max_score": e.get("max_score") or 0.0})
+    return [{"run": c["run"], "start": str(c["_start"]), "end": str(c["_end"]),
+             "signals": sorted(c["signals"]), "episodes": c["episodes"],
+             "max_score": c["max_score"]} for c in cases]
+
+
+def case_summary(cases: list[dict], running) -> dict:
+    hours = sum((b - a).total_seconds() for a, b in running) / 3600
+    per_run = [sum(c["run"] == k for c in cases) for k in range(len(running))]
+    covered = sum((pd.Timestamp(c["end"]) - pd.Timestamp(c["start"])).total_seconds()
+                  for c in cases) / 3600
+    return {"cases": len(cases), "cases_per_run": per_run, "running_hours": round(hours, 3),
+            "cases_per_running_hour": round(len(cases) / hours, 4) if hours else None,
+            "case_hours": covered, "case_time_fraction": covered / hours if hours else None}
+
+
+def cases_for_results(stored: dict, running_by_pump: dict, gap_s: float) -> dict:
+    """Cases for an already-scored mode, recomputed from its stored per-pump results."""
+    out = {}
+    for pump, e in stored["pumps"].items():
+        items = [(pump, e)]
+        if e.get("exploratory"):
+            items.append((f"{pump} (exploratory)", e["exploratory"]))
+        for key, entry in items:
+            if entry.get("abstained"):
+                out[key] = {"abstained": entry["abstained"]}
+                continue
+            running = running_by_pump[pump]
+            cases = cases_from_episodes(entry["review_episodes"], running, gap_s)
+            out[key] = {**case_summary(cases, running), "case_list": cases}
+    return out
+
+
+QUALIFY = {"fault": "step", "size_sigma": 6.0, "min_detection": 0.8, "starts": 5}
+
+
+def _less_sensitive(r: dict) -> tuple:
+    return (-r["k"], -r["consecutive_windows"], -r["baseline_s"], -r.get("window_readings", 0))
+
+
+def select_3a3(table: list[dict], min_detection: float) -> tuple[dict, dict]:
+    """Qualify: settings detecting at least min_detection of the 6-sigma step injections into
+    B June's validation portion. Choose: least running time covered by a case. Tie-breaks:
+    fewer cases, then the less sensitive setting (larger k, then larger N, then larger
+    baseline_s and window_readings). Fallback when nothing qualifies: highest detection, then
+    the same order; requirement_met records it."""
+    usable = [r for r in table if r["qualify_injections"] > 0 and r["evaluable_windows"] > 0]
+    ok = [r for r in usable if r["qualify_detection_rate"] >= min_detection]
+    info = {"requirement_met": bool(ok), "qualified": len(ok), "candidates": len(table)}
+    if ok:
+        best = min(ok, key=lambda r: (r["case_time_fraction"], r["cases"], *_less_sensitive(r)))
+    else:
+        best = min(usable or table, key=lambda r: (-(r["qualify_detection_rate"] or 0.0),
+                                                   r["case_time_fraction"], r["cases"],
+                                                   *_less_sensitive(r)))
+    return best, info
+
+
+def tune_3a3(loader, cfg: dict, grid: dict,
+             starts_per_fault: int = 3) -> tuple[dict, list[dict]]:
+    """Pre-registered: tune on B June only, with fixed settling times (A7). Qualification uses
+    6-sigma steps injected into the validation portion (after tuning.split_fraction of the
+    running time); the objective is the fraction of running time covered by a case
+    (select_3a3). The full synthetic grid is reported alongside, not optimised."""
+    asset, day = TUNING_DAY
+    june = loader(asset, day)
+    gap = cfg["cases"]["gap_s"]
+    q = {**QUALIFY, **cfg.get("tuning", {}).get("qualify", {})}
+    split = split_running(june, cfg["tuning"]["split_fraction"])
+    validation = slice_day(june, split, None)
+    table, qualify_starts = [], set()
+    for combo in _feature_combos(grid):
+        cf = merge_config(cfg, {"features": combo})
+        prep = prepare(june, cf)
+        feats = features(prep, cf)
+        hours = running_hours(prep)
+        for x in grid["baseline_s"]:
+            cx = merge_config(cf, {"within_run": {"baseline_s": x}})
+            _, bases0 = score_within_run_steady(prep, cx, feats)
+            injected = []
+
+            def add(signal, name, fault, size, t0, h, qualify, cx=cx, bases0=bases0, prep=prep,
+                    injected=injected):
+                k0 = _stretch_of(prep.running, t0)
+                band = bases0[k0].bands.get(name) if k0 is not None else None
+                if band is None or t0 < band["baseline_end"]:
+                    return
+                pi = prepare(inject(june, signal, fault, size, t0, band["sigma"], cx), cx,
+                             [signal])
+                injected.append(((name, fault, size, t0, h, qualify), pi,
+                                 features(pi, cx, [name])))
+
+            for signal in cx["injection"]["signals"]:
+                name = scored_name(signal, prep)
+                offs = [(bb.bands[name]["baseline_end"] - a).total_seconds()
+                        for bb, (a, _) in zip(bases0, prep.running, strict=True)
+                        if name in bb.bands]
+                if not offs:
+                    continue
+                for fault in FAULTS:
+                    for size in fault_sizes(cx, fault):
+                        h = horizon_s(cx, fault, size)
+                        for t0 in start_times(june, cx, h, starts_per_fault, max(offs)):
+                            add(signal, name, fault, size, t0, h, False)
+                h = horizon_s(cx, q["fault"], q["size_sigma"])
+                for t0 in start_times(validation, cx, h, q["starts"]):
+                    add(signal, name, q["fault"], q["size_sigma"], t0, h, True)
+            for k, n in itertools.product(grid["k"], grid["consecutive_windows"]):
+                ckn = merge_config(cx, {"baseline": {"k": k},
+                                        "review": {"consecutive_windows": n}})
+                clean, _ = score_within_run_steady(prep, ckn, feats)
+                results, qual = [], []
+                for (name, fault, size, t0, h, qualify), pi, f_inj in injected:
+                    faulty, _ = score_within_run_steady(pi, ckn, f_inj)
+                    hit = _hits(_compare(faulty, clean, name), fault, ckn, t0, h)
+                    r = {"fault": fault, "size": size, "detected": bool(len(hit)),
+                         "delay_s": (hit.end.min() - t0).total_seconds() if len(hit) else None}
+                    if qualify:
+                        qual.append(r)
+                        qualify_starts.add(str(t0))
+                    else:
+                        results.append(r)
+                eps = review_episodes(clean)
+                cs = case_summary(cases_from_episodes(
+                    [{**e, "start": str(e["start"]), "end": str(e["end"])} for e in eps],
+                    prep.running, gap), prep.running)
+                table.append({**combo, "baseline_s": x, "k": k, "consecutive_windows": n,
+                              "qualify_injections": len(qual),
+                              "qualify_detection_rate": round(
+                                  sum(r["detected"] for r in qual) / len(qual), 4)
+                              if qual else None,
+                              "case_time_fraction": cs["case_time_fraction"],
+                              "case_hours": round(cs["case_hours"], 4),
+                              "cases": cs["cases"],
+                              "cases_per_running_hour": cs["cases_per_running_hour"],
+                              **_table_row(results, len(eps), hours),
+                              "evaluable_windows": _evaluable(clean)})
+    best, info = select_3a3(table, q["min_detection"])
+    frozen = merge_config(cfg, {
+        "features": {k: best[k] for k in FEATURE_GRID_KEYS if k in best},
+        "baseline": {"k": best["k"]},
+        "review": {"consecutive_windows": best["consecutive_windows"]},
+        "within_run": {"baseline_s": best["baseline_s"]}})
+    frozen["frozen"] = {
+        "label": PREREG_LABEL, "on": dt.date.today().isoformat(),
+        "tuned_on": {"asset_id": asset, "source_day": str(day)},
+        "mode": ("within-run steady: per signal, the baseline starts at the later of its first "
+                 "fresh reading in the run and its fixed settling time (A7), lasts baseline_s, "
+                 "and only later windows of that signal are scored"),
+        "grid": grid, "starts_per_fault": starts_per_fault,
+        "qualification": {**q, "validation_from": str(split)},
+        "qualify_starts": sorted(qualify_starts),
+        "objective": ("qualify: at least {:.0%} detection of {:g}-sigma {} injections into B "
+                      "June's validation portion; choose: least fraction of running time "
+                      "covered by a case; tie-breaks: fewer cases, then larger k, then larger N "
+                      "(then larger baseline_s, window_readings); fallback if nothing "
+                      "qualifies: highest detection, same tie-breaks, grid not widened"
+                      ).format(q["min_detection"], q["size_sigma"], q["fault"]),
+        **info, "selected": best,
+    }
+    return frozen, table
+
+
+def verify_preregistration(commit: str, paths: list[str], repo: Path | None = None) -> dict:
+    """Are these paths in the working tree identical to the pre-registration commit?"""
+    repo = repo or Path(__file__).resolve().parents[2]
+    changed = [p for p in paths if subprocess.run(
+        ["git", "-C", str(repo), "diff", "--quiet", commit, "--", p]).returncode != 0]
+    return {"commit": commit, "paths": list(paths), "unchanged": not changed,
+            "changed": changed}
+
+
+def evaluate_3a3(loader, cfg: dict, starts_per_fault: int = 5) -> dict:
+    """Score B and A October once with the frozen 3a-3 config; synthetic on B October."""
+    out = {"label": PREREG_LABEL, "pumps": {}, "synthetic": None}
+    gap = cfg["cases"]["gap_s"]
+    for pump in ("B", "A"):
+        asset = f"cira-pump-{pump}"
+        day = loader(asset, dt.date(2024, 10, 30))
+        prep = prepare(day, cfg)
+        feats = features(prep, cfg)
+        frame, bases = score_within_run_steady(prep, cfg, feats)
+        hours = running_hours(prep)
+        eps = [{**e, "start": str(e["start"]), "end": str(e["end"])}
+               for e in review_episodes(frame)]
+        cases = cases_from_episodes(eps, prep.running, gap)
+        summary = case_summary(cases, prep.running)
+        out["pumps"][pump] = {
+            "asset_id": asset, "score_day": "2024-10-30", "mode": "within-run steady",
+            "running_hours": round(hours, 3), "windows": len(frame),
+            "states_by_signal": {sig: {str(k): int(v) for k, v in g.state.value_counts().items()}
+                                 for sig, g in frame.groupby("signal_name")},
+            "review_episodes": eps,
+            "unlabelled_reviews_per_running_hour": round(len(eps) / hours, 4) if hours else None,
+            "cases": cases, "case_summary": summary,
+            "cases_per_running_hour": summary["cases_per_running_hour"],
+            "scored_evidence": sum(len(to_scored_evidence(frame[frame.stretch == k], bb, cfg))
+                                   for k, bb in enumerate(bases)),
+            "runs": [{"start": str(a), "end": str(b), "model_id": bb.model_id,
+                      "model_version": bb.model_version, "abstained": bb.abstained,
+                      "signal_abstentions": bb.signal_abstentions,
+                      "baselines": {s: {k: str(v[k]) for k in ("first_fresh", "onset",
+                                                               "baseline_start",
+                                                               "baseline_end")}
+                                    | {k: v[k] for k in ("center", "low", "high", "unit")}
+                                    for s, v in bb.bands.items()}}
+                     for (a, b), bb in zip(prep.running, bases, strict=True)],
+        }
+        if pump != "B":
+            continue
+
+        def scorer(p, name):
+            return score_within_run_steady(p, cfg, features(p, cfg, [name]))[0]
+
+        def sigma_for(name, t0, bases=bases, prep=prep):
+            k = _stretch_of(prep.running, t0)
+            band = None if k is None else bases[k].bands.get(name)
+            return None if band is None or t0 < band["baseline_end"] else band["sigma"]
+
+        def offset_for(name, bases=bases, prep=prep):
+            offs = [(bb.bands[name]["baseline_end"] - a).total_seconds()
+                    for bb, (a, _) in zip(bases, prep.running, strict=True) if name in bb.bands]
+            return max(offs) if offs else None
+
+        results = _run_injections(day, cfg, starts_per_fault, frame, scorer, sigma_for, prep,
+                                  offset_for=offset_for)
+        out["synthetic"] = _synthetic_summary(results, cfg, frame, prep, starts_per_fault)
+        out["stuck_via_stale"] = _stuck_via_stale(results)
     return out

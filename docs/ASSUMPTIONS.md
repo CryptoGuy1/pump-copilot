@@ -222,3 +222,40 @@ would include those hours.
 **How to revisit.** Ask the authors to confirm B's shutdown on 2024-10-30; 15:10 is our estimate
 of the intended value. If Table 1 is confirmed as printed, find out what the signals after
 11:05:56 are.
+
+---
+
+## A7: Fixed settling times after a start: pressure 5 min, vibration 10 min, temperature 30 min
+
+**Assumption.** After a pump starts, a signal is treated as settled a fixed time after the run
+start, set by its type: pressure 5 min, vibration (velocity and acceleration peak) 10 min,
+temperature (casing and contact temperatures, relative to ambient) 30 min. The 3a-3 within-run
+baseline of a signal starts at the later of that time and the signal's first fresh reading
+(`onset.settling_s`, `scoring.settled_at`).
+
+These are **engineering assumptions set in advance, not tuned values**. They were fixed before
+the 3a-3 re-tune and are not part of the tuning grid. They replace a first attempt that derived
+per-signal onset limits from B June's own rate of change. That rule let outlet pressure's
+baseline start at the run start, and it made the baseline rule depend on the tuning day.
+
+**Evidence.**
+- Order of magnitude only, from general centrifugal-pump behaviour: discharge pressure follows
+  the pump curve within seconds to a minute of reaching speed; vibration settles once speed and
+  flow stabilise and any start-up transients have passed; motor and bearing temperatures rise
+  over tens of minutes with a large thermal time constant.
+- CIRA's pressure updates about every 60 s (A5), so 5 min gives several readings after the
+  start.
+- The CIRA descriptor gives no settling times, and no pump or motor datasheet in the dataset
+  gives thermal time constants.
+
+**Impact if wrong.**
+- Too short (most likely for temperature, which on some days is still rising after 30 min):
+  the baseline captures part of the warm-up, and the later steady level is reviewed as a
+  shift.
+- Too long: less running time is scored, and short runs abstain because the baseline cannot
+  complete before the stop.
+
+**How to revisit.** Get the motor's thermal time constant and the pump's start-up procedure
+from the operator or the dataset authors. Or estimate settling per signal from several
+labelled normal starts. Not from the scored days, and not as part of 3a-3, which is the last
+detector revision.

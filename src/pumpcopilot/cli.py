@@ -38,8 +38,10 @@ def main(argv: list[str] | None = None) -> None:
     dbp.add_argument("action", choices=["migrate", "load", "perf"])
     dbp.add_argument("dataset", nargs="?", choices=["cira"], default="cira")
     sc = sub.add_parser("score", help="tune (B June only, freezes config) or eval (fit/score)")
-    sc.add_argument("action", choices=["tune", "tune-revision", "eval"])
+    sc.add_argument("action", choices=["tune", "tune-revision", "eval", "tune-3a3", "report",
+                                       "eval-3a3"])
     sc.add_argument("dataset", nargs="?", choices=["cira"], default="cira")
+    sc.add_argument("--prereg", help="eval-3a3: the pre-registration commit")
     args = p.parse_args(argv)
 
     if args.cmd == "acquire":
@@ -55,7 +57,10 @@ def main(argv: list[str] | None = None) -> None:
     elif args.cmd == "db":
         _db(args.action)
     elif args.cmd == "score":
-        _score(args.action)
+        if args.action in ("tune-3a3", "report", "eval-3a3"):
+            _score_3a3(args.action, args.prereg)
+        else:
+            _score(args.action)
     elif args.dataset == "zema":
         _write("zema_audit", zema.audit(DATA / "raw" / "zema"))
     else:
@@ -236,3 +241,104 @@ def _score(action: str) -> None:
                     f"{len(e['review_episodes'])} unlabelled review episodes = "
                     f"{e['unlabelled_reviews_per_running_hour']} per running hour")
                 print(f"    {mode} {pump}: {what}")
+
+
+# 3a-3, pre-registered final revision: fixed before tuning
+# A7: fixed settling times after the run start, engineering assumptions (not tuned)
+ONSET = {"settling_s": {"pressure": 300, "vibration": 600, "temperature": 1800}}
+CASES = {"gap_s": 900}
+GRID_3A3 = {"k": [3.0, 4.0, 5.0, 6.0, 8.0], "consecutive_windows": [2, 3, 5],
+            "window_readings": [6, 10], "baseline_s": [1200, 1800, 3600], "step_s": [60]}
+PREREG_PATHS = ["data/scoring_config.yaml", "data/operating_rules.yaml",
+                "data/cira_columns.yaml", "src/pumpcopilot", "migrations"]
+
+
+def _full_report(doc: dict, results_3a3: dict | None = None, prereg: dict | None = None,
+                 cases: dict | None = None) -> str:
+    """The whole scoring report from stored results: 3a, 3a-2 and 3a-3 (nothing re-scored)."""
+    from . import scoring, scoring_report
+
+    doc = dict(doc)
+    rev, rev3 = doc.pop("revision_3a2", None), doc.pop("revision_3a3", None)
+    cfg = scoring.merge_config(doc)
+    table = json.loads((REPORTS / "cira_tuning.json").read_text())
+    res3a = json.loads((REPORTS / "cira_scoring_eval.json").read_text())
+    text = scoring_report.markdown(cfg, table, res3a)
+    if rev:
+        res2 = json.loads((REPORTS / "cira_scoring_eval_3a2.json").read_text())
+        text += scoring_report.revision_markdown(
+            scoring.merge_config(rev["across_day"]), scoring.merge_config(rev["within_run"]),
+            res2, baseline_3a=res3a)
+    if rev3:
+        text += scoring_report.markdown_3a3(scoring.merge_config(rev3), prereg, results_3a3,
+                                            cases)
+    return text
+
+
+def _score_3a3(action: str, prereg_commit: str | None) -> None:
+    import datetime as dt
+
+    import yaml
+
+    from . import db, scoring, scoring_report
+
+    cfg_path = DATA / "scoring_config.yaml"
+    doc = yaml.safe_load(cfg_path.read_text())
+    md = REPORTS / "cira_scoring_eval.md"
+    if action == "report":
+        md.write_text(_full_report(doc))
+        print(f"[written] {md} (from stored results; nothing scored)")
+        return
+    limits = _stale_limits()
+    with db.connect() as conn:
+        def loader(asset_id, source_day):
+            return scoring.load_day(conn, asset_id, source_day, stale_limits=limits)
+
+        if action == "tune-3a3":
+            base = scoring.merge_config({"features": REVISION_FEATURES,
+                                         "within_run": WITHIN_RUN, "onset": ONSET,
+                                         "cases": CASES})
+            frozen, table = scoring.tune_3a3(loader, base, GRID_3A3)
+            doc["revision_3a3"] = frozen
+            cfg_path.write_text(scoring_report.config_yaml(doc))
+            (REPORTS / "cira_tuning_3a3.json").write_text(json.dumps(table, indent=2,
+                                                                     default=str))
+            sel = frozen["frozen"]["selected"]
+            fz = frozen["frozen"]
+            print(f"[frozen] revision_3a3: window_readings {sel['window_readings']}, baseline "
+                  f"{sel['baseline_s']} s, k {sel['k']}, N {sel['consecutive_windows']}; "
+                  f"requirement met {fz['requirement_met']} ({fz['qualified']}/"
+                  f"{fz['candidates']} qualified); 6-sigma step detection "
+                  f"{sel['qualify_detection_rate']} of {sel['qualify_injections']}; case time "
+                  f"{sel['case_time_fraction']:.1%}; June cases {sel['cases']} "
+                  f"({sel['cases_per_running_hour']}/h)")
+            return
+
+        # eval-3a3: only after the pre-registration commit, and only if nothing changed since
+        if not prereg_commit:
+            raise SystemExit("eval-3a3 needs --prereg <commit>")
+        check = scoring.verify_preregistration(prereg_commit, PREREG_PATHS)
+        if not check["unchanged"]:
+            raise SystemExit(f"changed since pre-registration {prereg_commit}: "
+                             f"{check['changed']}")
+        cfg = scoring.merge_config(doc["revision_3a3"])
+        results = scoring.evaluate_3a3(loader, cfg)
+        running = {p: loader(f"cira-pump-{p}", dt.date(2024, 10, 30)).running for p in "BA"}
+    results["preregistration"] = check
+    (REPORTS / "cira_scoring_eval_3a3.json").write_text(json.dumps(results, indent=2,
+                                                                   default=str))
+    gap = cfg["cases"]["gap_s"]
+    res3a = json.loads((REPORTS / "cira_scoring_eval.json").read_text())
+    res2 = json.loads((REPORTS / "cira_scoring_eval_3a2.json").read_text())
+    cases = {"3a across-day": scoring.cases_for_results(res3a, running, gap),
+             "3a-2 across-day": scoring.cases_for_results(res2["across_day"], running, gap),
+             "3a-2 within-run": scoring.cases_for_results(res2["within_run"], running, gap),
+             "3a-3 within-run steady": {p: e["case_summary"]
+                                        for p, e in results["pumps"].items()}}
+    (REPORTS / "cira_cases_all_modes.json").write_text(json.dumps(cases, indent=2, default=str))
+    md.write_text(_full_report(doc, results, check, cases))
+    print(f"[written] {md}")
+    for mode, pumps in cases.items():
+        for pump, c in pumps.items():
+            print(f"  {mode:24} {pump:15} " + (c["abstained"] if c.get("abstained") else
+                  f"{c['cases']} cases, {c['cases_per_running_hour']} per running hour"))

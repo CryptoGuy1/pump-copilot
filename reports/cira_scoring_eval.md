@@ -440,3 +440,46 @@ By signal, across-day | within-run (rate / median delay min); the first row is t
 
 **Stuck injections re-run (post-hoc revision after 3a results):** across_day: 45 of 45 detected, 45 of them decided by the stale flag; within_run: 45 of 45 detected, 45 of them decided by the stale flag.
 
+
+# 3a-3: pre-registered final revision
+
+Unlike 3a-2, this revision was specified, tuned on B June and committed before any October scoring, and October is scored once.
+
+## Protocol (written and committed before October was scored)
+
+1. **Tuning data: B_2024-06-11 only** (the tuning code loads no other pump-day).
+2. **Settling times** per signal type, fixed in advance: pressure 5 min, vibration 10 min, temperature 30 min after the run start. These are engineering assumptions, not tuned values (A7 in `docs/ASSUMPTIONS.md`).
+3. **Baseline** per signal and run: from the later of its settling time and its first fresh reading in the run, for `baseline_s` (minimum 15 min, 15 readings, 5 windows); only later windows of that signal are scored.
+4. **Cases:** review episodes on the same asset and run less than 15 min apart are one case. Case time is the sum of case durations. Rates use the day's total running hours for every mode. Cases per running hour are a reported result, not the objective.
+5. **Qualification:** 5 6-sigma step injections per injected signal, placed in B June's validation portion (running time after the first 60%, from 10:44:00 UTC). A setting qualifies with at least 80% of them detected.
+6. **Objective:** among qualifying settings, the least fraction of B June running time covered by a case. Tie-breaks: fewer cases, then the less sensitive setting (larger k, then larger N, then larger baseline_s and window_readings). If nothing qualifies: the highest qualification detection, the same tie-breaks, the requirement recorded as not met, and the grid not widened. Grid: k [3.0, 4.0, 5.0, 6.0, 8.0], consecutive_windows [2, 3, 5], window_readings [6, 10], baseline_s [1200, 1800, 3600], step_s [60].
+7. **Freeze** under `revision_3a3` in `data/scoring_config.yaml`, **commit** code, config and this protocol (tag `prereg-3a3`), then score **B October and A October once** with `pumpcopilot score eval-3a3 --prereg <commit>`, which checks that code and config are unchanged since that commit.
+8. **Also recompute cases for 3a and 3a-2** from their stored results (no re-tuning, no re-scoring), and run the same synthetic injections on B October.
+
+### First tuning attempt (discarded before October was scored)
+
+The first B June tuning used the fewest cases per running hour as its objective and onset limits derived from B June itself. It saturated: **89 of 90 settings tied at exactly 1 case**, because B June is one 6 h run and review episodes less than 15 min apart chained into a single case from 07:55 to 13:07 (44 episodes over 6 signals). The objective therefore selected nothing; the tie-break (highest synthetic detection) picked the most sensitive corner of the grid (k 3, N 2, baseline 20 min). The same-day onset limits also let outlet pressure's baseline start at 07:11, right at the run start.
+
+The objective and the onset rule were changed for these reasons **before October was scored** with any 3a-3 setting (the 3a and 3a-2 October results above predate 3a-3). The attempt's tuning table is kept in `reports/cira_tuning_3a3_attempt1.json`. Tuning was then re-run once, on B June only.
+
+## Frozen configuration (`revision_3a3`)
+
+```yaml
+features: {window_s: 600, step_s: 60, min_fresh_readings: 5, min_fresh_fraction: 0.5, window_readings: 6,
+  window_floor_s: 60, stale_via_flag: true}
+baseline: {k: 8.0, floor_fraction: 0.001, min_fit_running_s: 7200, min_fit_readings: 100}
+review: {consecutive_windows: 3}
+within_run: {baseline_s: 1800, min_baseline_s: 900, min_baseline_readings: 15, min_baseline_windows: 5}
+onset:
+  settling_s: {pressure: 300, vibration: 600, temperature: 1800}
+cases: {gap_s: 900}
+```
+
+Qualification requirement met (6 of 90 settings qualified).
+
+Selected on B June: window_readings 6, baseline 30 min, k = 8.0, N = 3: 6-sigma step detection 80% of 10; 75.0% of running time in a case; 1 cases (0.1679 per running hour); mean synthetic detection 64% over 90 injections (reported, not optimised).
+
+## Pre-registration
+
+Pre-registration commit: this section is committed before scoring. **October: not yet scored.**
+

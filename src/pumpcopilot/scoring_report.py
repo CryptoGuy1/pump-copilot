@@ -344,3 +344,199 @@ def revision_markdown(across: dict, within: dict, res: dict,
         f"{mode}: {v['detected']} of {v['injections']} detected, {v['decided_by_stale_flag']} "
         "of them decided by the stale flag" for mode, v in sv.items()) + ".", ""]
     return "\n".join(out) + "\n"
+
+
+# --- 3a-3: pre-registered final revision -------------------------------------------------
+
+PREREG = "3a-3: pre-registered final revision"
+FUTURE_WORK = [
+    "Multi-day baselines per pump (fit on several running days) instead of one day or one run.",
+    "Condition bands on operating point (pressure regime, flow) so load changes are not "
+    "reviews.",
+    "Per-device update-rate metadata (WirelessHART burst periods) instead of inferring them.",
+    "Seasonal ambient handling beyond subtracting ambient temperature.",
+    "Case feedback from operators, to turn unlabelled cases into labelled ones.",
+    "A real labelled centrifugal-pump benchmark (the 4TU / Tata Steel candidate in ADR-0001).",
+    "Online replay of the full pipeline, to measure end-to-end decision delay causally.",
+]
+
+
+ATTEMPT_1 = [
+    "### First tuning attempt (discarded before October was scored)", "",
+    "The first B June tuning used the fewest cases per running hour as its objective and "
+    "onset limits derived from B June itself. It saturated: **89 of 90 settings tied at "
+    "exactly 1 case**, because B June is one 6 h run and review episodes less than 15 min "
+    "apart chained into a single case from 07:55 to 13:07 (44 episodes over 6 signals). The "
+    "objective therefore selected nothing; the tie-break (highest synthetic detection) picked "
+    "the most sensitive corner of the grid (k 3, N 2, baseline 20 min). The same-day onset "
+    "limits also let outlet pressure's baseline start at 07:11, right at the run start.", "",
+    "The objective and the onset rule were changed for these reasons **before October was "
+    "scored** with any 3a-3 setting (the 3a and 3a-2 October results above predate 3a-3). The "
+    "attempt's tuning "
+    "table is kept in `reports/cira_tuning_3a3_attempt1.json`. Tuning was then re-run once, "
+    "on B June only.", ""]
+
+
+def _protocol_3a3(cfg: dict) -> list[str]:
+    fz = cfg["frozen"]
+    o, c, wr = cfg["onset"], cfg["cases"], cfg["within_run"]
+    q = fz.get("qualification", {})
+    settle = ", ".join(f"{k} {v / 60:g} min" for k, v in o["settling_s"].items()
+                       if v is not None)
+    return [
+        "## Protocol (written and committed before October was scored)", "",
+        "1. **Tuning data: B_2024-06-11 only** (the tuning code loads no other pump-day).",
+        f"2. **Settling times** per signal type, fixed in advance: {settle} after the run "
+        "start. These are engineering assumptions, not tuned values (A7 in "
+        "`docs/ASSUMPTIONS.md`).",
+        "3. **Baseline** per signal and run: from the later of its settling time and its first "
+        f"fresh reading in the run, for `baseline_s` (minimum {wr['min_baseline_s'] / 60:g} "
+        f"min, {wr['min_baseline_readings']} readings, {wr['min_baseline_windows']} windows); "
+        "only later windows of that signal are scored.",
+        f"4. **Cases:** review episodes on the same asset and run less than "
+        f"{c['gap_s'] / 60:g} min apart are one case. Case time is the sum of case durations. "
+        "Rates use the day's total running hours for every mode. Cases per running hour are "
+        "a reported result, not the objective.",
+        f"5. **Qualification:** {q.get('starts', '-')} {q.get('size_sigma', 6):g}-sigma "
+        f"{q.get('fault', 'step')} injections per injected signal, placed in B June's "
+        f"validation portion (running time after the first "
+        f"{cfg['tuning']['split_fraction']:.0%}, from {str(q.get('validation_from', '-'))[11:19]}"
+        f" UTC). A setting qualifies with at least {q.get('min_detection', 0.8):.0%} of them "
+        "detected.",
+        "6. **Objective:** among qualifying settings, the least fraction of B June running "
+        "time covered by a case. Tie-breaks: fewer cases, then the less sensitive setting "
+        "(larger k, then larger N, then larger baseline_s and window_readings). If nothing "
+        "qualifies: the highest qualification detection, the same tie-breaks, the requirement "
+        "recorded as not met, and the grid not widened. Grid: " + ", ".join(
+            f"{k} {v}" for k, v in fz["grid"].items()) + ".",
+        "7. **Freeze** under `revision_3a3` in `data/scoring_config.yaml`, **commit** code, "
+        "config and this protocol (tag `prereg-3a3`), then score **B October and A October "
+        "once** with `pumpcopilot score eval-3a3 --prereg <commit>`, which checks that code and "
+        "config are unchanged since that commit.",
+        "8. **Also recompute cases for 3a and 3a-2** from their stored results (no re-tuning, "
+        "no re-scoring), and run the same synthetic injections on B October.", ""] + ATTEMPT_1
+
+
+def markdown_3a3(cfg: dict, prereg: dict | None, results: dict | None,
+                 cases: dict | None) -> str:
+    fz = cfg["frozen"]
+    tuned = {k: cfg[k] for k in ("features", "baseline", "review", "within_run", "onset",
+                                 "cases")}
+    out = ["", f"# {PREREG}", "",
+           "Unlike 3a-2, this revision was specified, tuned on B June and committed before any "
+           "October scoring, and October is scored once.", ""]
+    out += _protocol_3a3(cfg)
+    sel = fz.get("selected", {})
+    out += ["## Frozen configuration (`revision_3a3`)", "",
+            "```yaml", yaml.safe_dump(tuned, sort_keys=False, default_flow_style=None,
+                                      width=100).rstrip(), "```", ""]
+    if sel:
+        met = ("met" if fz.get("requirement_met") else
+               "**NOT met: no setting qualified; fallback to the highest detection**")
+        out += [f"Qualification requirement {met} ({fz.get('qualified')} of "
+                f"{fz.get('candidates')} settings qualified).", "",
+                f"Selected on B June: window_readings {sel.get('window_readings')}, baseline "
+                f"{sel.get('baseline_s', 0) / 60:g} min, k = {sel.get('k')}, N = "
+                f"{sel.get('consecutive_windows')}: 6-sigma step detection "
+                f"{sel.get('qualify_detection_rate') or 0:.0%} of "
+                f"{sel.get('qualify_injections')}; {sel.get('case_time_fraction', 0):.1%} of "
+                f"running time in a case; {sel.get('cases')} cases "
+                f"({sel.get('cases_per_running_hour')} per running hour); mean synthetic "
+                f"detection {sel.get('mean_detection_rate', 0):.0%} over "
+                f"{sel.get('injections')} injections (reported, not optimised).", ""]
+    out += ["## Pre-registration", ""]
+    if prereg is None:
+        out += ["Pre-registration commit: this section is committed before scoring. **October: "
+                "not yet scored.**", ""]
+        return "\n".join(out) + "\n"
+    ok = "unchanged" if prereg["unchanged"] else f"CHANGED: {', '.join(prereg['changed'])}"
+    out += [f"Pre-registration commit: **`{prereg['commit']}`**. Checked before scoring: "
+            f"{', '.join(prereg.get('paths', []))} {ok} since that commit.", ""]
+    if results:
+        out += ["## REAL: October scored once", "",
+                "| pump | running h | unlabelled review episodes | cases | cases per run |"
+                " cases per running hour | window shares normal / review / insufficient |",
+                "|---|---|---|---|---|---|---|"]
+        for pump, e in results["pumps"].items():
+            cs = e["case_summary"]
+            tot = {}
+            for c in e["states_by_signal"].values():
+                for k, v in c.items():
+                    tot[k] = tot.get(k, 0) + v
+            n = sum(tot.values()) or 1
+            share = " / ".join(f"{100 * tot.get(k, 0) / n:.0f}%" for k in
+                               ("normal", "review_suggested", "insufficient_evidence"))
+            out.append(f"| {pump} | {e['running_hours']} | {len(e['review_episodes'])} | "
+                       f"{cs['cases']} | {cs['cases_per_run']} | {cs['cases_per_running_hour']}"
+                       f" | {share} |")
+        for pump, e in results["pumps"].items():
+            out += ["", f"### Pump {pump}: baselines per signal", "",
+                    "| signal | first fresh reading | settled | baseline | band |",
+                    "|---|---|---|---|---|"]
+            for run in e["runs"]:
+                for s, b in run["baselines"].items():
+                    out.append(f"| {s} | {b['first_fresh'][11:19]} | {b['onset'][11:19]} | "
+                               f"{b['baseline_start'][11:16]}-{b['baseline_end'][11:16]} | "
+                               f"{_f(b['low'], 5)}-{_f(b['high'], 5)} {b['unit']} |")
+                for s, why in run["signal_abstentions"].items():
+                    out.append(f"| {s} | - | - | abstained: {why} | - |")
+            out += ["", "| signal | normal | review_suggested | insufficient_evidence |"
+                    " data_unavailable |", "|---|---|---|---|---|"]
+            for s, c in e["states_by_signal"].items():
+                out.append(f"| {s} | {c.get('normal', 0)} | {c.get('review_suggested', 0)} | "
+                           f"{c.get('insufficient_evidence', 0)} | {c.get('data_unavailable', 0)}"
+                           " |")
+            if e["cases"]:
+                out += ["", "| case | start | end | signals | episodes | max score |",
+                        "|---|---|---|---|---|---|"]
+                for i, c in enumerate(e["cases"], 1):
+                    out.append(f"| {i} | {c['start'][11:19]} | {c['end'][11:19]} | "
+                               f"{', '.join(c['signals'])} | {c['episodes']} | "
+                               f"{_f(c['max_score'], 3)} |")
+        syn = results.get("synthetic")
+        if syn:
+            out += ["", "## SYNTHETIC: B October injections", "",
+                    "| fault | size | injections | detected | rate | median delay min |",
+                    "|---|---|---|---|---|---|"]
+            for c in syn["cells"]:
+                out.append(f"| {c['fault']} | {c['size_label']} | {c['injections']} | "
+                           f"{c['detected']} | {c['detection_rate']:.0%} | "
+                           f"{_min(c['median_delay_s'])} |")
+            share = syn["clean_normal_share"]
+            out += ["", "By signal (rate / median delay min), with the share of clean October "
+                    "windows that were normal:", "",
+                    "| fault | size | " + " | ".join(syn["by_signal"]) + " |",
+                    "|---|---|" + "---|" * len(syn["by_signal"]),
+                    "| *clean October windows normal* | | " + " | ".join(
+                        f"*{share.get(s, 0):.0%}*" for s in syn["by_signal"]) + " |"]
+            for c in syn["cells"]:
+                out.append(f"| {c['fault']} | {c['size_label']} | " + " | ".join(
+                    _cell(rows, c["fault"], c["size"]) for rows in syn["by_signal"].values())
+                    + " |")
+            sv = results.get("stuck_via_stale")
+            if sv:
+                out += ["", f"Stuck: {sv['detected']} of {sv['injections']} detected, "
+                        f"{sv['decided_by_stale_flag']} decided by the stale flag."]
+    if cases:
+        out += ["", "## Cases for every mode", "",
+                f"Review episodes merged into cases (same asset and run, less than "
+                f"{cfg['cases']['gap_s'] / 60:g} min apart). 3a and 3a-2 are recomputed from "
+                "their stored results, not re-tuned or re-scored. Denominator: the day's total "
+                "running hours for every mode, so cases per running hour are comparable.", "",
+                "| mode | pump | cases | cases per run | cases per running hour |"
+                " running time in a case |", "|---|---|---|---|---|---|"]
+        for mode, pumps in cases.items():
+            for pump, cs in pumps.items():
+                if cs.get("abstained"):
+                    out.append(f"| {mode} | {pump} | abstained | - | - | - |")
+                else:
+                    out.append(f"| {mode} | {pump} | {cs['cases']} | {cs['cases_per_run']} | "
+                               f"{cs['cases_per_running_hour']} | "
+                               f"{cs['case_time_fraction']:.1%} |")
+    if results:
+        out += ["", "## This is the last detector revision", "",
+                "3a-3 is the last detector revision for CIRA. The detector code and "
+                "configuration are frozen as scored above; further ideas are recorded here as "
+                "future work and are not implemented.", "",
+                "## Future work", ""] + [f"- {x}" for x in FUTURE_WORK]
+    return "\n".join(out) + "\n"

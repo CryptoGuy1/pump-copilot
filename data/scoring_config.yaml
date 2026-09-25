@@ -94,3 +94,50 @@ revision_3a2:
       selected: {step_s: 60, window_readings: 10, baseline_s: 3600, k: 3.0, consecutive_windows: 5, unlabelled_reviews: 2,
         unlabelled_reviews_per_running_hour: 0.4035, mean_detection_rate: 0.3333, median_delay_s: 76.0,
         injections: 45, evaluable_windows: 263, scored_running_hours: 4.957}
+revision_3a3:
+  features: {window_s: 600, step_s: 60, min_fresh_readings: 5, min_fresh_fraction: 0.5, window_readings: 6,
+    window_floor_s: 60, stale_via_flag: true}
+  baseline: {k: 8.0, floor_fraction: 0.001, min_fit_running_s: 7200, min_fit_readings: 100}
+  review: {consecutive_windows: 3}
+  normalization: {ambient_signal: ambient_temperature, barometric_signal: ambient_pressure, temperature_unit: degC}
+  injection:
+    signals: [outlet_pressure, pump_vibration_velocity, motor_casing_temperature]
+    offset_sizes_sigma: [1.0, 3.0, 6.0]
+    durations_s: [300, 1200, 3600]
+    ramp_s: 600
+    drift_s: 7200
+    offset_horizon_s: 3600
+  tuning: {split_fraction: 0.6}
+  within_run: {baseline_s: 1800, min_baseline_s: 900, min_baseline_readings: 15, min_baseline_windows: 5}
+  onset:
+    settling_s: {pressure: 300, vibration: 600, temperature: 1800}
+  cases: {gap_s: 900}
+  frozen:
+    label: '3a-3: pre-registered final revision'
+    'on': '2026-09-25'
+    tuned_on: {asset_id: cira-pump-B, source_day: '2024-06-11'}
+    mode: 'within-run steady: per signal, the baseline starts at the later of its first fresh reading
+      in the run and its fixed settling time (A7), lasts baseline_s, and only later windows of that signal
+      are scored'
+    grid:
+      k: [3.0, 4.0, 5.0, 6.0, 8.0]
+      consecutive_windows: [2, 3, 5]
+      window_readings: [6, 10]
+      baseline_s: [1200, 1800, 3600]
+      step_s: [60]
+    starts_per_fault: 3
+    qualification: {fault: step, size_sigma: 6.0, min_detection: 0.8, starts: 5, validation_from: '2024-06-11
+        10:44:00+00:00'}
+    qualify_starts: ['2024-06-11 11:10:21+00:00', '2024-06-11 11:23:04+00:00', '2024-06-11 11:35:47+00:00',
+      '2024-06-11 11:48:29+00:00', '2024-06-11 12:01:12+00:00']
+    objective: 'qualify: at least 80% detection of 6-sigma step injections into B June''s validation portion;
+      choose: least fraction of running time covered by a case; tie-breaks: fewer cases, then larger k,
+      then larger N (then larger baseline_s, window_readings); fallback if nothing qualifies: highest
+      detection, same tie-breaks, grid not widened'
+    requirement_met: true
+    qualified: 6
+    candidates: 90
+    selected: {step_s: 60, window_readings: 6, baseline_s: 1800, k: 8.0, consecutive_windows: 3, qualify_injections: 10,
+      qualify_detection_rate: 0.8, case_time_fraction: 0.7498601007274762, case_hours: 4.4667, cases: 1,
+      cases_per_running_hour: 0.1679, unlabelled_reviews: 28, unlabelled_reviews_per_running_hour: 4.7006,
+      mean_detection_rate: 0.6444, median_delay_s: 124.5, injections: 90, evaluable_windows: 1741}
