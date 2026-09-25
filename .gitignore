@@ -4,3 +4,4 @@ reports/*.json
 __pycache__/
 .venv/
 *.egg-info/
+.claude/settings.local.json
