@@ -1,0 +1,181 @@
+{
+  "3a across-day": {
+    "B": {
+      "cases": 1,
+      "cases_per_run": [
+        1
+      ],
+      "running_hours": 6.665,
+      "cases_per_running_hour": 0.15,
+      "case_hours": 6.45,
+      "case_time_fraction": 0.9677822698287001,
+      "case_list": [
+        {
+          "run": 0,
+          "start": "2024-10-30 08:43:00+00:00",
+          "end": "2024-10-30 15:10:00+00:00",
+          "signals": [
+            "outlet_pressure",
+            "pump_acceleration_peak",
+            "pump_accelerometer_contact_temperature_rel_ambient",
+            "pump_vibration_velocity"
+          ],
+          "episodes": 11,
+          "max_score": 50.87736558994917
+        }
+      ]
+    },
+    "A": {
+      "abstained": "baseline abstained: fit day 2024-06-11 has 1.32 h running, minimum is 2.00 h"
+    },
+    "A (exploratory)": {
+      "cases": 0,
+      "cases_per_run": [
+        0
+      ],
+      "running_hours": 2.298,
+      "cases_per_running_hour": 0.0,
+      "case_hours": 0.0,
+      "case_time_fraction": 0.0,
+      "case_list": []
+    }
+  },
+  "3a-2 across-day": {
+    "B": {
+      "cases": 1,
+      "cases_per_run": [
+        1
+      ],
+      "running_hours": 6.665,
+      "cases_per_running_hour": 0.15,
+      "case_hours": 6.633333333333334,
+      "case_time_fraction": 0.9952902930021257,
+      "case_list": [
+        {
+          "run": 0,
+          "start": "2024-10-30 08:32:00+00:00",
+          "end": "2024-10-30 15:10:00+00:00",
+          "signals": [
+            "motor_acceleration_peak",
+            "motor_accelerometer_contact_temperature_rel_ambient",
+            "motor_casing_temperature_rel_ambient",
+            "motor_vibration_velocity",
+            "outlet_pressure",
+            "pump_acceleration_peak",
+            "pump_accelerometer_contact_temperature_rel_ambient",
+            "pump_vibration_velocity"
+          ],
+          "episodes": 43,
+          "max_score": 17.935897052689707
+        }
+      ]
+    },
+    "A": {
+      "abstained": "baseline abstained: fit day 2024-06-11 has 1.32 h running, minimum is 2.00 h"
+    },
+    "A (exploratory)": {
+      "cases": 1,
+      "cases_per_run": [
+        1
+      ],
+      "running_hours": 2.298,
+      "cases_per_running_hour": 0.4352,
+      "case_hours": 1.6333333333333333,
+      "case_time_fraction": 0.7108317214700194,
+      "case_list": [
+        {
+          "run": 0,
+          "start": "2024-10-30 11:41:00+00:00",
+          "end": "2024-10-30 13:19:00+00:00",
+          "signals": [
+            "motor_acceleration_peak",
+            "motor_vibration_velocity"
+          ],
+          "episodes": 8,
+          "max_score": 3.3382334466133776
+        }
+      ]
+    }
+  },
+  "3a-2 within-run": {
+    "B": {
+      "cases": 1,
+      "cases_per_run": [
+        1
+      ],
+      "running_hours": 6.665,
+      "cases_per_running_hour": 0.15,
+      "case_hours": 5.583333333333333,
+      "case_time_fraction": 0.8377443420997791,
+      "case_list": [
+        {
+          "run": 0,
+          "start": "2024-10-30 09:35:00+00:00",
+          "end": "2024-10-30 15:10:00+00:00",
+          "signals": [
+            "motor_acceleration_peak",
+            "motor_accelerometer_contact_temperature_rel_ambient",
+            "motor_casing_temperature_rel_ambient",
+            "outlet_pressure",
+            "pump_acceleration_peak",
+            "pump_accelerometer_contact_temperature_rel_ambient",
+            "pump_vibration_velocity"
+          ],
+          "episodes": 32,
+          "max_score": 19.20481697636124
+        }
+      ]
+    },
+    "A": {
+      "cases": 1,
+      "cases_per_run": [
+        1
+      ],
+      "running_hours": 2.298,
+      "cases_per_running_hour": 0.4352,
+      "case_hours": 1.2166666666666666,
+      "case_time_fraction": 0.5294970986460348,
+      "case_list": [
+        {
+          "run": 0,
+          "start": "2024-10-30 12:06:00+00:00",
+          "end": "2024-10-30 13:19:00+00:00",
+          "signals": [
+            "motor_acceleration_peak",
+            "motor_accelerometer_contact_temperature_rel_ambient",
+            "motor_casing_temperature_rel_ambient",
+            "motor_vibration_velocity",
+            "outlet_pressure",
+            "pump_acceleration_peak",
+            "pump_accelerometer_contact_temperature_rel_ambient",
+            "pump_vibration_velocity"
+          ],
+          "episodes": 14,
+          "max_score": 4.6854145203754785
+        }
+      ]
+    }
+  },
+  "3a-3 within-run steady": {
+    "B": {
+      "cases": 1,
+      "cases_per_run": [
+        1
+      ],
+      "running_hours": 6.665,
+      "cases_per_running_hour": 0.15,
+      "case_hours": 6.033333333333333,
+      "case_time_fraction": 0.9052640353436419
+    },
+    "A": {
+      "cases": 2,
+      "cases_per_run": [
+        2
+      ],
+      "running_hours": 2.298,
+      "cases_per_running_hour": 0.8704,
+      "case_hours": 1.2833333333333334,
+      "case_time_fraction": 0.5585106382978724
+    }
+  }
+}

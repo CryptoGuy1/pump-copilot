@@ -481,5 +481,142 @@ Selected on B June: window_readings 6, baseline 30 min, k = 8.0, N = 3: 6-sigma 
 
 ## Pre-registration
 
-Pre-registration commit: this section is committed before scoring. **October: not yet scored.**
+Pre-registration commit: **`385263d68785643388397817690a9e12643ce39c`**. Checked before scoring: data/scoring_config.yaml, data/operating_rules.yaml, data/cira_columns.yaml, src/pumpcopilot, migrations unchanged since that commit.
 
+## REAL: October scored once
+
+| pump | running h | unlabelled review episodes | cases | cases per run | cases per running hour | window shares normal / review / insufficient |
+|---|---|---|---|---|---|---|
+| B | 6.665 | 36 | 1 | [1] | 0.15 | 53% / 33% / 13% |
+| A | 2.298 | 6 | 2 | [2] | 0.8704 | 78% / 15% / 7% |
+
+### Pump B: baselines per signal
+
+| signal | first fresh reading | settled | baseline | band |
+|---|---|---|---|---|
+| motor_acceleration_peak | 08:45:04 | 08:40:35 | 08:45-09:15 | -10.824-63.306 m/s^2 |
+| motor_accelerometer_contact_temperature_rel_ambient | 08:45:04 | 09:00:35 | 09:00-09:30 | -1.9468-14.613 K |
+| motor_casing_temperature_rel_ambient | 08:30:46 | 09:00:35 | 09:00-09:30 | -1.1336-13.637 K |
+| motor_vibration_velocity | 08:45:04 | 08:40:35 | 08:45-09:15 | 0.0011972-0.0017551 m/s |
+| outlet_pressure | 08:31:35 | 08:35:35 | 08:35-09:05 | 42.649-43.215 bar |
+| pump_acceleration_peak | 08:45:11 | 08:40:35 | 08:45-09:15 | 12.224-33.526 m/s^2 |
+| pump_accelerometer_contact_temperature_rel_ambient | 08:45:11 | 09:00:35 | 09:00-09:30 | 3.6279-21.422 K |
+| pump_vibration_velocity | 08:45:11 | 08:40:35 | 08:45-09:15 | 0.003846-0.0044614 m/s |
+
+| signal | normal | review_suggested | insufficient_evidence | data_unavailable |
+|---|---|---|---|---|
+| motor_acceleration_peak | 63 | 209 | 77 | 0 |
+| motor_accelerometer_contact_temperature_rel_ambient | 88 | 142 | 104 | 0 |
+| motor_casing_temperature_rel_ambient | 133 | 179 | 21 | 0 |
+| motor_vibration_velocity | 239 | 0 | 110 | 0 |
+| outlet_pressure | 8 | 336 | 14 | 0 |
+| pump_acceleration_peak | 324 | 1 | 23 | 0 |
+| pump_accelerometer_contact_temperature_rel_ambient | 318 | 0 | 15 | 0 |
+| pump_vibration_velocity | 298 | 50 | 0 | 0 |
+
+| case | start | end | signals | episodes | max score |
+|---|---|---|---|---|---|
+| 1 | 09:08:00 | 15:10:00 | motor_acceleration_peak, motor_accelerometer_contact_temperature_rel_ambient, motor_casing_temperature_rel_ambient, outlet_pressure, pump_acceleration_peak, pump_vibration_velocity | 36 | 33.9 |
+
+### Pump A: baselines per signal
+
+| signal | first fresh reading | settled | baseline | band |
+|---|---|---|---|---|
+| motor_acceleration_peak | 11:05:06 | 11:11:13 | 11:11-11:41 | 12.512-15.926 m/s^2 |
+| motor_accelerometer_contact_temperature_rel_ambient | 11:05:06 | 11:31:13 | 11:31-12:01 | 3.9322-23.025 K |
+| motor_casing_temperature_rel_ambient | 11:02:06 | 11:31:13 | 11:31-12:01 | 4.9403-20.923 K |
+| motor_vibration_velocity | 11:05:06 | 11:11:13 | 11:11-11:41 | 0.0024319-0.0031326 m/s |
+| outlet_pressure | 11:01:15 | 11:06:13 | 11:06-11:36 | 37.265-43.687 bar |
+| pump_acceleration_peak | 11:06:43 | 11:11:13 | 11:11-11:41 | 26.154-43.644 m/s^2 |
+| pump_accelerometer_contact_temperature_rel_ambient | 11:05:15 | 11:31:13 | 11:31-12:01 | 10.162-15.834 K |
+| pump_vibration_velocity | 11:06:43 | 11:11:13 | 11:11-11:41 | 0.0031193-0.0044219 m/s |
+
+| signal | normal | review_suggested | insufficient_evidence | data_unavailable |
+|---|---|---|---|---|
+| motor_acceleration_peak | 25 | 67 | 0 | 0 |
+| motor_accelerometer_contact_temperature_rel_ambient | 52 | 12 | 8 | 0 |
+| motor_casing_temperature_rel_ambient | 50 | 0 | 21 | 0 |
+| motor_vibration_velocity | 63 | 23 | 6 | 0 |
+| outlet_pressure | 91 | 0 | 6 | 0 |
+| pump_acceleration_peak | 91 | 0 | 0 | 0 |
+| pump_accelerometer_contact_temperature_rel_ambient | 64 | 0 | 7 | 0 |
+| pump_vibration_velocity | 91 | 0 | 0 | 0 |
+
+| case | start | end | signals | episodes | max score |
+|---|---|---|---|---|---|
+| 1 | 11:44:00 | 11:50:00 | motor_acceleration_peak | 1 | 1.05 |
+| 2 | 12:08:00 | 13:19:00 | motor_acceleration_peak, motor_accelerometer_contact_temperature_rel_ambient, motor_vibration_velocity | 5 | 3.61 |
+
+## SYNTHETIC: B October injections
+
+| fault | size | injections | detected | rate | median delay min |
+|---|---|---|---|---|---|
+| step | 1 sigma | 15 | 2 | 13% | 29.9 |
+| step | 3 sigma | 15 | 5 | 33% | 14.2 |
+| step | 6 sigma | 15 | 7 | 47% | 6.3 |
+| ramp | 1 sigma | 15 | 2 | 13% | 34.5 |
+| ramp | 3 sigma | 15 | 5 | 33% | 14.2 |
+| ramp | 6 sigma | 15 | 7 | 47% | 12.2 |
+| drift | 1 sigma | 15 | 3 | 20% | 48.5 |
+| drift | 3 sigma | 15 | 4 | 27% | 43.5 |
+| drift | 6 sigma | 15 | 8 | 53% | 60.3 |
+| stuck | 5 min | 15 | 15 | 100% | 1.0 |
+| stuck | 20 min | 15 | 15 | 100% | 1.0 |
+| stuck | 60 min | 15 | 15 | 100% | 1.0 |
+| dropout | 5 min | 15 | 15 | 100% | 3.0 |
+| dropout | 20 min | 15 | 15 | 100% | 2.5 |
+| dropout | 60 min | 15 | 15 | 100% | 2.5 |
+
+By signal (rate / median delay min), with the share of clean October windows that were normal:
+
+| fault | size | outlet_pressure | pump_vibration_velocity | motor_casing_temperature |
+|---|---|---|---|---|
+| *clean October windows normal* | | *2%* | *86%* | *40%* |
+| step | 1 sigma | 0% / - | 0% / - | 40% / 29.9 |
+| step | 3 sigma | 0% / - | 60% / 29.2 | 40% / 5.5 |
+| step | 6 sigma | 0% / - | 100% / 8.1 | 40% / 5.5 |
+| ramp | 1 sigma | 0% / - | 0% / - | 40% / 34.5 |
+| ramp | 3 sigma | 0% / - | 60% / 29.2 | 40% / 9.9 |
+| ramp | 6 sigma | 0% / - | 100% / 13.1 | 40% / 8.0 |
+| drift | 1 sigma | 0% / - | 0% / - | 60% / 48.5 |
+| drift | 3 sigma | 0% / - | 20% / 90.3 | 60% / 34.5 |
+| drift | 6 sigma | 0% / - | 100% / 79.1 | 60% / 23.5 |
+| stuck | 5 min | 100% / 0.5 | 100% / 1.7 | 100% / 1.0 |
+| stuck | 20 min | 100% / 1.0 | 100% / 1.2 | 100% / 0.5 |
+| stuck | 60 min | 100% / 1.0 | 100% / 1.2 | 100% / 0.5 |
+| dropout | 5 min | 100% / 2.5 | 100% / 3.7 | 100% / 3.0 |
+| dropout | 20 min | 100% / 3.0 | 100% / 3.1 | 100% / 2.5 |
+| dropout | 60 min | 100% / 3.0 | 100% / 2.3 | 100% / 2.5 |
+
+Stuck: 45 of 45 detected, 45 decided by the stale flag.
+
+## Cases for every mode
+
+Review episodes merged into cases (same asset and run, less than 15 min apart). 3a and 3a-2 are recomputed from their stored results, not re-tuned or re-scored. Denominator: the day's total running hours for every mode, so cases per running hour are comparable.
+
+| mode | pump | cases | cases per run | cases per running hour | running time in a case |
+|---|---|---|---|---|---|
+| 3a across-day | B | 1 | [1] | 0.15 | 96.8% |
+| 3a across-day | A | abstained | - | - | - |
+| 3a across-day | A (exploratory) | 0 | [0] | 0.0 | 0.0% |
+| 3a-2 across-day | B | 1 | [1] | 0.15 | 99.5% |
+| 3a-2 across-day | A | abstained | - | - | - |
+| 3a-2 across-day | A (exploratory) | 1 | [1] | 0.4352 | 71.1% |
+| 3a-2 within-run | B | 1 | [1] | 0.15 | 83.8% |
+| 3a-2 within-run | A | 1 | [1] | 0.4352 | 52.9% |
+| 3a-3 within-run steady | B | 1 | [1] | 0.15 | 90.5% |
+| 3a-3 within-run steady | A | 2 | [2] | 0.8704 | 55.9% |
+
+## This is the last detector revision
+
+3a-3 is the last detector revision for CIRA. The detector code and configuration are frozen as scored above; further ideas are recorded here as future work and are not implemented.
+
+## Future work
+
+- Multi-day baselines per pump (fit on several running days) instead of one day or one run.
+- Condition bands on operating point (pressure regime, flow) so load changes are not reviews.
+- Per-device update-rate metadata (WirelessHART burst periods) instead of inferring them.
+- Seasonal ambient handling beyond subtracting ambient temperature.
+- Case feedback from operators, to turn unlabelled cases into labelled ones.
+- A real labelled centrifugal-pump benchmark (the 4TU / Tata Steel candidate in ADR-0001).
+- Online replay of the full pipeline, to measure end-to-end decision delay causally.
