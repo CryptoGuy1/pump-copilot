@@ -191,3 +191,156 @@ def markdown(cfg: dict, tuning: list[dict], results: dict) -> str:
             "injected pressure fault never changes the running/off state, and an injected step "
             "is never itself flagged as a spike."]
     return "\n".join(out) + "\n"
+
+
+# --- 3a-2: post-hoc revision after 3a results --------------------------------------------
+
+LABEL = "post-hoc revision after 3a results"
+
+
+def _rate(e: dict | None) -> str:
+    if not e:
+        return "-"
+    if e.get("abstained"):
+        return "abstained"
+    return f"{len(e['review_episodes'])} / {e['unlabelled_reviews_per_running_hour']}"
+
+
+def _hours(e: dict | None) -> str:
+    if not e or e.get("abstained"):
+        return "-"
+    return _f(e.get("scored_running_hours", e.get("score_running_hours")))
+
+
+def _shares(e: dict | None) -> str:
+    if not e or e.get("abstained"):
+        return "-"
+    tot = {}
+    for c in e["states_by_signal"].values():
+        for k, v in c.items():
+            tot[k] = tot.get(k, 0) + v
+    n = sum(tot.values()) or 1
+    return " / ".join(f"{100 * tot.get(k, 0) / n:.0f}%" for k in
+                      ("normal", "review_suggested", "insufficient_evidence", "data_unavailable"))
+
+
+def _cell(cells: list[dict] | None, fault: str, size: float) -> str:
+    m = next((c for c in (cells or []) if c["fault"] == fault and c["size"] == size), None)
+    return "-" if m is None else f"{m['detection_rate']:.0%} / {_min(m['median_delay_s'])}"
+
+
+def _tuned(cfg: dict) -> dict:
+    keep = {"features": cfg["features"], "baseline": cfg["baseline"], "review": cfg["review"]}
+    if "within_run" in cfg:
+        keep["within_run"] = cfg["within_run"]
+    return keep
+
+
+def revision_markdown(across: dict, within: dict, res: dict,
+                      baseline_3a: dict | None = None) -> str:
+    fa, fw = across["frozen"], within["frozen"]
+    ad, wr = res["across_day"], res["within_run"]
+    out = [
+        "", f"# 3a-2: {LABEL}", "",
+        f"**Everything in this part is a {LABEL}.** The changes were designed after the 3a "
+        "October results were seen, so October is not an unseen test set for them. Tuning "
+        "still used B June only and October was scored once per mode, but these numbers are "
+        "weaker evidence than a blind result.", "",
+        f"## What changed ({LABEL})", "",
+        "- **Per-signal windows.** A window spans `window_readings` typical reading intervals of "
+        "that signal on that day (rounded up to whole minutes), so it can hold enough fresh "
+        "readings whatever the sensor's update rate. The fresh-reading minimum is a fixed "
+        f"statistical {across['features']['min_fresh_readings']} readings, no longer derived "
+        "from June's update rate (which excluded all October motor signals in 3a).",
+        "- **Stuck sensors go through the stale flag.** A window overlapping a reading held past "
+        "its stale limit (from `data/operating_rules.yaml`) is `insufficient_evidence` with "
+        "reason `stale_suspected`. Stuck injections recompute that flag as the pipeline would, "
+        "and only a stale decision counts as detecting them.",
+        "- **Within-run mode.** Each running segment is scored against a band fit on its own "
+        "first `baseline_s` seconds after the transition window, with a configurable minimum. "
+        "It needs no other day, so it also scores pump A.", "",
+        f"## Frozen configurations ({LABEL})", "",
+        "Both tuned on B_2024-06-11 only and frozen under `revision_3a2` in "
+        "`data/scoring_config.yaml`.", "",
+        f"Across-day: {fa['objective']}. Grid " + ", ".join(
+            f"{k} {v}" for k, v in fa["grid"].items()) + ".", "",
+        "```yaml", yaml.safe_dump(_tuned(across), sort_keys=False, default_flow_style=None,
+                                  width=100).rstrip(), "```", "",
+        f"Within-run ({fw.get('mode', '')}): {fw['objective']}. Grid " + ", ".join(
+            f"{k} {v}" for k, v in fw["grid"].items()) + ".", "",
+        "```yaml", yaml.safe_dump(_tuned(within), sort_keys=False, default_flow_style=None,
+                                  width=100).rstrip(), "```", "",
+        f"## REAL: October scored once per mode ({LABEL})", "",
+        "Unlabelled review episodes / per running hour (CIRA has no fault labels). Within-run "
+        "hours exclude each run's baseline period. Window shares are normal / review / "
+        "insufficient / unavailable over all signal-windows.", "",
+        "| mode | pump | running h scored | unlabelled reviews / per h | window shares |",
+        "|---|---|---|---|---|"]
+    rows = []
+    if baseline_3a:
+        for pump, e in baseline_3a["pumps"].items():
+            rows.append(("3a across-day (committed)", pump, e))
+    for pump, e in ad["pumps"].items():
+        rows.append(("3a-2 across-day", pump, e))
+        if e.get("exploratory"):
+            rows.append(("3a-2 across-day, EXPLORATORY 1 h minimum", pump, e["exploratory"]))
+    for pump, e in wr["pumps"].items():
+        rows.append(("3a-2 within-run", pump, e))
+    for mode, pump, e in rows:
+        out.append(f"| {mode} | {pump} | {_hours(e)} | {_rate(e)} | {_shares(e)} |")
+
+    for title, e in (("3a-2 across-day, B", ad["pumps"]["B"]),
+                     ("3a-2 within-run, B", wr["pumps"]["B"]),
+                     ("3a-2 within-run, A", wr["pumps"].get("A"))):
+        if not e or e.get("abstained"):
+            continue
+        out += ["", f"### {title}: states per signal ({LABEL})", "",
+                "| signal | normal | review_suggested | insufficient_evidence | data_unavailable |",
+                "|---|---|---|---|---|"]
+        for s, c in e["states_by_signal"].items():
+            out.append(f"| {s} | {c.get('normal', 0)} | {c.get('review_suggested', 0)} | "
+                       f"{c.get('insufficient_evidence', 0)} | {c.get('data_unavailable', 0)} |")
+        if e["review_episodes"]:
+            out += ["", "| review episode: signal | start | end | windows | max score |",
+                    "|---|---|---|---|---|"]
+            for ep in e["review_episodes"]:
+                out.append(f"| {ep['signal_name']} | {ep['start'][11:19]} | {ep['end'][11:19]}"
+                           f" | {ep['windows']} | {_f(ep['max_score'], 3)} |")
+
+    sa, sw = ad.get("synthetic"), wr.get("synthetic")
+    s3 = (baseline_3a or {}).get("synthetic")
+    out += ["", f"## SYNTHETIC: B October injections, both modes ({LABEL})", "",
+            "Detection rate / median delay in minutes, all injected signals together. Same fault "
+            "definitions as 3a, except that stuck must now be decided by the stale flag.", "",
+            "| fault | size | across-day (3a-2) | within-run (3a-2) |"
+            + (" 3a (committed) |" if s3 else ""),
+            "|---|---|---|---|" + ("---|" if s3 else "")]
+    keys = [(c["fault"], c["size"], c["size_label"]) for c in (sa or sw or {"cells": []})["cells"]]
+    for fault, size, label in keys:
+        row = (f"| {fault} | {label} | {_cell(sa and sa['cells'], fault, size)} | "
+               f"{_cell(sw and sw['cells'], fault, size)} |")
+        if s3:
+            row += f" {_cell(s3['cells'], fault, size)} |"
+        out.append(row)
+    signals = list((sa or sw)["by_signal"]) if (sa or sw) else []
+    if signals:
+        out += ["", "By signal, across-day | within-run (rate / median delay min); the first row "
+                "is the share of clean October windows that were normal, which bounds what can be "
+                "detected:", "",
+                "| fault | size | " + " | ".join(f"{s} across | {s} within" for s in signals)
+                + " |", "|---|---|" + "---|---|" * len(signals),
+                "| *clean October windows normal* | | " + " | ".join(
+                    f"*{sa['clean_normal_share'].get(s, 0):.0%}* | "
+                    f"*{sw['clean_normal_share'].get(s, 0):.0%}*" if sa and sw else "- | -"
+                    for s in signals) + " |"]
+        for fault, size, label in keys:
+            cells = []
+            for s in signals:
+                cells.append(_cell(sa and sa["by_signal"].get(s), fault, size))
+                cells.append(_cell(sw and sw["by_signal"].get(s), fault, size))
+            out.append(f"| {fault} | {label} | " + " | ".join(cells) + " |")
+    sv = res.get("stuck_via_stale", {})
+    out += ["", f"**Stuck injections re-run ({LABEL}):** " + "; ".join(
+        f"{mode}: {v['detected']} of {v['injections']} detected, {v['decided_by_stale_flag']} "
+        "of them decided by the stale flag" for mode, v in sv.items()) + ".", ""]
+    return "\n".join(out) + "\n"

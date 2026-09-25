@@ -27,8 +27,10 @@ not centrifugal, which further supports keeping it on a separate benchmark page.
 The CIRA data descriptor describes normal operating conditions, so the anomaly detector has
 nothing measurable to be evaluated on. Inject parametrised synthetic deviations (step, ramp,
 sensor stuck, drift, dropout) into a held-out CIRA day, labelled `synthetic_injection` in
-provenance, and report detection delay and false review rate per asset-day. This measures the
-pipeline and persistence rule, not real fault detection, and is reported that way.
+provenance, and report detection delay and unlabelled review rate per asset-day. (Unlabelled,
+not false: CIRA has no fault labels, so a review on real data can be neither confirmed nor
+refuted.) This measures the pipeline and persistence rule, not real fault detection, and is
+reported that way.
 Also normalise temperatures against ambient before baselining; April vs June vs October
 differences will otherwise dominate every "anomaly".
 
