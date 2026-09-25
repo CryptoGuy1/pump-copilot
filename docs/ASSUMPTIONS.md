@@ -161,6 +161,10 @@ measurements. The step 2 rules work on reading events (`operating.reading_events
   reading after the 07:08:08 start came at 07:30:49 and was then held 30 min. On C_2024-06-11
   there was a single motor reading (11:18:10) during a 27-minute run. Meanwhile pressure was at
   about 42 bar, so the pump was running.
+- Update rates can change between days. B's motor accelerometer and casing temperature
+  reported every 8 s while running on 2024-06-11 but every 60 s on 2024-10-30, so
+  per-window reading counts learned on one day do not carry over to another
+  (`reports/cira_scoring_eval.md`, post-hoc diagnostics).
 - The acquisition chain explains it: descriptor §3.2 says Telegraf reads the gateway over Modbus
   TCP. Modbus registers keep their last value until the device updates them.
 - Against: descriptor §3.1 says "All sensors perform measurements at a sampling frequency of

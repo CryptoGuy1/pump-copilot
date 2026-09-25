@@ -37,6 +37,9 @@ def main(argv: list[str] | None = None) -> None:
     dbp = sub.add_parser("db", help="Timescale: migrate, load cira, perf (uses DATABASE_URL)")
     dbp.add_argument("action", choices=["migrate", "load", "perf"])
     dbp.add_argument("dataset", nargs="?", choices=["cira"], default="cira")
+    sc = sub.add_parser("score", help="tune (B June only, freezes config) or eval (fit/score)")
+    sc.add_argument("action", choices=["tune", "eval"])
+    sc.add_argument("dataset", nargs="?", choices=["cira"], default="cira")
     args = p.parse_args(argv)
 
     if args.cmd == "acquire":
@@ -51,6 +54,8 @@ def main(argv: list[str] | None = None) -> None:
         _state_report()
     elif args.cmd == "db":
         _db(args.action)
+    elif args.cmd == "score":
+        _score(args.action)
     elif args.dataset == "zema":
         _write("zema_audit", zema.audit(DATA / "raw" / "zema"))
     else:
@@ -132,3 +137,43 @@ def _db(action: str) -> None:
             for k in ("day_1m", "hour_raw"):
                 print(f"    {k:9} {res[k]['rows']:7d} rows  median {res[k]['median_ms']} ms"
                       f"  best {res[k]['best_ms']} ms  ({res['repeats']} runs)")
+
+
+TUNING_GRID = {"k": [3.0, 4.0, 5.0, 6.0, 8.0], "consecutive_windows": [2, 3, 5],
+               "window_s": [300, 600, 1200], "step_s": [60]}
+
+
+def _score(action: str) -> None:
+    import yaml
+
+    from . import db, scoring, scoring_report
+
+    cfg_path = DATA / "scoring_config.yaml"
+    REPORTS.mkdir(exist_ok=True)
+    with db.connect() as conn:
+        def loader(asset_id, source_day):
+            return scoring.load_day(conn, asset_id, source_day)
+
+        if action == "tune":
+            frozen, table = scoring.tune(loader, scoring.merge_config({}), TUNING_GRID)
+            cfg_path.write_text(scoring_report.config_yaml(frozen))
+            (REPORTS / "cira_tuning.json").write_text(json.dumps(table, indent=2, default=str))
+            sel = frozen["frozen"]["selected"]
+            print(f"[frozen] {cfg_path}: window {sel['window_s']} s, k {sel['k']}, "
+                  f"N {sel['consecutive_windows']}; June validation unlabelled reviews "
+                  f"{sel['unlabelled_reviews']}, mean detection {sel['mean_detection_rate']:.0%}")
+            return
+        cfg = scoring.merge_config(yaml.safe_load(cfg_path.read_text()))
+        table = json.loads((REPORTS / "cira_tuning.json").read_text())
+        results = scoring.evaluate(loader, cfg)
+    (REPORTS / "cira_scoring_eval.json").write_text(json.dumps(results, indent=2, default=str))
+    md = REPORTS / "cira_scoring_eval.md"
+    md.write_text(scoring_report.markdown(cfg, table, results))
+    print(f"[written] {md}")
+    for pump, e in results["pumps"].items():
+        if e["abstained"]:
+            print(f"  {pump}: abstained: {e['abstained']}")
+        else:
+            print(f"  {pump}: {len(e['review_episodes'])} unlabelled review episodes in "
+                  f"{e['score_running_hours']} running h = "
+                  f"{e['unlabelled_reviews_per_running_hour']} per running hour")

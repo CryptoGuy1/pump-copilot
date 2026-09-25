@@ -9,7 +9,7 @@ on public data; no refinery data, no plant alarms, no control actions.
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest                          # 72 tests on synthetic fixtures; 7 need the db (skipped if down)
+pytest                          # 93 tests on synthetic fixtures; 9 need the db (skipped if down)
 pumpcopilot acquire             # downloads ZeMA (UCI) and CIRA (Zenodo API) into data/raw/
 pumpcopilot audit zema          # -> reports/zema_audit.json
 pumpcopilot audit cira          # -> reports/cira_audit.json
@@ -19,6 +19,8 @@ docker compose up -d db         # Timescale; DATABASE_URL overrides the local de
 pumpcopilot db migrate          # applies migrations/NNNN_*.sql in order
 pumpcopilot db load cira        # idempotent: a second run inserts 0 rows
 pumpcopilot db perf             # -> reports/db_perf.json
+pumpcopilot score tune          # B June only -> data/scoring_config.yaml (frozen)
+pumpcopilot score eval          # fit June, score October -> reports/cira_scoring_eval.md
 ```
 
 ## Step 1 exit criteria (scope Week 1 stop rule)
@@ -37,6 +39,7 @@ src/pumpcopilot/zema.py        ZeMA loader, audit, confounding tables, split pre
 src/pumpcopilot/cira.py        CIRA per-file audit, canonical event conversion
 src/pumpcopilot/operating.py   CIRA operating state rules, stale/spike flags, state report
 src/pumpcopilot/db.py          migration runner, COPY + ON CONFLICT loader, per-asset-day queries
+src/pumpcopilot/scoring.py     features, robust baseline, ScoredEvidence, injection, protocol
 migrations/                    numbered SQL: telemetry/readings hypertables, segments, runs, 1-min view
 docs/adr/                      decisions that adjust the original scope
 docs/ASSUMPTIONS.md            assumptions register: evidence, impact if wrong, how to revisit

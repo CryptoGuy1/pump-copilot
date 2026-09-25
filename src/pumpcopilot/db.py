@@ -141,9 +141,9 @@ def load_cira_file(conn: psycopg.Connection, path: Path, column_map: dict, rules
         n_read = cur.execute("SELECT count(*) FROM stage_telemetry WHERE is_reading").fetchone()[0]
         cur.execute(
             "INSERT INTO readings (observed_at, asset_id, source_day, signal_name, value, unit,"
-            " held_s, operating_state, provenance_hash, ingest_run_id)"
+            " held_s, operating_state, quality_flags, provenance_hash, ingest_run_id)"
             " SELECT observed_at, asset_id, source_day, signal_name, value, unit, held_s,"
-            " operating_state, provenance_hash, ingest_run_id FROM stage_telemetry"
+            " operating_state, quality_flags, provenance_hash, ingest_run_id FROM stage_telemetry"
             " WHERE is_reading ON CONFLICT (observed_at, provenance_hash) DO NOTHING")
         read_in = cur.rowcount
 
@@ -226,8 +226,8 @@ def fetch_day_1m(conn: psycopg.Connection, asset_id: str, source_day: dt.date,
 def fetch_readings(conn: psycopg.Connection, asset_id: str, source_day: dt.date,
                    signals: list[str] | None = None) -> list[dict]:
     """Reading events (value changes) for one asset-day."""
-    q = ("SELECT observed_at, signal_name, value, unit, held_s, operating_state FROM readings"
-         " WHERE asset_id = %s AND source_day = %s")
+    q = ("SELECT observed_at, signal_name, value, unit, held_s, operating_state, quality_flags,"
+         " provenance_hash FROM readings WHERE asset_id = %s AND source_day = %s")
     args: list = [asset_id, source_day]
     if signals:
         q += " AND signal_name = ANY(%s)"

@@ -1,0 +1,30 @@
+# FROZEN scoring configuration. Written by `pumpcopilot score tune cira` from B_2024-06-11
+# only (within-June time split); see `frozen` below and reports/cira_scoring_eval.md.
+# Do not hand-edit after October has been scored: re-tuning would no longer be blind.
+features: {window_s: 300, step_s: 60, min_fresh_readings: 3, min_fresh_fraction: 0.5}
+baseline: {k: 6.0, floor_fraction: 0.001, min_fit_running_s: 7200, min_fit_readings: 100}
+review: {consecutive_windows: 2}
+normalization: {ambient_signal: ambient_temperature, barometric_signal: ambient_pressure, temperature_unit: degC}
+injection:
+  signals: [outlet_pressure, pump_vibration_velocity, motor_casing_temperature]
+  offset_sizes_sigma: [1.0, 3.0, 6.0]
+  durations_s: [300, 1200, 3600]
+  ramp_s: 600
+  drift_s: 7200
+  offset_horizon_s: 3600
+tuning: {split_fraction: 0.6}
+frozen:
+  'on': '2026-09-24'
+  tuned_on: {asset_id: cira-pump-B, source_day: '2024-06-11'}
+  split: {fit: 'running time before 2024-06-11 10:44:00+00:00', validate: 'from 2024-06-11 10:44:00+00:00',
+    validation_running_hours: 2.393}
+  grid:
+    k: [3.0, 4.0, 5.0, 6.0, 8.0]
+    consecutive_windows: [2, 3, 5]
+    window_s: [300, 600, 1200]
+    step_s: [60]
+  starts_per_fault: 3
+  objective: fewest unlabelled review episodes per running hour on the June validation part, then highest
+    mean synthetic detection rate, then shortest median delay, then larger k and N
+  selected: {window_s: 300, step_s: 60, k: 6.0, consecutive_windows: 2, unlabelled_reviews: 0, unlabelled_reviews_per_running_hour: 0.0,
+    mean_detection_rate: 0.7778, median_delay_s: 212.0, injections: 135}

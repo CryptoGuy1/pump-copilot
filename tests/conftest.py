@@ -116,3 +116,28 @@ def db_url():
     yield make_conninfo(base, dbname=name)
     with psycopg.connect(base, autocommit=True) as admin:
         admin.execute(f"DROP DATABASE IF EXISTS {name} WITH (FORCE)")
+
+
+@pytest.fixture
+def conn(db_url):
+    from pumpcopilot import db
+
+    with db.connect(db_url) as c:
+        db.migrate(c)
+        yield c
+
+
+@pytest.fixture
+def loaded(conn, cira_dir, tmp_path):
+    """The synthetic CIRA fixture loaded into the test database."""
+    import yaml
+
+    from pumpcopilot import db, operating
+
+    column_map = yaml.safe_load(
+        (Path(__file__).resolve().parents[1] / "data" / "cira_columns.yaml").read_text())
+    rules, _ = operating.derive_rules(cira_dir)
+    rules_path = tmp_path / "operating_rules.yaml"
+    operating.write_rules(rules, rules_path)
+    runs = db.load_cira(conn, cira_dir, column_map, rules_path)
+    return conn, cira_dir, rules, rules_path, runs

@@ -40,22 +40,6 @@ def test_database_url_comes_from_the_environment(monkeypatch):
 
 # --- database ----------------------------------------------------------------------------
 
-@pytest.fixture
-def conn(db_url):
-    with db.connect(db_url) as c:
-        db.migrate(c)
-        yield c
-
-
-@pytest.fixture
-def loaded(conn, cira_dir, tmp_path):
-    rules, _ = operating.derive_rules(cira_dir)
-    rules_path = tmp_path / "operating_rules.yaml"
-    operating.write_rules(rules, rules_path)
-    runs = db.load_cira(conn, cira_dir, COLUMN_MAP, rules_path)
-    return conn, cira_dir, rules, rules_path, runs
-
-
 @pytest.mark.db
 def test_migrate_is_idempotent_and_creates_hypertables(db_url):
     with db.connect(db_url) as c:
