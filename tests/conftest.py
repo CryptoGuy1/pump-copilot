@@ -118,12 +118,38 @@ def db_url():
         admin.execute(f"DROP DATABASE IF EXISTS {name} WITH (FORCE)")
 
 
+POLICY_JOBS = ("policy_compression", "policy_refresh_continuous_aggregate")
+
+
+def pause_policy_jobs(c) -> None:
+    """Disable the Timescale policy jobs of a freshly migrated test database, then wait for any
+    run already in progress to finish. A new policy runs once at creation; left alone it can
+    race a test's own telemetry_1m refresh. Tests that cover the jobs run them explicitly."""
+    import time
+
+    c.execute("SELECT alter_job(job_id, scheduled => false) FROM timescaledb_information.jobs"
+              " WHERE proc_name = ANY(%s)", [list(POLICY_JOBS)])
+    deadline = time.monotonic() + 60
+    while c.execute("SELECT 1 FROM pg_stat_activity WHERE datname = current_database()"
+                    " AND pid <> pg_backend_pid() AND application_name LIKE '%Policy [%'"
+                    ).fetchone():
+        if time.monotonic() > deadline:
+            raise RuntimeError("a Timescale policy job is still running after 60 s")
+        time.sleep(0.05)
+
+
+@pytest.fixture
+def pause_jobs():
+    return pause_policy_jobs
+
+
 @pytest.fixture
 def conn(db_url):
     from pumpcopilot import db
 
     with db.connect(db_url) as c:
         db.migrate(c)
+        pause_policy_jobs(c)
         yield c
 
 

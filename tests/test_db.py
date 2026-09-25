@@ -142,3 +142,86 @@ def test_one_minute_aggregate_matches_raw(loaded):
     assert max(a["max_value"] for a in agg) == pytest.approx(max(r["value"] for r in raw))
     assert np.isclose(sum(a["mean_value"] * a["sample_count"] for a in agg),
                       sum(r["value"] for r in raw))
+
+
+# --- Timescale policy jobs ---------------------------------------------------------------
+
+POLICIES = ("policy_compression", "policy_refresh_continuous_aggregate")
+
+
+@pytest.mark.db
+def test_policy_jobs_are_disabled_in_the_test_database(conn):
+    jobs = dict(conn.execute("SELECT proc_name, scheduled FROM timescaledb_information.jobs"
+                             " WHERE proc_name = ANY(%s)", [list(POLICIES)]).fetchall())
+    assert jobs == {p: False for p in POLICIES}
+    assert not conn.execute("SELECT 1 FROM pg_stat_activity WHERE datname = current_database()"
+                            " AND application_name LIKE '%Policy [%'").fetchall()
+
+
+@pytest.mark.db
+def test_load_succeeds_while_the_refresh_policy_is_running(conn, cira_dir, tmp_path, db_url):
+    """The loader's own telemetry_1m refresh must survive a concurrent policy refresh.
+
+    Deterministic collision: the policy job runs (CALL run_job) with batching off, so its
+    in-progress range covers every window, and is held mid-refresh by a lock on the
+    materialization table. The loader's refresh of the first file then meets that range."""
+    import threading
+
+    import psycopg
+
+    rules, _ = operating.derive_rules(cira_dir)
+    rules_path = tmp_path / "operating_rules.yaml"
+    operating.write_rules(rules, rules_path)
+    job = conn.execute("SELECT job_id FROM timescaledb_information.jobs WHERE proc_name ="
+                       " 'policy_refresh_continuous_aggregate'").fetchone()[0]
+    conn.execute("SELECT alter_job(%s, config => config || '{\"buckets_per_batch\": 0}')"
+                 " FROM timescaledb_information.jobs WHERE job_id = %s", [job, job])
+    mat = conn.execute("SELECT format('%I.%I', materialization_hypertable_schema,"
+                       " materialization_hypertable_name) FROM"
+                       " timescaledb_information.continuous_aggregates WHERE view_name ="
+                       " 'telemetry_1m'").fetchone()[0]
+    holder = psycopg.connect(db_url)
+    holder.execute(f"LOCK TABLE {mat} IN EXCLUSIVE MODE")
+    policy_error = []
+
+    def run_policy():
+        with psycopg.connect(db_url, autocommit=True) as p:
+            try:
+                p.execute("CALL run_job(%s)", [job])
+            except Exception as e:  # recorded; the policy may lose too
+                policy_error.append(e)
+
+    def release_after_first_file():
+        with psycopg.connect(db_url, autocommit=True) as w:
+            for _ in range(600):  # the first file is committed; its refresh comes next
+                if w.execute("SELECT count(*) FROM ingest_runs WHERE finished_at IS NOT NULL"
+                             ).fetchone()[0]:
+                    break
+                threading.Event().wait(0.05)
+        threading.Event().wait(0.5)
+        holder.rollback()
+
+    policy = threading.Thread(target=run_policy)
+    policy.start()
+    for _ in range(200):  # wait until the policy's refresh is in progress
+        if conn.execute("SELECT 1 FROM _timescaledb_catalog.continuous_aggs_jobs_refresh_ranges"
+                        " WHERE job_id = %s", [job]).fetchone():
+            break
+        threading.Event().wait(0.05)
+    else:
+        holder.rollback()
+        pytest.fail("the policy refresh never started")
+    releaser = threading.Thread(target=release_after_first_file)
+    releaser.start()
+    try:
+        runs = db.load_cira(conn, cira_dir, COLUMN_MAP, rules_path)
+    finally:
+        releaser.join()
+        policy.join()
+        holder.close()
+    assert runs[0]["refresh_retried"] is True  # the collision really happened
+    assert not any(r["refresh_retried"] for r in runs[1:])
+    agg = db.fetch_day_1m(conn, "cira-pump-A", DAY, signals=["outlet_pressure"])
+    raw = [r for r in db.fetch_raw(conn, "cira-pump-A", DAY, signals=["outlet_pressure"])
+           if r["value"] is not None]
+    assert agg and sum(a["sample_count"] for a in agg) == len(raw)

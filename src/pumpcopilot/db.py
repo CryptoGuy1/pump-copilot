@@ -223,10 +223,49 @@ def load_cira_file(conn: psycopg.Connection, path: Path, column_map: dict, rules
                     {**counts, "id": run_id})
         lo, hi = cur.execute("SELECT min(observed_at), max(observed_at) FROM stage_telemetry"
                              ).fetchone()
+    retried = False
     if tel_in and lo is not None:  # outside the transaction: refresh cannot run inside one
-        conn.execute("CALL refresh_continuous_aggregate('telemetry_1m', %s, %s)",
-                     [lo - dt.timedelta(minutes=1), hi + dt.timedelta(minutes=1)])
-    return {"file": path.name, "run_id": run_id, **counts}
+        retried = refresh_1m(conn, lo - dt.timedelta(minutes=1), hi + dt.timedelta(minutes=1))
+    return {"file": path.name, "run_id": run_id, **counts, "refresh_retried": retried}
+
+
+def _concurrent_refresh(e: Exception) -> bool:
+    return (isinstance(e, psycopg.errors.LockNotAvailable)
+            and "due to a concurrent refresh" in str(e))
+
+
+def _wait_for_refreshes(conn: psycopg.Connection, timeout_s: float) -> None:
+    """Wait until no continuous-aggregate refresh is in progress (Timescale records running
+    refresh windows with their backend pid), at most timeout_s."""
+    deadline = time.monotonic() + timeout_s
+    tracked = conn.execute("SELECT to_regclass('_timescaledb_catalog."
+                           "continuous_aggs_jobs_refresh_ranges')").fetchone()[0]
+    if tracked is None:  # an older Timescale: no catalog to watch
+        time.sleep(min(2.0, timeout_s))
+        return
+    while conn.execute("SELECT 1 FROM _timescaledb_catalog.continuous_aggs_jobs_refresh_ranges r"
+                       " JOIN pg_stat_activity a ON a.pid = r.pid LIMIT 1").fetchone():
+        if time.monotonic() > deadline:
+            return  # the retry will report the conflict if it is still there
+        time.sleep(0.1)
+
+
+def refresh_1m(conn: psycopg.Connection, lo: dt.datetime, hi: dt.datetime,
+               wait_s: float = 60.0) -> bool:
+    """Refresh telemetry_1m over [lo, hi]. A refresh policy running at the same time makes
+    Timescale refuse an overlapping refresh; then wait for it to finish and retry once (a
+    second conflict is raised). Skipping instead could leave rows loaded after the policy's
+    snapshot unmaterialized until its next run. Returns True if it had to retry."""
+    call = "CALL refresh_continuous_aggregate('telemetry_1m', %s, %s)"
+    try:
+        conn.execute(call, [lo, hi])
+        return False
+    except psycopg.Error as e:
+        if not _concurrent_refresh(e):
+            raise
+    _wait_for_refreshes(conn, wait_s)
+    conn.execute(call, [lo, hi])
+    return True
 
 
 def load_cira(conn: psycopg.Connection, raw_dir: Path, column_map: dict,

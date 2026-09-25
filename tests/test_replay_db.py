@@ -108,7 +108,8 @@ def _key(sig, end, ver):
 
 # --- housekeeping: compression and the refresh policy ------------------------------------
 
-def test_compression_migration_compresses_already_loaded_chunks(db_url, tmp_path, cira_dir):
+def test_compression_migration_compresses_already_loaded_chunks(db_url, tmp_path, cira_dir,
+                                                                pause_jobs):
     early = tmp_path / "migrations_0001_0004"
     early.mkdir()
     for f in sorted(db.MIGRATIONS.glob("*.sql"))[:4]:
@@ -124,6 +125,7 @@ def test_compression_migration_compresses_already_loaded_chunks(db_url, tmp_path
                            "hypertable_name = 'telemetry' AND is_compressed").fetchone()[0]
         assert before == 0
         db.migrate(c)
+        pause_jobs(c)  # the policies exist (checked below); their runs are not under test
         chunks = c.execute("SELECT is_compressed FROM timescaledb_information.chunks WHERE "
                            "hypertable_name = 'telemetry'").fetchall()
         assert chunks and all(r[0] for r in chunks)
