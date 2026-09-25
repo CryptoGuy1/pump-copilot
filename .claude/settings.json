@@ -1,0 +1,17 @@
+{
+    "permissions": {
+      "defaultMode": "acceptEdits",
+      "allow": [
+        "Bash(pytest *)",
+        "Bash(python -m pytest *)",
+        "Bash(ruff *)",
+        "Bash(pumpcopilot *)",
+        "Bash(pip install *)",
+        "Bash(git status)",
+        "Bash(git diff *)",
+        "Bash(git log *)",
+        "Bash(git add *)"
+      ],
+      "ask": ["Bash(git commit *)", "Bash(git push *)"]
+    }
+  }
