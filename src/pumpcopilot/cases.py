@@ -55,9 +55,18 @@ def append(conn, case_id: int, event_type: str, actor: str, **fields) -> int:
             raise ValueError("a disposition requires a reason")
     if event_type == "note" and not (fields.get("note") or "").strip():
         raise ValueError("a note needs text")
+    from . import events
+
     try:
         with conn.transaction():
-            return append_raw(conn, case_id, event_type, actor, **fields)
+            event_id = append_raw(conn, case_id, event_type, actor, **fields)
+            st = get_case(conn, case_id)
+            events.emit(conn, "case.event", {
+                "case_id": case_id, "session_id": st["session_id"],
+                "asset_id": st["asset_id"], "source_day": str(st["source_day"]),
+                "synthetic": st["synthetic"], "actor": actor, "event_type": event_type,
+                "status": st["status"], "disposition": st["disposition"]})
+            return event_id
     except psycopg.errors.RaiseException as e:
         msg = str(e).splitlines()[0]
         if "invalid case transition" in msg:
@@ -105,9 +114,57 @@ def export(conn, case_id: int) -> dict:
                              [case_id]).fetchall()
         evidence = cur.execute(
             "SELECT s.signal_name, s.window_start, s.window_end, s.presentation_state, s.score,"
-            " s.model_id, s.model_version, s.synthetic, s.scored_evidence FROM case_events e"
+            " s.median, s.band_low, s.band_high, s.model_id, s.model_version, s.synthetic,"
+            " s.scored_evidence FROM case_events e"
             " JOIN scores s USING (session_id, asset_id, signal_name, window_end, model_version)"
             " WHERE e.case_id = %s AND e.event_type = 'evidence_added' ORDER BY s.window_start,"
             " s.signal_name", [case_id]).fetchall()
     return {"case": case, "events": events, "evidence": evidence,
             "note": "exported for review; this system sends nothing and controls nothing"}
+
+
+def _fmt(x, digits=5) -> str:
+    return "-" if x is None else f"{x:.{digits}g}" if isinstance(x, float) else str(x)
+
+
+def export_markdown(pack: dict, provenance: dict, assumption_titles: dict | None = None) -> str:
+    """A readable evidence pack from export(): what the case is, what was done, the evidence."""
+    c, titles = pack["case"], assumption_titles or {}
+    synthetic = bool(c["synthetic"])
+    out = [f"# Evidence pack: case {c['case_id']}", ""]
+    if synthetic:
+        out += ["> **SYNTHETIC**: this case comes from a replay with an injected fault. It is "
+                "not evidence about the real pump.", ""]
+    out += ["| | |", "|---|---|",
+            f"| asset | {c['asset_id']} |", f"| day | {c['source_day']} |",
+            f"| run | {c['stretch']} |", f"| status | {c['status']} |",
+            f"| evidence | {c['evidence_start']} to {c['evidence_end']} |",
+            f"| signals | {', '.join(sorted(c['signals'] or []))} |",
+            f"| episodes / windows | {c['episodes']} / {c['evidence_windows']} |",
+            f"| data | {'SYNTHETIC' if synthetic else 'REAL'} |",
+            f"| model version | {', '.join(provenance['model_version'])} |",
+            f"| related case | {c.get('related_case_id') or '-'} |", ""]
+    if c["disposition"]:
+        out += [f"**Disposition:** {c['disposition']}. Reason: {c['disposition_reason']}", ""]
+    out += ["## Assumptions that apply", ""] + [
+        f"- **{a}**: {titles.get(a, '')}".rstrip(": ") for a in provenance["assumptions"]] + [""]
+    out += ["## Actions and notes", "", "| when | event | by | detail |", "|---|---|---|---|"]
+    n_evidence = 0
+    for e in pack["events"]:
+        if e["event_type"] == "evidence_added":
+            n_evidence += 1
+            continue
+        detail = e["note"] or (f"{e['disposition']}: {e['reason']}" if e["disposition"] else "")
+        if e["event_type"] == "opened" and e.get("related_case_id"):
+            detail = f"after case {e['related_case_id']} was closed"
+        out.append(f"| {e['recorded_at']} | {e['event_type']} | {e['actor']} | {detail} |")
+    out += ["", f"{n_evidence} evidence windows were added by the replay worker.", "",
+            "## Evidence", "",
+            "| window | signal | median | band | score | state |", "|---|---|---|---|---|---|"]
+    for w in pack["evidence"]:
+        out.append(f"| {w['window_start']} to {w['window_end']} | {w['signal_name']} | "
+                   f"{_fmt(w['median'])} | {_fmt(w['band_low'])} to {_fmt(w['band_high'])} | "
+                   f"{_fmt(w['score'], 3)} | {w['presentation_state']} |")
+    out += ["", "---", "Exported for review. This system sends nothing and controls nothing; "
+            "escalation to a reliability engineer is export-only.", ""]
+    return "\n".join(out)

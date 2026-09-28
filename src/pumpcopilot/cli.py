@@ -57,6 +57,10 @@ def main(argv: list[str] | None = None) -> None:
     wk.add_argument("--until-idle", action="store_true",
                     help="exit when no session is pending or running")
     wk.add_argument("--max-seconds", type=float)
+    ap = sub.add_parser("api", help="serve the HTTP API and live stream on 127.0.0.1 only")
+    ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--export-openapi", action="store_true",
+                    help="write api/openapi.json and exit")
     cs = sub.add_parser("case", help="cases: list, show, ack, note, dispose, close, export")
     cs.add_argument("action", choices=["list", "show", "ack", "note", "dispose", "close",
                                        "export"])
@@ -96,6 +100,8 @@ def main(argv: list[str] | None = None) -> None:
                                     max_s=args.max_seconds)
     elif args.cmd == "case":
         _case(args)
+    elif args.cmd == "api":
+        _api(args.port, args.export_openapi)
     elif args.cmd == "score":
         if args.action in ("tune-3a3", "report", "eval-3a3"):
             _score_3a3(args.action, args.prereg)
@@ -199,6 +205,23 @@ def _db(action: str) -> None:
             for k in ("day_1m", "hour_raw"):
                 print(f"    {k:9} {res[k]['rows']:7d} rows  median {res[k]['median_ms']} ms"
                       f"  best {res[k]['best_ms']} ms  ({res['repeats']} runs)")
+
+
+OPENAPI = ROOT / "api" / "openapi.json"
+
+
+def _api(port: int, export_openapi: bool) -> None:
+    from . import api
+
+    app = api.create_app()
+    if export_openapi:
+        OPENAPI.parent.mkdir(exist_ok=True)
+        OPENAPI.write_text(json.dumps(app.openapi(), indent=2, sort_keys=True) + "\n")
+        print(f"[written] {OPENAPI}")
+        return
+    import uvicorn
+
+    uvicorn.run(app, host=api.HOST, port=port)  # loopback only; there is no --host option
 
 
 def _replay(args) -> None:

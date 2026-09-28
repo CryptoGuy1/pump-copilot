@@ -204,6 +204,10 @@ def row_key(r: dict) -> tuple:
     return (r["signal_name"], str(_utc(r["window_end"])), r["model_version"])
 
 
+def _num(x) -> float | None:
+    return None if x is None or not np.isfinite(x) else float(x)
+
+
 def _rows(frame: pd.DataFrame, base: scoring.Baseline, cfg: dict) -> list[dict]:
     out = []
     for sig, g in frame.groupby("signal_name", sort=False):
@@ -216,7 +220,9 @@ def _rows(frame: pd.DataFrame, base: scoring.Baseline, cfg: dict) -> list[dict]:
                 "reason": se.abstention_reason, "model_id": se.model_id,
                 "model_version": se.model_version,
                 "confidence_calibration_status": str(se.confidence_calibration_status),
-                "scored_evidence": se.model_dump(mode="json")})
+                "scored_evidence": se.model_dump(mode="json"),
+                "median": _num(row.median), "band_low": _num(row.low),
+                "band_high": _num(row.high)})
     return out
 
 
@@ -305,7 +311,9 @@ def baseline_progress(prep, runs, bases, cfg: dict, consts: dict, cursor: pd.Tim
                 d.update(first_reading=str(first), baseline_start=str(start),
                          baseline_end=str(end))
                 if end <= b and sig in base.bands:
-                    d.update(status="formed", fraction=1.0)
+                    band = base.bands[sig]
+                    d.update(status="formed", fraction=1.0, band={
+                        k: band[k] for k in ("center", "low", "high", "unit")})
                 elif end <= b or ended:
                     d.update(status="abstained", reason=base.signal_abstentions.get(sig))
                 elif b < start:
@@ -468,12 +476,15 @@ def create_session(conn, asset_id: str, source_day: dt.date, speed: int,
         day = apply_scenario(day, scenario, cfg)
     consts = day_constants(day, cfg, source_end)
     cfg_json = json.loads(json.dumps(cfg, default=str))
-    return conn.execute(
-        "INSERT INTO replay_sessions (asset_id, source_day, speed, source_start, source_end,"
-        " scenario, config_name, config, config_sha256, day_constants) VALUES"
-        " (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING session_id",
-        [asset_id, source_day, speed, lo, source_end.to_pydatetime(), scenario, config_name,
-         Jsonb(cfg_json), _sha(cfg_json), Jsonb(consts)]).fetchone()[0]
+    with conn.transaction():
+        sid = conn.execute(
+            "INSERT INTO replay_sessions (asset_id, source_day, speed, source_start, source_end,"
+            " scenario, config_name, config, config_sha256, day_constants) VALUES"
+            " (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING session_id",
+            [asset_id, source_day, speed, lo, source_end.to_pydatetime(), scenario,
+             config_name, Jsonb(cfg_json), _sha(cfg_json), Jsonb(consts)]).fetchone()[0]
+        _emit_progress(conn, sid)
+    return sid
 
 
 def get_session(conn, session_id: int) -> dict:
@@ -516,22 +527,60 @@ def _set_status(conn, session_id: int, sql: str, allowed: tuple, args=()) -> Non
         raise ValueError(f"session {session_id} is {s['status']}; needs one of {allowed}")
 
 
+def progress_payload(s: dict, progress: dict | None = None) -> dict:
+    """The replay.progress event body: where a session is, and its baseline status counts."""
+    progress = progress if progress is not None else (s.get("baseline_progress") or {})
+    counts: dict[str, int] = {}
+    for run in progress.get("runs", []):
+        for v in run["signals"].values():
+            counts[v["status"]] = counts.get(v["status"], 0) + 1
+    return {"session_id": s["session_id"], "asset_id": s["asset_id"],
+            "source_day": str(s["source_day"]), "status": s["status"],
+            "cursor_at": None if s["cursor_at"] is None else str(s["cursor_at"]),
+            "speed": s["speed"], "synthetic": s["synthetic"], "scenario": s["scenario"],
+            "baseline": counts}
+
+
+def _emit_progress(conn, session_id: int) -> None:
+    from . import events
+
+    events.emit(conn, "replay.progress", progress_payload(get_session(conn, session_id)))
+
+
 def pause_session(conn, session_id: int) -> None:
-    _set_status(conn, session_id, "status = 'paused'", ("pending", "running"))
+    with conn.transaction():
+        _set_status(conn, session_id, "status = 'paused'", ("pending", "running"))
+        _emit_progress(conn, session_id)
 
 
 def resume_session(conn, session_id: int, now: dt.datetime | None = None) -> None:
     """Continue from the stored cursor; pacing restarts from now."""
-    _set_status(conn, session_id,
-                "status = CASE WHEN cursor_at IS NULL THEN 'pending' ELSE 'running' END,"
-                " anchor_cursor = cursor_at, anchor_wall = %s", ("paused",), [now or _now()])
+    with conn.transaction():
+        _set_status(conn, session_id,
+                    "status = CASE WHEN cursor_at IS NULL THEN 'pending' ELSE 'running' END,"
+                    " anchor_cursor = cursor_at, anchor_wall = %s", ("paused",),
+                    [now or _now()])
+        _emit_progress(conn, session_id)
 
 
 def rewind_session(conn, session_id: int) -> None:
     """Replay again from the start. Stored scores and case events stay; nothing duplicates."""
-    _set_status(conn, session_id, "status = 'pending', cursor_at = NULL, anchor_cursor = NULL,"
-                " anchor_wall = NULL, error = NULL",
-                ("pending", "running", "paused", "completed", "failed"))
+    with conn.transaction():
+        _set_status(conn, session_id, "status = 'pending', cursor_at = NULL,"
+                    " anchor_cursor = NULL, anchor_wall = NULL, error = NULL",
+                    ("pending", "running", "paused", "completed", "failed"))
+        _emit_progress(conn, session_id)
+
+
+def set_speed(conn, session_id: int, speed: int, now: dt.datetime | None = None) -> None:
+    """Change the pace from here on: pacing is re-anchored at the stored cursor."""
+    if speed not in SPEEDS:
+        raise ValueError(f"speed must be one of {SPEEDS}, not {speed}")
+    with conn.transaction():
+        _set_status(conn, session_id, "speed = %s, anchor_cursor = cursor_at,"
+                    " anchor_wall = CASE WHEN cursor_at IS NULL THEN NULL ELSE %s END",
+                    ("pending", "running", "paused", "completed"), [speed, now or _now()])
+        _emit_progress(conn, session_id)
 
 
 @dataclass
@@ -545,25 +594,46 @@ class _Cache:
     tracker: CaseTracker
     computed_minute: pd.Timestamp | None = None
     stepped_at: dt.datetime | None = None  # heartbeat this worker wrote on its last step
+    last_progress: dict | None = None
 
 
 SCORE_COLS = ("session_id", "synthetic", "asset_id", "source_day", "signal_name", "stretch",
               "window_start", "window_end", "model_id", "model_version", "presentation_state",
               "score", "abstention_reason", "confidence_calibration_status", "scored_evidence",
-              "cursor_at", "stored_at")
+              "cursor_at", "stored_at", "median", "band_low", "band_high")
 
 
 class Worker:
     """`pumpcopilot worker`: claims sessions with FOR UPDATE SKIP LOCKED and advances them."""
 
+    HEARTBEAT_S = 1.0
+
     def __init__(self, conn, worker_id: str | None = None, clock=None):
         self.conn = conn
         self.id = worker_id or f"{socket.gethostname()}:{os.getpid()}"
-        self.clock = clock or _now
+        self.clock = clock or _now  # pacing clock (simulated in tests)
         self._cache: dict[int, _Cache] = {}
+        self._started = _now()
+        self._beat_at = -math.inf
+        self._stepped = 0
+        self._last_session = None
+
+    def heartbeat(self, status: str = "running") -> None:
+        """Record that this worker is alive (real wall time, whatever the pacing clock)."""
+        self._beat_at = time.monotonic()
+        self.conn.execute(
+            "INSERT INTO worker_heartbeats (worker_id, host, pid, started_at, last_seen, status,"
+            " sessions_stepped, last_session_id) VALUES (%s, %s, %s, %s, clock_timestamp(),"
+            " %s, %s, %s) ON CONFLICT (worker_id) DO UPDATE SET last_seen = clock_timestamp(),"
+            " status = EXCLUDED.status, sessions_stepped = EXCLUDED.sessions_stepped,"
+            " last_session_id = EXCLUDED.last_session_id",
+            [self.id, socket.gethostname(), os.getpid(), self._started, status, self._stepped,
+             self._last_session])
 
     def tick(self) -> dict | None:
         """One step of one due session; None when nothing is claimable."""
+        if time.monotonic() - self._beat_at >= self.HEARTBEAT_S:
+            self.heartbeat()
         try:
             with self.conn.transaction():
                 s = claim(self.conn, self.id)
@@ -580,16 +650,19 @@ class Worker:
     def run(self, poll_s: float = 0.1, until_idle: bool = False,
             max_s: float | None = None) -> None:
         t_end = time.monotonic() + max_s if max_s else math.inf
-        while time.monotonic() < t_end:
-            out = self.tick()
-            if out is None:
-                if until_idle and not self.conn.execute(
-                        "SELECT 1 FROM replay_sessions WHERE status IN ('pending', 'running')"
-                        " LIMIT 1").fetchone():
-                    return
-                time.sleep(poll_s)
-            elif not out.get("advanced"):
-                time.sleep(poll_s)
+        try:
+            while time.monotonic() < t_end:
+                out = self.tick()
+                if out is None:
+                    if until_idle and not self.conn.execute(
+                            "SELECT 1 FROM replay_sessions WHERE status IN ('pending',"
+                            " 'running') LIMIT 1").fetchone():
+                        return
+                    time.sleep(poll_s)
+                elif not out.get("advanced"):
+                    time.sleep(poll_s)
+        finally:
+            self.heartbeat("stopped")
 
     # -- internals --
 
@@ -627,6 +700,7 @@ class Worker:
         if c is None:
             c = self._cache[sid] = self._load(s)
         now = self.clock()
+        was = s["status"]
         if s["status"] == "pending":
             c.computed_minute = None
             s = {**s, "status": "running", "cursor_at": s["source_start"],
@@ -641,16 +715,20 @@ class Worker:
         due = target >= end or c.computed_minute is None or minute > c.computed_minute
         out = {"session_id": sid, "cursor": target, "advanced": target > cursor, "stored": 0,
                "case_events": 0}
+        stored, case_evs, progress = [], [], None
         if due and target > cursor or (target >= end and s["status"] != "completed"):
             rows, watermark, progress = step(c.day, c.segments, c.consts, c.cfg, target)
+            c.last_progress = progress
             new = [r for r in rows if row_key(r) not in c.seen]
             out["stored"] = self._store(s, new, target)
+            stored = new
             c.seen |= {row_key(r) for r in new}
             c.review_rows += [r for r in new if r["state"] == REVIEW]
             c.tracker.mark_closed(r[0] for r in conn.execute(
                 "SELECT case_id FROM case_events WHERE session_id = %s AND"
                 " event_type = 'closed'", [sid]))
-            out["case_events"] = self._cases(s, c.tracker.feed(c.review_rows, watermark), c)
+            case_evs = c.tracker.feed(c.review_rows, watermark)
+            out["case_events"] = self._cases(s, case_evs, c)
             c.computed_minute = minute
             through = end if watermark >= end else watermark
             from psycopg.types.json import Jsonb
@@ -663,9 +741,46 @@ class Worker:
                      " heartbeat_at = %s WHERE session_id = %s",
                      [target.to_pydatetime(), status, self.id, now, sid])
         c.stepped_at = now
+        self._stepped += 1
+        self._last_session = sid
+        self._emit(s, target, status, was, stored, case_evs, progress, c)
         if status == "completed":
             self._cache.pop(sid, None)
         return out
+
+    def _emit(self, s, target, status, was, stored, case_evs, progress, c) -> None:
+        """Stream events for this step, at its end (the event lock is held until commit)."""
+        from . import events
+
+        if stored:
+            ends = [str(_utc(r["window_end"])) for r in stored]
+            states: dict[str, int] = {}
+            for r in stored:
+                states[r["state"]] = states.get(r["state"], 0) + 1
+            events.emit(self.conn, "score.batch", {
+                "session_id": s["session_id"], "asset_id": s["asset_id"],
+                "source_day": str(s["source_day"]), "synthetic": s["synthetic"],
+                "scenario": s["scenario"], "count": len(stored), "window_end_first": min(ends),
+                "window_end_last": max(ends), "states": states,
+                "model_version": sorted({r["model_version"] for r in stored})})
+        touched: dict[int, dict] = {}
+        for ev in case_evs:
+            cid = c.tracker.id_of(ev["case"])
+            t = touched.setdefault(cid, {"opened": 0, "evidence_added": 0,
+                                         "related_case_id": None})
+            t[ev["type"]] += 1
+            if ev["type"] == "opened" and ev.get("related_case") is not None:
+                t["related_case_id"] = c.tracker.id_of(ev["related_case"])
+        for cid, t in touched.items():
+            events.emit(self.conn, "case.event", {
+                "case_id": cid, "session_id": s["session_id"], "asset_id": s["asset_id"],
+                "source_day": str(s["source_day"]), "synthetic": s["synthetic"],
+                "actor": "worker", "event_type": "opened" if t["opened"] else "evidence_added",
+                "events": {k: t[k] for k in ("opened", "evidence_added")},
+                "related_case_id": t["related_case_id"]})
+        if progress is not None or status != was:
+            events.emit(self.conn, "replay.progress", progress_payload(
+                {**s, "status": status, "cursor_at": target}, progress or c.last_progress))
 
     def _store(self, s: dict, rows: list[dict], cursor: pd.Timestamp) -> int:
         if not rows:
@@ -682,7 +797,8 @@ class Worker:
                   r["signal_name"], r["stretch"], r["window_start"].to_pydatetime(),
                   r["window_end"].to_pydatetime(), r["model_id"], r["model_version"],
                   r["state"], r["score"], r["reason"], r["confidence_calibration_status"],
-                  Jsonb(r["scored_evidence"]), cursor.to_pydatetime(), stored_at)
+                  Jsonb(r["scored_evidence"]), cursor.to_pydatetime(), stored_at,
+                  r["median"], r["band_low"], r["band_high"])
                  for r in rows])
         return len(rows)
 

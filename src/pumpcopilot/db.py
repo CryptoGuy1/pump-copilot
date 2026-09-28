@@ -347,7 +347,21 @@ def fetch_segments(conn: psycopg.Connection, asset_id: str, source_day: dt.date,
             [asset_id, source_day, rules_version]).fetchall()
 
 
-QUERY_FUNCTIONS = (fetch_raw, fetch_day_1m, fetch_readings, fetch_segments)
+def fetch_flag_counts(conn: psycopg.Connection, asset_id: str, source_day: dt.date
+                      ) -> dict[str, dict[str, int]]:
+    """Per signal: readings, and how many carry each quality flag, for one asset-day."""
+    out: dict[str, dict[str, int]] = {}
+    for sig, n in conn.execute("SELECT signal_name, count(*) FROM readings WHERE asset_id = %s"
+                               " AND source_day = %s GROUP BY 1", [asset_id, source_day]):
+        out[sig] = {"readings": n, "stale_suspected": 0, "spike_suspected": 0}
+    for sig, flag, n in conn.execute(
+            "SELECT signal_name, flag, count(*) FROM readings, unnest(quality_flags) AS flag"
+            " WHERE asset_id = %s AND source_day = %s GROUP BY 1, 2", [asset_id, source_day]):
+        out.setdefault(sig, {"readings": 0})[flag] = n
+    return out
+
+
+QUERY_FUNCTIONS = (fetch_raw, fetch_day_1m, fetch_readings, fetch_segments, fetch_flag_counts)
 
 
 # --- storage -----------------------------------------------------------------------------

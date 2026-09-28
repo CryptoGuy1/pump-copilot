@@ -29,6 +29,8 @@ pumpcopilot replay pause|resume|rewind|latency|verify <id>
                                 # rewind replays from the start; stored scores and case
                                 # events are kept and nothing is appended twice
 pumpcopilot case list|show|ack|note|dispose|close|export [<id>] [--by NAME]
+pumpcopilot api [--port 8000]   # HTTP API + SSE stream on 127.0.0.1 only; docs at /docs
+pumpcopilot api --export-openapi  # regenerate api/openapi.json (a test checks it)
 ```
 
 ## Step 1 exit criteria (scope Week 1 stop rule)

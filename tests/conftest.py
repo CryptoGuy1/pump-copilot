@@ -93,29 +93,43 @@ def cira_dir(tmp_path: Path) -> Path:
 
 # --- database ----------------------------------------------------------------------------
 
-@pytest.fixture
-def db_url():
-    """A fresh, empty test database on the DATABASE_URL server; dropped afterwards.
+def test_database(name: str):
+    """Context manager: a fresh, empty database on the DATABASE_URL server, dropped afterwards.
+    Skips the test when the server is unreachable."""
+    import contextlib
 
-    Tests using it are marked @pytest.mark.db and skip when the server is unreachable.
-    """
     psycopg = pytest.importorskip("psycopg")
     from psycopg.conninfo import make_conninfo
 
     from pumpcopilot import db
 
-    base = db.database_url()
-    try:
-        admin = psycopg.connect(base, autocommit=True, connect_timeout=2)
-    except psycopg.OperationalError as e:
-        pytest.skip(f"database not reachable at DATABASE_URL: {e}".splitlines()[0])
-    name = "pumpcopilot_test"
-    with admin:
-        admin.execute(f"DROP DATABASE IF EXISTS {name} WITH (FORCE)")
-        admin.execute(f"CREATE DATABASE {name}")
-    yield make_conninfo(base, dbname=name)
-    with psycopg.connect(base, autocommit=True) as admin:
-        admin.execute(f"DROP DATABASE IF EXISTS {name} WITH (FORCE)")
+    @contextlib.contextmanager
+    def cm():
+        base = db.database_url()
+        try:
+            admin = psycopg.connect(base, autocommit=True, connect_timeout=2)
+        except psycopg.OperationalError as e:
+            pytest.skip(f"database not reachable at DATABASE_URL: {e}".splitlines()[0])
+        with admin:
+            admin.execute(f"DROP DATABASE IF EXISTS {name} WITH (FORCE)")
+            admin.execute(f"CREATE DATABASE {name}")
+        try:
+            yield make_conninfo(base, dbname=name)
+        finally:
+            with psycopg.connect(base, autocommit=True) as admin:
+                admin.execute(f"DROP DATABASE IF EXISTS {name} WITH (FORCE)")
+
+    return cm()
+
+
+test_database.__test__ = False  # a helper, not a test
+
+
+@pytest.fixture
+def db_url():
+    """A fresh, empty test database; tests using it are marked @pytest.mark.db."""
+    with test_database("pumpcopilot_test") as url:
+        yield url
 
 
 POLICY_JOBS = ("policy_compression", "policy_refresh_continuous_aggregate")
