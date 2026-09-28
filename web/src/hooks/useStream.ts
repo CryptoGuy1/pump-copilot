@@ -1,13 +1,19 @@
 import { useEffect, useRef, useState } from "react";
+import type { components } from "../api/schema";
 
 export const EVENT_TYPES = ["replay.progress", "score.batch", "case.event"] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
-export interface StreamEvent {
-  id: number;
-  type: EventType;
-  data: Record<string, unknown>;
+type S = components["schemas"];
+/** The payload of each event type, from the API's StreamEvent models. */
+export interface EventData {
+  "replay.progress": S["ReplayProgressEvent"];
+  "score.batch": S["ScoreBatchEvent"];
+  "case.event": S["CaseEvent"];
 }
+
+export type StreamEvent = { [K in EventType]: { id: number; type: K; data: EventData[K] } }[
+  EventType];
 
 export type StreamStatus = "connecting" | "open" | "reconnecting" | "closed";
 
@@ -93,7 +99,7 @@ export class StreamClient {
         const id = Number(e.lastEventId);
         if (this.lastEventId != null && id <= this.lastEventId) return;
         this.lastEventId = id;
-        this.o.onEvent?.({ id, type, data: JSON.parse(e.data) });
+        this.o.onEvent?.({ id, type, data: JSON.parse(e.data) } as StreamEvent);
       });
     }
   }

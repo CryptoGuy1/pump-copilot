@@ -2,14 +2,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ApiError, call, client } from "../api/client";
-import type { BaselineProgress, Session } from "../api/types";
 import { A8Notice, Loading, Synthetic, fmtTime } from "../components/common";
 
 type Speed = 1 | 10 | 60;
 
 function Progress({ id }: { id: number }) {
   const q = useQuery({ queryKey: ["baseline", id], queryFn: () =>
-    call<{ status: string; synthetic: boolean; baseline_progress: BaselineProgress | null }>(
+    call(
       client.GET("/api/replay/sessions/{session_id}/baseline",
                  { params: { path: { session_id: id } } })) });
   const runs = q.data?.baseline_progress?.runs ?? [];
@@ -43,12 +42,12 @@ function Progress({ id }: { id: number }) {
 export function Replay() {
   const qc = useQueryClient();
   const sessions = useQuery({ queryKey: ["sessions"], queryFn: () =>
-    call<{ sessions: Session[] }>(client.GET("/api/replay/sessions")) });
+    call(client.GET("/api/replay/sessions")) });
   const assets = useQuery({ queryKey: ["assets"], queryFn: () =>
-    call<{ asset_days: { asset_id: string; source_day: string }[] }>(
+    call(
       client.GET("/api/assets")) });
   const scenarios = useQuery({ queryKey: ["scenarios"], queryFn: () =>
-    call<{ scenarios: { name: string; asset_id: string }[] }>(
+    call(
       client.GET("/api/replay/scenarios")) });
   const [pick, setPick] = useState("cira-pump-B|2024-10-30");
   const [speed, setSpeed] = useState<Speed>(60);
@@ -58,7 +57,7 @@ export function Replay() {
   const create = useMutation({
     mutationFn: () => {
       const [asset_id, source_day] = pick.split("|");
-      return call<{ session: Session }>(client.POST("/api/replay/sessions", { body: {
+      return call(client.POST("/api/replay/sessions", { body: {
         asset_id, source_day, speed, scenario: scenario || null } }));
     },
     onSuccess: (r) => { setSelected(r.session.session_id); refresh(); },

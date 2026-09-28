@@ -1,8 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ApiError, call, client } from "../api/client";
-import type { CaseDetail as Detail, CaseState, EvidencePage } from "../api/types";
+import { ApiError, type Schema, call, client } from "../api/client";
 import { Chart, toSeconds } from "../components/Chart";
 import { A8Notice, Loading, Provenance, Synthetic, fmtTime }
   from "../components/common";
@@ -16,11 +15,11 @@ function useActor(): [string, (s: string) => void] {
   return [actor, (s: string) => { localStorage.setItem("actor", s); setActor(s); }];
 }
 
-function RelatedLink({ c }: { c: CaseState }) {
+function RelatedLink({ c }: { c: Schema<"CaseState"> }) {
   return <Link to={`/cases/${c.case_id}`}>#{c.case_id} ({c.status})</Link>;
 }
 
-function Actions({ d }: { d: Detail }) {
+function Actions({ d }: { d: Schema<"CaseDetail"> }) {
   const id = d.case.case_id;
   const path = { case_id: id };
   const qc = useQueryClient();
@@ -47,7 +46,7 @@ function Actions({ d }: { d: Detail }) {
       qc.invalidateQueries({ queryKey: ["cases"] });
     },
   });
-  const can = (a: string) => d.actions.includes(a);
+  const can = (a: Schema<"CaseDetail">["actions"][number]) => d.actions.includes(a);
   const err = act.error as ApiError | null;
   return (
     <fieldset className="actions">
@@ -84,7 +83,7 @@ function Actions({ d }: { d: Detail }) {
 function Evidence({ id }: { id: number }) {
   const q = useInfiniteQuery({
     queryKey: ["evidence", id], initialPageParam: 0,
-    queryFn: ({ pageParam }) => call<EvidencePage>(client.GET("/api/cases/{case_id}/evidence",
+    queryFn: ({ pageParam }) => call(client.GET("/api/cases/{case_id}/evidence",
       { params: { path: { case_id: id }, query: { offset: pageParam, limit: 100 } } })),
     getNextPageParam: (p) => p.next_offset ?? undefined,
   });
@@ -128,7 +127,7 @@ function Export({ id }: { id: number }) {
 export function CaseDetail() {
   const id = Number(useParams().id);
   const q = useQuery({ queryKey: ["case", id], queryFn: () =>
-    call<Detail>(client.GET("/api/cases/{case_id}", { params: { path: { case_id: id } } })) });
+    call(client.GET("/api/cases/{case_id}", { params: { path: { case_id: id } } })) });
   const d = q.data;
   return (
     <section>

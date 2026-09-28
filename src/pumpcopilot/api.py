@@ -35,6 +35,7 @@ from psycopg_pool import ConnectionPool
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from . import api_models as M
 from . import cases, db, events, replay, scoring
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -277,7 +278,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
 
     # -- health --
 
-    @app.get("/api/health", tags=["health"])
+    @app.get("/api/health", tags=["health"], response_model=M.Health)
     def health(request: Request):
         out = {"status": "down", "database": {"ok": False}, "worker": {"alive": False,
                                                                         "workers": []}}
@@ -308,7 +309,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
 
     # -- fleet overview --
 
-    @app.get("/api/fleet", tags=["fleet"])
+    @app.get("/api/fleet", tags=["fleet"], response_model=M.Fleet)
     def fleet(request: Request):
         audit = _audit(reports)
         pumps = []
@@ -366,7 +367,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
 
     # -- asset-day view --
 
-    @app.get("/api/assets", tags=["asset-day"])
+    @app.get("/api/assets", tags=["asset-day"], response_model=M.AssetDays)
     def assets(request: Request):
         with conn_for(request) as c:
             rows = _rows(c, "SELECT asset_id, source_day, min(start_at) AS start_at,"
@@ -375,7 +376,8 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                             " FROM state_segments GROUP BY 1, 2 ORDER BY 1, 2")
         return {"asset_days": rows}
 
-    @app.get("/api/assets/{asset_id}/days/{source_day}", tags=["asset-day"])
+    @app.get("/api/assets/{asset_id}/days/{source_day}", tags=["asset-day"],
+             response_model=M.AssetDaySummary)
     def asset_day(request: Request, asset_id: str, source_day: dt.date):
         with conn_for(request) as c:
             _require_asset_day(c, asset_id, source_day)
@@ -388,7 +390,8 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 "sessions": sessions,
                 "assumptions": assumptions_for(asset_id, source_day, signals, scored=False)}
 
-    @app.get("/api/assets/{asset_id}/days/{source_day}/signals", tags=["asset-day"])
+    @app.get("/api/assets/{asset_id}/days/{source_day}/signals", tags=["asset-day"],
+             response_model=M.Signals)
     def signals(request: Request, asset_id: str, source_day: dt.date,
                 resolution: Literal["1m", "raw"] = "1m",
                 signal: Annotated[list[str] | None, Query()] = None,
@@ -424,7 +427,8 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 "signals": out, "assumptions": assumptions_for(asset_id, source_day, list(out),
                                                                scored=False)}
 
-    @app.get("/api/assets/{asset_id}/days/{source_day}/segments", tags=["asset-day"])
+    @app.get("/api/assets/{asset_id}/days/{source_day}/segments", tags=["asset-day"],
+             response_model=M.Segments)
     def segments(request: Request, asset_id: str, source_day: dt.date):
         with conn_for(request) as c:
             _require_asset_day(c, asset_id, source_day)
@@ -446,7 +450,8 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
             raise ApiError(404, "not_found", f"no replay session for {asset_id} {source_day}")
         return s
 
-    @app.get("/api/assets/{asset_id}/days/{source_day}/scores", tags=["asset-day"])
+    @app.get("/api/assets/{asset_id}/days/{source_day}/scores", tags=["asset-day"],
+             response_model=M.Scores)
     def scores(request: Request, asset_id: str, source_day: dt.date,
                session_id: int | None = None,
                signal: Annotated[list[str] | None, Query()] = None):
@@ -466,7 +471,8 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 **_prov(s["synthetic"], [r["model_version"] for r in rows], asset_id,
                         source_day, {r["signal_name"] for r in rows})}
 
-    @app.get("/api/assets/{asset_id}/days/{source_day}/bands", tags=["asset-day"])
+    @app.get("/api/assets/{asset_id}/days/{source_day}/bands", tags=["asset-day"],
+             response_model=M.Bands)
     def bands(request: Request, asset_id: str, source_day: dt.date,
               session_id: int | None = None):
         with conn_for(request) as c:
@@ -478,7 +484,8 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 **_prov(s["synthetic"], versions, asset_id, source_day,
                         (s["day_constants"] or {}).get("signals", []))}
 
-    @app.get("/api/assets/{asset_id}/days/{source_day}/data-quality", tags=["data-quality"])
+    @app.get("/api/assets/{asset_id}/days/{source_day}/data-quality", tags=["data-quality"],
+             response_model=M.AssetDayQuality)
     def asset_day_quality(request: Request, asset_id: str, source_day: dt.date):
         audit = _audit(reports)
         af = _audit_file(audit, asset_id, source_day)
@@ -496,7 +503,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 "assumptions": assumptions_for(asset_id, source_day, list(flags),
                                                scored=False)}
 
-    @app.get("/api/data-quality", tags=["data-quality"])
+    @app.get("/api/data-quality", tags=["data-quality"], response_model=M.DataQuality)
     def data_quality(request: Request):
         audit = _audit(reports)
         rows = []
@@ -518,7 +525,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
 
     # -- cases --
 
-    @app.get("/api/cases", tags=["cases"])
+    @app.get("/api/cases", tags=["cases"], response_model=M.CaseList)
     def case_list(request: Request, session_id: int | None = None,
                   asset_id: str | None = None, source_day: dt.date | None = None,
                   status: Literal["open", "acknowledged", "dispositioned", "closed"] | None =
@@ -604,14 +611,14 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 **_prov(case["synthetic"], _case_versions(c, [case_id]), case["asset_id"],
                         case["source_day"], case["signals"] or [])}
 
-    @app.get("/api/cases/{case_id}", tags=["cases"])
+    @app.get("/api/cases/{case_id}", tags=["cases"], response_model=M.CaseDetail)
     def case_detail(request: Request, case_id: int,
                     max_points: int = Query(100, ge=2, le=1000, description=(
                         "most points per signal in the band chart"))):
         with conn_for(request) as c:
             return _case_detail(c, case_id, max_points)
 
-    @app.get("/api/cases/{case_id}/evidence", tags=["cases"])
+    @app.get("/api/cases/{case_id}/evidence", tags=["cases"], response_model=M.EvidencePage)
     def case_evidence(request: Request, case_id: int, offset: int = Query(0, ge=0),
                       limit: int = Query(100, ge=1, le=500),
                       signal: str | None = None):
@@ -648,25 +655,26 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 **_prov(case["synthetic"], versions, case["asset_id"], case["source_day"],
                         case["signals"] or [])}
 
-    @app.post("/api/cases/{case_id}/acknowledge", tags=["cases"])
+    @app.post("/api/cases/{case_id}/acknowledge", tags=["cases"], response_model=M.CaseActionResult)
     def acknowledge(request: Request, case_id: int, body: Actor):
         return _act(request, case_id, lambda c: cases.acknowledge(c, case_id, body.actor))
 
-    @app.post("/api/cases/{case_id}/notes", tags=["cases"])
+    @app.post("/api/cases/{case_id}/notes", tags=["cases"], response_model=M.CaseActionResult)
     def add_note(request: Request, case_id: int, body: NoteIn):
         return _act(request, case_id, lambda c: cases.note(c, case_id, body.actor, body.text))
 
-    @app.post("/api/cases/{case_id}/disposition", tags=["cases"])
+    @app.post("/api/cases/{case_id}/disposition", tags=["cases"], response_model=M.CaseActionResult)
     def disposition(request: Request, case_id: int, body: DispositionIn):
         return _act(request, case_id, lambda c: cases.dispose(
             c, case_id, body.actor, body.disposition, body.reason))
 
-    @app.post("/api/cases/{case_id}/close", tags=["cases"])
+    @app.post("/api/cases/{case_id}/close", tags=["cases"], response_model=M.CaseActionResult)
     def close(request: Request, case_id: int, body: Actor):
         return _act(request, case_id, lambda c: cases.close(c, case_id, body.actor))
 
-    @app.get("/api/cases/{case_id}/export", tags=["cases"],
-             responses={200: {"content": {"application/json": {}, "text/markdown": {}}}})
+    @app.get("/api/cases/{case_id}/export", tags=["cases"], response_model=M.CaseExport,
+             responses={200: {"content": {"text/markdown": {"schema": {"type": "string"}}},
+                              "description": "JSON (format=json) or a Markdown evidence pack"}})
     def export(request: Request, case_id: int, format: Literal["json", "markdown"] = "json"):
         with conn_for(request) as c:
             pack = cases.export(c, case_id)
@@ -681,19 +689,20 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
 
     # -- replay control --
 
-    @app.get("/api/replay/scenarios", tags=["replay"])
+    @app.get("/api/replay/scenarios", tags=["replay"], response_model=M.Scenarios)
     def scenarios():
         return {"scenarios": [{"name": k, **v} for k, v in sorted(replay.SCENARIOS.items())],
                 "note": "applied in memory only; every score and case of such a session is"
                         " synthetic"}
 
-    @app.get("/api/replay/sessions", tags=["replay"])
+    @app.get("/api/replay/sessions", tags=["replay"], response_model=M.SessionList)
     def sessions(request: Request):
         with conn_for(request) as c:
             return {"sessions": [_session_out(s) for s in _rows(
                 c, "SELECT * FROM replay_sessions ORDER BY session_id DESC")]}
 
-    @app.post("/api/replay/sessions", tags=["replay"], status_code=201)
+    @app.post("/api/replay/sessions", tags=["replay"], status_code=201,
+              response_model=M.SessionEnvelope)
     def create_session(request: Request, body: SessionIn):
         if body.scenario is not None and body.scenario not in replay.SCENARIOS:
             raise ApiError(422, "validation_error", f"unknown scenario {body.scenario!r}",
@@ -707,7 +716,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 raise ApiError(422, "validation_error", str(e)) from None
             return {"session": _session_out(replay.get_session(c, sid))}
 
-    @app.get("/api/replay/sessions/{session_id}", tags=["replay"])
+    @app.get("/api/replay/sessions/{session_id}", tags=["replay"], response_model=M.SessionEnvelope)
     def session(request: Request, session_id: int):
         with conn_for(request) as c:
             return {"session": _session_out(_session(c, session_id))}
@@ -721,7 +730,8 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 raise ApiError(409, "invalid_state", str(e)) from None
             return {"session": _session_out(replay.get_session(c, session_id))}
 
-    @app.post("/api/replay/sessions/{session_id}/start", tags=["replay"])
+    @app.post("/api/replay/sessions/{session_id}/start", tags=["replay"],
+              response_model=M.SessionEnvelope)
     def start(request: Request, session_id: int):
         def go(c):
             st = replay.get_session(c, session_id)["status"]
@@ -732,20 +742,24 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                                  " (rewind a completed session first)")
         return _control(request, session_id, go)
 
-    @app.post("/api/replay/sessions/{session_id}/pause", tags=["replay"])
+    @app.post("/api/replay/sessions/{session_id}/pause", tags=["replay"],
+              response_model=M.SessionEnvelope)
     def pause(request: Request, session_id: int):
         return _control(request, session_id, lambda c: replay.pause_session(c, session_id))
 
-    @app.post("/api/replay/sessions/{session_id}/rewind", tags=["replay"])
+    @app.post("/api/replay/sessions/{session_id}/rewind", tags=["replay"],
+              response_model=M.SessionEnvelope)
     def rewind(request: Request, session_id: int):
         return _control(request, session_id, lambda c: replay.rewind_session(c, session_id))
 
-    @app.put("/api/replay/sessions/{session_id}/speed", tags=["replay"])
+    @app.put("/api/replay/sessions/{session_id}/speed", tags=["replay"],
+             response_model=M.SessionEnvelope)
     def speed(request: Request, session_id: int, body: SpeedIn):
         return _control(request, session_id,
                         lambda c: replay.set_speed(c, session_id, body.speed))
 
-    @app.get("/api/replay/sessions/{session_id}/baseline", tags=["replay"])
+    @app.get("/api/replay/sessions/{session_id}/baseline", tags=["replay"],
+             response_model=M.Baseline)
     def baseline(request: Request, session_id: int):
         with conn_for(request) as c:
             s = _session(c, session_id)
@@ -757,7 +771,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
 
     # -- evaluation and assumptions --
 
-    @app.get("/api/evaluation", tags=["evaluation"])
+    @app.get("/api/evaluation", tags=["evaluation"], response_model=M.Evaluation)
     def evaluation():
         def load(name):
             f = reports / name
@@ -774,7 +788,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 "labels": "REAL results are unlabelled review cases, not confirmed faults;"
                           " SYNTHETIC results come from in-memory injections"}
 
-    @app.get("/api/assumptions", tags=["evaluation"])
+    @app.get("/api/assumptions", tags=["evaluation"], response_model=M.Assumptions)
     def assumptions():
         return {"assumptions": parse_assumptions(docs / "ASSUMPTIONS.md"),
                 "source": "docs/ASSUMPTIONS.md"}
@@ -836,4 +850,23 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                                  headers={"Cache-Control": "no-cache",
                                           "X-Accel-Buffering": "no"})
 
+    base_openapi = app.openapi
+
+    def openapi() -> dict:
+        """FastAPI's schema, plus the event payloads of the server-sent /api/stream."""
+        if app.openapi_schema:
+            return app.openapi_schema
+        schema = base_openapi()
+        ev = M.StreamEvent.model_json_schema(ref_template="#/components/schemas/{model}")
+        comps = schema.setdefault("components", {}).setdefault("schemas", {})
+        comps.update(ev.pop("$defs", {}))
+        comps["StreamEvent"] = ev
+        ok = schema["paths"]["/api/stream"]["get"]["responses"]["200"]
+        ok["content"] = {"text/event-stream": {"schema": {"$ref":
+                                                          "#/components/schemas/StreamEvent"}}}
+        ok["description"] = ("server-sent events: each has `id:` (the event id), `event:` "
+                             "(the type) and `data:` (the payload as JSON)")
+        return schema
+
+    app.openapi = openapi  # type: ignore[method-assign]
     return app

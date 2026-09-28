@@ -12,7 +12,7 @@ from conftest import pause_policy_jobs, test_database
 from fastapi.testclient import TestClient
 from replay_helpers import ASSET, DAY, START, Clock, load_replay_day, run_to_end
 
-from pumpcopilot import api, cases, db, replay
+from pumpcopilot import api, cases, db, events, replay
 
 ROOT = Path(__file__).resolve().parents[1]
 D = DAY.isoformat()
@@ -41,6 +41,30 @@ def test_openapi_schema_matches_the_committed_file():
     assert _app().openapi() == committed, (
         "the API changed: regenerate with `pumpcopilot api --export-openapi` and commit "
         "api/openapi.json")
+
+
+def _api_routes():
+    from fastapi.routing import APIRoute
+
+    return [r for r in _app().routes if isinstance(r, APIRoute) and r.path.startswith("/api/")]
+
+
+def test_every_endpoint_declares_a_response_model():
+    for r in _api_routes():
+        if r.path == "/api/stream":  # server-sent events: the event payloads are modelled
+            continue
+        assert r.response_model is not None, f"{sorted(r.methods)} {r.path}"
+        assert r.response_model.model_config.get("extra") == "forbid", r.path
+    schema = _app().openapi()
+    stream = schema["paths"]["/api/stream"]["get"]["responses"]["200"]["content"]
+    assert stream["text/event-stream"]["schema"] == {"$ref": "#/components/schemas/StreamEvent"}
+    for name in ("ReplayProgressEvent", "ScoreBatchEvent", "CaseEvent", "StreamEvent"):
+        assert name in schema["components"]["schemas"]
+    for path, ops in schema["paths"].items():
+        for method, op in ops.items():
+            ok = op["responses"].get("200") or op["responses"].get("201")
+            body = ok["content"].get("application/json", {}).get("schema")
+            assert path == "/api/stream" or body and body != {}, f"{method} {path}"
 
 
 def test_api_command_binds_to_loopback_only(monkeypatch):
@@ -490,6 +514,9 @@ def test_no_endpoint_writes_telemetry_or_reaches_outside(env, monkeypatch):
                     kw["params"] = {"limit": 1, "last_event_id": 0}
                 resp = c.request(method, path, **kw)
                 assert resp.status_code < 500, (method, path, resp.text)
+                if resp.status_code < 300 and r.response_model is not None and \
+                        resp.headers["content-type"].startswith("application/json"):
+                    r.response_model.model_validate(resp.json())  # the declared contract
                 called.add((method, r.path))
     assert len(called) >= 25
     assert outbound == []
@@ -539,3 +566,68 @@ def test_stream_diagnostic_parameters_are_bounded_and_documented():
 
 def test_time_bounds_are_parsed_as_utc():
     assert api._utc("2024-06-11T07:00:00Z") == dt.datetime(2024, 6, 11, 7, tzinfo=dt.UTC)
+
+
+# --- the contract on real data -----------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def real():
+    """The local database with the real CIRA data and its replay sessions (read only)."""
+    try:
+        with db.connect() as c:
+            sessions = replay.list_sessions(c)
+            n = c.execute("SELECT count(*) FROM readings").fetchone()[0]
+    except psycopg.Error as e:
+        pytest.skip(f"no local database: {e}".splitlines()[0])
+    if not n or not sessions:
+        pytest.skip("the local database has no CIRA data or no replay session")
+    with TestClient(_app()) as c:
+        yield c, sessions
+
+
+@pytest.mark.db
+def test_every_get_endpoint_validates_against_its_model_on_real_data(real):
+    from pumpcopilot import api_models
+
+    client, sessions = real
+    days = client.get("/api/assets").json()["asset_days"]
+    case_ids = [c["case_id"] for c in client.get("/api/cases", params={"limit": 2000}
+                                                 ).json()["cases"]]
+    assert case_ids, "no cases in the local database"
+    checked = set()
+    for r in _api_routes():
+        if "GET" not in r.methods or r.path == "/api/stream":
+            continue
+        targets = [{}]
+        if "{asset_id}" in r.path:
+            targets = [{"asset_id": d["asset_id"], "source_day": d["source_day"]} for d in days
+                       if any(s["asset_id"] == d["asset_id"] and str(s["source_day"]) ==
+                              d["source_day"] for s in sessions) or "scores" not in r.path
+                       and "bands" not in r.path]
+        elif "{session_id}" in r.path:
+            targets = [{"session_id": s["session_id"]} for s in sessions]
+        elif "{case_id}" in r.path:
+            targets = [{"case_id": x} for x in case_ids]
+        for t in targets:
+            params = {"resolution": "1m"} if r.path.endswith("/signals") else {}
+            resp = client.get(r.path.format(**t), params=params)
+            assert resp.status_code == 200, (r.path, t, resp.text)
+            r.response_model.model_validate(resp.json())
+            checked.add(r.path)
+    assert len(checked) == sum(1 for r in _api_routes() if "GET" in r.methods) - 1
+    # the raw resolution and a markdown export, which the loop above does not cover
+    d = next(x for x in days if x["asset_id"] == "cira-pump-B" and x["source_day"] ==
+             "2024-10-30")
+    raw = client.get(f"/api/assets/{d['asset_id']}/days/{d['source_day']}/signals", params={
+        "resolution": "raw", "start": "2024-10-30T09:00:00Z", "end": "2024-10-30T09:10:00Z"})
+    api_models.Signals.model_validate(raw.json())
+    assert client.get(f"/api/cases/{case_ids[0]}/export", params={"format": "markdown"}
+                      ).headers["content-type"].startswith("text/markdown")
+    # every stored stream event matches its payload model
+    with db.connect() as c:
+        stored = events.after(c, 0, limit=100_000)
+    assert stored
+    for e in stored:
+        api_models.StreamEvent.model_validate({"id": e["event_id"], "event": e["event_type"],
+                                               "data": {**e["payload"],
+                                                        "created_at": e["created_at"]}})

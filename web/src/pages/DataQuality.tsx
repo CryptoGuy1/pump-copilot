@@ -3,16 +3,9 @@ import { Link } from "react-router-dom";
 import { call, client } from "../api/client";
 import { Loading } from "../components/common";
 
-interface DQ {
-  audit_ok: boolean | null;
-  audit_issues: string[] | null;
-  asset_days: { asset_id: string; source_day: string; audit_issues: number | null;
-                gaps: number | null; flag_counts: Record<string, number> }[];
-}
-
 export function DataQuality() {
   const q = useQuery({ queryKey: ["data-quality"],
-                       queryFn: () => call<DQ>(client.GET("/api/data-quality")) });
+                       queryFn: () => call(client.GET("/api/data-quality")) });
   return (
     <section>
       <h1>Data quality</h1>

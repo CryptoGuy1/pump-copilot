@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { call, client } from "../api/client";
-import type { Pump } from "../api/types";
 import { Loading, Provenance, StateBadge, Synthetic, fmtTime } from "../components/common";
 
 export function Fleet() {
   const q = useQuery({ queryKey: ["fleet"],
-                       queryFn: () => call<{ pumps: Pump[] }>(client.GET("/api/fleet")) });
+                       queryFn: () => call(client.GET("/api/fleet")) });
   return (
     <section>
       <h1>Fleet overview</h1>

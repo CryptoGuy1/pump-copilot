@@ -1,22 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { call, client } from "../api/client";
-import type { Assumption } from "../api/types";
 import { Loading } from "../components/common";
 
+// cases_all_modes is the stored evaluation JSON (free-form in the contract); these are the
+// fields this page reads from it
 interface CaseSummary { cases?: number; cases_per_running_hour?: number;
                         case_time_fraction?: number; abstained?: string }
-interface Evaluation {
-  modes: Record<string, { label: string; file: string; note: string | null;
-                          results: unknown }>;
-  cases_all_modes: Record<string, Record<string, CaseSummary>> | null;
-  labels: string;
-}
 
 export function Evaluation() {
   const ev = useQuery({ queryKey: ["evaluation"],
-                        queryFn: () => call<Evaluation>(client.GET("/api/evaluation")) });
+                        queryFn: () => call(client.GET("/api/evaluation")) });
   const as = useQuery({ queryKey: ["assumptions"], queryFn: () =>
-    call<{ assumptions: Assumption[] }>(client.GET("/api/assumptions")) });
+    call(client.GET("/api/assumptions")) });
   return (
     <section>
       <h1>Evaluation</h1>
@@ -30,7 +25,7 @@ export function Evaluation() {
           <thead><tr><th>mode</th><th>pump</th><th>cases</th><th>per running hour</th>
             <th>running time in a case</th></tr></thead>
           <tbody>{Object.entries(ev.data?.cases_all_modes ?? {}).flatMap(([mode, pumps]) =>
-            Object.entries(pumps).map(([pump, c]) => (
+            Object.entries(pumps as Record<string, CaseSummary>).map(([pump, c]) => (
               <tr key={`${mode}-${pump}`}><td>{mode}</td><td>{pump}</td>
                 <td>{c.abstained ? "abstained" : c.cases}</td>
                 <td>{c.cases_per_running_hour ?? "-"}</td>

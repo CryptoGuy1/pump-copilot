@@ -16,6 +16,1508 @@
         "title": "Actor",
         "type": "object"
       },
+      "AssetDayQuality": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "audit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuditFile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "flag_counts": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "integer"
+              },
+              "type": "object"
+            },
+            "title": "Flag Counts",
+            "type": "object"
+          },
+          "gaps": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Gaps"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "site_gaps": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Site Gaps",
+            "type": "array"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "source_day",
+          "audit",
+          "gaps",
+          "site_gaps",
+          "flag_counts",
+          "assumptions"
+        ],
+        "title": "AssetDayQuality",
+        "type": "object"
+      },
+      "AssetDayRow": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "end_at": {
+            "format": "date-time",
+            "title": "End At",
+            "type": "string"
+          },
+          "running_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Running Hours"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          },
+          "start_at": {
+            "format": "date-time",
+            "title": "Start At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "source_day",
+          "start_at",
+          "end_at",
+          "running_hours"
+        ],
+        "title": "AssetDayRow",
+        "type": "object"
+      },
+      "AssetDaySummary": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/DaySession"
+            },
+            "title": "Sessions",
+            "type": "array"
+          },
+          "signals": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Signals",
+            "type": "array"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "source_day",
+          "signals",
+          "sessions",
+          "assumptions"
+        ],
+        "title": "AssetDaySummary",
+        "type": "object"
+      },
+      "AssetDays": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_days": {
+            "items": {
+              "$ref": "#/components/schemas/AssetDayRow"
+            },
+            "title": "Asset Days",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset_days"
+        ],
+        "title": "AssetDays",
+        "type": "object"
+      },
+      "AssumptionItem": {
+        "additionalProperties": false,
+        "properties": {
+          "assumption": {
+            "title": "Assumption",
+            "type": "string"
+          },
+          "evidence": {
+            "title": "Evidence",
+            "type": "string"
+          },
+          "how_to_revisit": {
+            "title": "How To Revisit",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "impact_if_wrong": {
+            "title": "Impact If Wrong",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "assumption",
+          "evidence",
+          "impact_if_wrong",
+          "how_to_revisit"
+        ],
+        "title": "AssumptionItem",
+        "type": "object"
+      },
+      "Assumptions": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/AssumptionItem"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assumptions",
+          "source"
+        ],
+        "title": "Assumptions",
+        "type": "object"
+      },
+      "AuditFile": {
+        "additionalProperties": false,
+        "properties": {
+          "blank_rows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blank Rows"
+          },
+          "cadence_segments": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CadenceSegment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cadence Segments"
+          },
+          "duplicate_timestamps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duplicate Timestamps"
+          },
+          "file": {
+            "title": "File",
+            "type": "string"
+          },
+          "issues": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issues"
+          },
+          "non_monotonic_steps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Non Monotonic Steps"
+          },
+          "rows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows"
+          },
+          "span": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Span"
+          },
+          "timestamp_assumption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timestamp Assumption"
+          }
+        },
+        "required": [
+          "file",
+          "rows",
+          "blank_rows",
+          "issues",
+          "span",
+          "cadence_segments",
+          "timestamp_assumption",
+          "duplicate_timestamps",
+          "non_monotonic_steps"
+        ],
+        "title": "AuditFile",
+        "type": "object"
+      },
+      "Band": {
+        "additionalProperties": false,
+        "properties": {
+          "center": {
+            "title": "Center",
+            "type": "number"
+          },
+          "high": {
+            "title": "High",
+            "type": "number"
+          },
+          "low": {
+            "title": "Low",
+            "type": "number"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "center",
+          "low",
+          "high",
+          "unit"
+        ],
+        "title": "Band",
+        "type": "object"
+      },
+      "BandChart": {
+        "additionalProperties": false,
+        "properties": {
+          "max": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Max",
+            "type": "array"
+          },
+          "median": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Median",
+            "type": "array"
+          },
+          "min": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Min",
+            "type": "array"
+          },
+          "review": {
+            "items": {
+              "type": "boolean"
+            },
+            "title": "Review",
+            "type": "array"
+          },
+          "t": {
+            "items": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "title": "T",
+            "type": "array"
+          }
+        },
+        "required": [
+          "t",
+          "median",
+          "min",
+          "max",
+          "review"
+        ],
+        "title": "BandChart",
+        "type": "object"
+      },
+      "Bands": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "assumptions": {
+            "description": "IDs in docs/ASSUMPTIONS.md that apply",
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "bands": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BaselineProgress"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "model_version": {
+            "description": "the model versions that produced it",
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          },
+          "synthetic": {
+            "description": "true if the data comes from a synthetic scenario",
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "synthetic",
+          "model_version",
+          "assumptions",
+          "asset_id",
+          "source_day",
+          "session_id",
+          "bands"
+        ],
+        "title": "Bands",
+        "type": "object"
+      },
+      "Baseline": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "description": "IDs in docs/ASSUMPTIONS.md that apply",
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "baseline_progress": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BaselineProgress"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cursor_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor At"
+          },
+          "model_version": {
+            "description": "the model versions that produced it",
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "running",
+              "paused",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "synthetic": {
+            "description": "true if the data comes from a synthetic scenario",
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "synthetic",
+          "model_version",
+          "assumptions",
+          "session_id",
+          "status",
+          "cursor_at",
+          "baseline_progress"
+        ],
+        "title": "Baseline",
+        "type": "object"
+      },
+      "BaselineProgress": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "format": "date-time",
+            "title": "Cursor",
+            "type": "string"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/RunProgress"
+            },
+            "title": "Runs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cursor",
+          "runs"
+        ],
+        "title": "BaselineProgress",
+        "type": "object"
+      },
+      "CadenceSegment": {
+        "additionalProperties": false,
+        "properties": {
+          "cadence_s": {
+            "title": "Cadence S",
+            "type": "number"
+          },
+          "end": {
+            "title": "End",
+            "type": "string"
+          },
+          "start": {
+            "title": "Start",
+            "type": "string"
+          },
+          "steps": {
+            "title": "Steps",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "cadence_s",
+          "steps"
+        ],
+        "title": "CadenceSegment",
+        "type": "object"
+      },
+      "CalibrationStatus": {
+        "enum": [
+          "calibrated",
+          "uncalibrated",
+          "not_applicable"
+        ],
+        "title": "CalibrationStatus",
+        "type": "string"
+      },
+      "CaseActionResult": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "items": {
+              "enum": [
+                "acknowledge",
+                "note",
+                "disposition",
+                "close",
+                "export"
+              ],
+              "type": "string"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "assumptions": {
+            "description": "IDs in docs/ASSUMPTIONS.md that apply",
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "case": {
+            "$ref": "#/components/schemas/CaseState"
+          },
+          "model_version": {
+            "description": "the model versions that produced it",
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "synthetic": {
+            "description": "true if the data comes from a synthetic scenario",
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "synthetic",
+          "model_version",
+          "assumptions",
+          "case",
+          "actions"
+        ],
+        "title": "CaseActionResult",
+        "type": "object"
+      },
+      "CaseDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "items": {
+              "enum": [
+                "acknowledge",
+                "note",
+                "disposition",
+                "close",
+                "export"
+              ],
+              "type": "string"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "assumptions": {
+            "description": "IDs in docs/ASSUMPTIONS.md that apply",
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "case": {
+            "$ref": "#/components/schemas/CaseState"
+          },
+          "chart_margin_s": {
+            "title": "Chart Margin S",
+            "type": "number"
+          },
+          "evidence_url": {
+            "title": "Evidence Url",
+            "type": "string"
+          },
+          "max_points": {
+            "title": "Max Points",
+            "type": "integer"
+          },
+          "model_version": {
+            "description": "the model versions that produced it",
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "related": {
+            "$ref": "#/components/schemas/Related"
+          },
+          "signals": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CaseSignal"
+            },
+            "title": "Signals",
+            "type": "object"
+          },
+          "synthetic": {
+            "description": "true if the data comes from a synthetic scenario",
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "timeline": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineEvent"
+            },
+            "title": "Timeline",
+            "type": "array"
+          }
+        },
+        "required": [
+          "synthetic",
+          "model_version",
+          "assumptions",
+          "case",
+          "timeline",
+          "signals",
+          "max_points",
+          "chart_margin_s",
+          "evidence_url",
+          "related",
+          "actions"
+        ],
+        "title": "CaseDetail",
+        "type": "object"
+      },
+      "CaseEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "disposition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Disposition"
+          },
+          "event_type": {
+            "enum": [
+              "opened",
+              "evidence_added",
+              "acknowledged",
+              "note",
+              "disposition",
+              "closed"
+            ],
+            "title": "Event Type",
+            "type": "string"
+          },
+          "events": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CaseEventCounts"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "worker: events in this step"
+          },
+          "related_case_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Related Case Id"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "open",
+                  "acknowledged",
+                  "dispositioned",
+                  "closed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "person's action: status after it",
+            "title": "Status"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "session_id",
+          "asset_id",
+          "source_day",
+          "synthetic",
+          "created_at",
+          "case_id",
+          "actor",
+          "event_type"
+        ],
+        "title": "CaseEvent",
+        "type": "object"
+      },
+      "CaseEventCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_added": {
+            "title": "Evidence Added",
+            "type": "integer"
+          },
+          "opened": {
+            "title": "Opened",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "opened",
+          "evidence_added"
+        ],
+        "title": "CaseEventCounts",
+        "type": "object"
+      },
+      "CaseEventMessage": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CaseEvent"
+          },
+          "event": {
+            "const": "case.event",
+            "title": "Event",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "event",
+          "data"
+        ],
+        "title": "CaseEventMessage",
+        "type": "object"
+      },
+      "CaseExport": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "description": "IDs in docs/ASSUMPTIONS.md that apply",
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "case": {
+            "$ref": "#/components/schemas/CaseState"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ExportEvent"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/ExportEvidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "model_version": {
+            "description": "the model versions that produced it",
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "synthetic": {
+            "description": "true if the data comes from a synthetic scenario",
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "synthetic",
+          "model_version",
+          "assumptions",
+          "case",
+          "events",
+          "evidence",
+          "note"
+        ],
+        "title": "CaseExport",
+        "type": "object"
+      },
+      "CaseList": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/CaseState"
+            },
+            "title": "Cases",
+            "type": "array"
+          },
+          "model_version": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "real_count": {
+            "title": "Real Count",
+            "type": "integer"
+          },
+          "synthetic_count": {
+            "title": "Synthetic Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cases",
+          "real_count",
+          "synthetic_count",
+          "model_version",
+          "assumptions"
+        ],
+        "title": "CaseList",
+        "type": "object"
+      },
+      "CaseSignal": {
+        "additionalProperties": false,
+        "properties": {
+          "band": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Band"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "chart": {
+            "$ref": "#/components/schemas/BandChart"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/SignalSummary"
+          }
+        },
+        "required": [
+          "summary",
+          "band",
+          "chart"
+        ],
+        "title": "CaseSignal",
+        "type": "object"
+      },
+      "CaseState": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledged": {
+            "title": "Acknowledged",
+            "type": "boolean"
+          },
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "integer"
+          },
+          "closed": {
+            "title": "Closed",
+            "type": "boolean"
+          },
+          "disposition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disposition"
+          },
+          "disposition_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disposition Reason"
+          },
+          "episodes": {
+            "title": "Episodes",
+            "type": "integer"
+          },
+          "evidence_end": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence End"
+          },
+          "evidence_start": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Start"
+          },
+          "evidence_windows": {
+            "title": "Evidence Windows",
+            "type": "integer"
+          },
+          "last_event_at": {
+            "format": "date-time",
+            "title": "Last Event At",
+            "type": "string"
+          },
+          "max_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Score"
+          },
+          "notes": {
+            "title": "Notes",
+            "type": "integer"
+          },
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "related_case_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Related Case Id"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "signals": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signals"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "acknowledged",
+              "dispositioned",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "stretch": {
+            "title": "Stretch",
+            "type": "integer"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "case_id",
+          "session_id",
+          "synthetic",
+          "asset_id",
+          "source_day",
+          "stretch",
+          "opened_at",
+          "evidence_start",
+          "evidence_end",
+          "evidence_windows",
+          "episodes",
+          "signals",
+          "max_score",
+          "notes",
+          "acknowledged",
+          "disposition",
+          "disposition_reason",
+          "closed",
+          "status",
+          "last_event_at",
+          "related_case_id"
+        ],
+        "title": "CaseState",
+        "type": "object"
+      },
+      "DataQuality": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_days": {
+            "items": {
+              "$ref": "#/components/schemas/QualityRow"
+            },
+            "title": "Asset Days",
+            "type": "array"
+          },
+          "audit_issues": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Issues"
+          },
+          "audit_ok": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Ok"
+          }
+        },
+        "required": [
+          "audit_ok",
+          "audit_issues",
+          "asset_days"
+        ],
+        "title": "DataQuality",
+        "type": "object"
+      },
+      "DataQualityBrief": {
+        "additionalProperties": false,
+        "properties": {
+          "audit_issues": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Issues"
+          },
+          "flag_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Flag Counts",
+            "type": "object"
+          },
+          "gaps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gaps"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "issues",
+              "not_audited"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_day",
+          "status",
+          "audit_issues",
+          "gaps",
+          "flag_counts"
+        ],
+        "title": "DataQualityBrief",
+        "type": "object"
+      },
+      "DatabaseHealth": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "pending_migrations": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Pending Migrations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "title": "DatabaseHealth",
+        "type": "object"
+      },
+      "DayConstants": {
+        "additionalProperties": false,
+        "properties": {
+          "intervals": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Intervals",
+            "type": "object"
+          },
+          "max_window_s": {
+            "title": "Max Window S",
+            "type": "integer"
+          },
+          "signals": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Signals",
+            "type": "array"
+          },
+          "source_end": {
+            "format": "date-time",
+            "title": "Source End",
+            "type": "string"
+          },
+          "stale_limits": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Stale Limits",
+            "type": "object"
+          }
+        },
+        "required": [
+          "intervals",
+          "signals",
+          "max_window_s",
+          "stale_limits",
+          "source_end"
+        ],
+        "title": "DayConstants",
+        "type": "object"
+      },
+      "DaySession": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor At"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "speed": {
+            "title": "Speed",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "running",
+              "paused",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "session_id",
+          "status",
+          "speed",
+          "synthetic",
+          "scenario",
+          "cursor_at"
+        ],
+        "title": "DaySession",
+        "type": "object"
+      },
       "DispositionIn": {
         "properties": {
           "actor": {
@@ -93,6 +1595,624 @@
         "title": "ErrorResponse",
         "type": "object"
       },
+      "Evaluation": {
+        "additionalProperties": false,
+        "properties": {
+          "cases_all_modes": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "additionalProperties": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "type": "object"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cases All Modes"
+          },
+          "labels": {
+            "title": "Labels",
+            "type": "string"
+          },
+          "modes": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ModeResult"
+            },
+            "title": "Modes",
+            "type": "object"
+          },
+          "report": {
+            "title": "Report",
+            "type": "string"
+          }
+        },
+        "required": [
+          "modes",
+          "cases_all_modes",
+          "report",
+          "labels"
+        ],
+        "title": "Evaluation",
+        "type": "object"
+      },
+      "EvidencePage": {
+        "additionalProperties": false,
+        "properties": {
+          "assumptions": {
+            "description": "IDs in docs/ASSUMPTIONS.md that apply",
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/pumpcopilot__api_models__EvidenceItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "model_version": {
+            "description": "the model versions that produced it",
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Offset"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "synthetic": {
+            "description": "true if the data comes from a synthetic scenario",
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "synthetic",
+          "model_version",
+          "assumptions",
+          "case_id",
+          "total",
+          "offset",
+          "limit",
+          "next_offset",
+          "items"
+        ],
+        "title": "EvidencePage",
+        "type": "object"
+      },
+      "ExportEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "integer"
+          },
+          "disposition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disposition"
+          },
+          "episode_start": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Episode Start"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "integer"
+          },
+          "event_type": {
+            "enum": [
+              "opened",
+              "evidence_added",
+              "acknowledged",
+              "note",
+              "disposition",
+              "closed"
+            ],
+            "title": "Event Type",
+            "type": "string"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "related_case_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Related Case Id"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "signal_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signal Name"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          },
+          "stretch": {
+            "title": "Stretch",
+            "type": "integer"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "window_end": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window End"
+          },
+          "window_start": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Start"
+          }
+        },
+        "required": [
+          "event_id",
+          "case_id",
+          "event_type",
+          "session_id",
+          "synthetic",
+          "asset_id",
+          "source_day",
+          "stretch",
+          "actor",
+          "recorded_at",
+          "signal_name",
+          "window_start",
+          "window_end",
+          "model_version",
+          "score",
+          "episode_start",
+          "note",
+          "disposition",
+          "reason",
+          "related_case_id"
+        ],
+        "title": "ExportEvent",
+        "type": "object"
+      },
+      "ExportEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "band_high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band High"
+          },
+          "band_low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band Low"
+          },
+          "median": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "presentation_state": {
+            "enum": [
+              "normal",
+              "review_suggested",
+              "insufficient_evidence",
+              "data_unavailable"
+            ],
+            "title": "Presentation State",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "scored_evidence": {
+            "$ref": "#/components/schemas/ScoredEvidence"
+          },
+          "signal_name": {
+            "title": "Signal Name",
+            "type": "string"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "window_end": {
+            "format": "date-time",
+            "title": "Window End",
+            "type": "string"
+          },
+          "window_start": {
+            "format": "date-time",
+            "title": "Window Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "signal_name",
+          "window_start",
+          "window_end",
+          "presentation_state",
+          "score",
+          "median",
+          "band_low",
+          "band_high",
+          "model_id",
+          "model_version",
+          "synthetic",
+          "scored_evidence"
+        ],
+        "title": "ExportEvidence",
+        "type": "object"
+      },
+      "FeatureWindow": {
+        "additionalProperties": false,
+        "properties": {
+          "end": {
+            "format": "date-time",
+            "title": "End",
+            "type": "string"
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "FeatureWindow",
+        "type": "object"
+      },
+      "Fleet": {
+        "additionalProperties": false,
+        "properties": {
+          "pumps": {
+            "items": {
+              "$ref": "#/components/schemas/Pump"
+            },
+            "title": "Pumps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "pumps"
+        ],
+        "title": "Fleet",
+        "type": "object"
+      },
+      "Gaps": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "factor": {
+            "title": "Factor",
+            "type": "number"
+          },
+          "items": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "site_level": {
+            "title": "Site Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "factor",
+          "count",
+          "site_level",
+          "items"
+        ],
+        "title": "Gaps",
+        "type": "object"
+      },
+      "Health": {
+        "additionalProperties": false,
+        "properties": {
+          "database": {
+            "$ref": "#/components/schemas/DatabaseHealth"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "degraded",
+              "down"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "worker": {
+            "$ref": "#/components/schemas/WorkerHealth"
+          }
+        },
+        "required": [
+          "status",
+          "database",
+          "worker"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "MinutePoint": {
+        "additionalProperties": false,
+        "properties": {
+          "bucket": {
+            "format": "date-time",
+            "title": "Bucket",
+            "type": "string"
+          },
+          "max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max"
+          },
+          "mean": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean"
+          },
+          "min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min"
+          },
+          "readings": {
+            "title": "Readings",
+            "type": "integer"
+          },
+          "samples": {
+            "title": "Samples",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bucket",
+          "min",
+          "max",
+          "mean",
+          "samples",
+          "readings"
+        ],
+        "title": "MinutePoint",
+        "type": "object"
+      },
+      "ModeResult": {
+        "additionalProperties": false,
+        "properties": {
+          "file": {
+            "title": "File",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "results": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "the stored evaluation JSON, as scored",
+            "title": "Results"
+          }
+        },
+        "required": [
+          "label",
+          "file",
+          "results",
+          "note"
+        ],
+        "title": "ModeResult",
+        "type": "object"
+      },
       "NoteIn": {
         "properties": {
           "actor": {
@@ -112,6 +2232,1232 @@
           "text"
         ],
         "title": "NoteIn",
+        "type": "object"
+      },
+      "OpenCases": {
+        "additionalProperties": false,
+        "properties": {
+          "all_sessions": {
+            "$ref": "#/components/schemas/RealSynthetic"
+          },
+          "latest_session": {
+            "title": "Latest Session",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "latest_session",
+          "all_sessions"
+        ],
+        "title": "OpenCases",
+        "type": "object"
+      },
+      "PresentationState": {
+        "description": "The only four states the UI may show. There is intentionally no 'alarm'.",
+        "enum": [
+          "normal",
+          "review_suggested",
+          "insufficient_evidence",
+          "data_unavailable"
+        ],
+        "title": "PresentationState",
+        "type": "string"
+      },
+      "Pump": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "assumptions": {
+            "description": "IDs in docs/ASSUMPTIONS.md that apply",
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "data_quality": {
+            "$ref": "#/components/schemas/DataQualityBrief"
+          },
+          "days": {
+            "items": {
+              "format": "date",
+              "type": "string"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "latest_session": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SessionBrief"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "model_version": {
+            "description": "the model versions that produced it",
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "open_cases": {
+            "$ref": "#/components/schemas/OpenCases"
+          },
+          "state": {
+            "$ref": "#/components/schemas/PumpState"
+          },
+          "synthetic": {
+            "description": "true if the data comes from a synthetic scenario",
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "synthetic",
+          "model_version",
+          "assumptions",
+          "asset_id",
+          "days",
+          "latest_session",
+          "state",
+          "open_cases",
+          "data_quality"
+        ],
+        "title": "Pump",
+        "type": "object"
+      },
+      "PumpState": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "signals": {
+            "additionalProperties": {
+              "enum": [
+                "normal",
+                "review_suggested",
+                "insufficient_evidence",
+                "data_unavailable"
+              ],
+              "type": "string"
+            },
+            "title": "Signals",
+            "type": "object"
+          },
+          "state": {
+            "enum": [
+              "normal",
+              "review_suggested",
+              "insufficient_evidence",
+              "data_unavailable"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "reason",
+          "signals"
+        ],
+        "title": "PumpState",
+        "type": "object"
+      },
+      "QualityRow": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "audit_issues": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audit Issues"
+          },
+          "flag_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Flag Counts",
+            "type": "object"
+          },
+          "gaps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gaps"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "source_day",
+          "audit_issues",
+          "gaps",
+          "flag_counts"
+        ],
+        "title": "QualityRow",
+        "type": "object"
+      },
+      "RawPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "is_reading": {
+            "title": "Is Reading",
+            "type": "boolean"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          },
+          "t": {
+            "format": "date-time",
+            "title": "T",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "t",
+          "value",
+          "state",
+          "flags",
+          "is_reading"
+        ],
+        "title": "RawPoint",
+        "type": "object"
+      },
+      "RealSynthetic": {
+        "additionalProperties": false,
+        "properties": {
+          "real": {
+            "title": "Real",
+            "type": "integer"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "real",
+          "synthetic"
+        ],
+        "title": "RealSynthetic",
+        "type": "object"
+      },
+      "Related": {
+        "additionalProperties": false,
+        "properties": {
+          "related_by": {
+            "items": {
+              "$ref": "#/components/schemas/CaseState"
+            },
+            "title": "Related By",
+            "type": "array"
+          },
+          "related_case": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CaseState"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "related_case",
+          "related_by"
+        ],
+        "title": "Related",
+        "type": "object"
+      },
+      "ReplayProgressEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "baseline": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "signals per baseline status",
+            "title": "Baseline",
+            "type": "object"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "cursor_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor At"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          },
+          "speed": {
+            "title": "Speed",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "running",
+              "paused",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "session_id",
+          "asset_id",
+          "source_day",
+          "synthetic",
+          "created_at",
+          "status",
+          "cursor_at",
+          "speed",
+          "scenario",
+          "baseline"
+        ],
+        "title": "ReplayProgressEvent",
+        "type": "object"
+      },
+      "ReplayProgressMessage": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReplayProgressEvent"
+          },
+          "event": {
+            "const": "replay.progress",
+            "title": "Event",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "event",
+          "data"
+        ],
+        "title": "ReplayProgressMessage",
+        "type": "object"
+      },
+      "RunProgress": {
+        "additionalProperties": false,
+        "properties": {
+          "closed": {
+            "title": "Closed",
+            "type": "boolean"
+          },
+          "end": {
+            "format": "date-time",
+            "title": "End",
+            "type": "string"
+          },
+          "run": {
+            "title": "Run",
+            "type": "integer"
+          },
+          "signals": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SignalProgress"
+            },
+            "title": "Signals",
+            "type": "object"
+          },
+          "start": {
+            "format": "date-time",
+            "title": "Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run",
+          "start",
+          "end",
+          "closed",
+          "signals"
+        ],
+        "title": "RunProgress",
+        "type": "object"
+      },
+      "Scenario": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "fault": {
+            "enum": [
+              "step",
+              "ramp",
+              "drift",
+              "stuck",
+              "dropout"
+            ],
+            "title": "Fault",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "offset_s": {
+            "title": "Offset S",
+            "type": "number"
+          },
+          "signal": {
+            "title": "Signal",
+            "type": "string"
+          },
+          "size": {
+            "title": "Size",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "asset_id",
+          "signal",
+          "fault",
+          "size",
+          "offset_s"
+        ],
+        "title": "Scenario",
+        "type": "object"
+      },
+      "Scenarios": {
+        "additionalProperties": false,
+        "properties": {
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "scenarios": {
+            "items": {
+              "$ref": "#/components/schemas/Scenario"
+            },
+            "title": "Scenarios",
+            "type": "array"
+          }
+        },
+        "required": [
+          "scenarios",
+          "note"
+        ],
+        "title": "Scenarios",
+        "type": "object"
+      },
+      "ScoreBatchEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "model_version": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          },
+          "states": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "States",
+            "type": "object"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "window_end_first": {
+            "format": "date-time",
+            "title": "Window End First",
+            "type": "string"
+          },
+          "window_end_last": {
+            "format": "date-time",
+            "title": "Window End Last",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session_id",
+          "asset_id",
+          "source_day",
+          "synthetic",
+          "created_at",
+          "scenario",
+          "count",
+          "window_end_first",
+          "window_end_last",
+          "states",
+          "model_version"
+        ],
+        "title": "ScoreBatchEvent",
+        "type": "object"
+      },
+      "ScoreBatchMessage": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ScoreBatchEvent"
+          },
+          "event": {
+            "const": "score.batch",
+            "title": "Event",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "event",
+          "data"
+        ],
+        "title": "ScoreBatchMessage",
+        "type": "object"
+      },
+      "ScoreRow": {
+        "additionalProperties": false,
+        "properties": {
+          "abstention_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abstention Reason"
+          },
+          "band_high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band High"
+          },
+          "band_low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band Low"
+          },
+          "median": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "signal_name": {
+            "title": "Signal Name",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "normal",
+              "review_suggested",
+              "insufficient_evidence",
+              "data_unavailable"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "stretch": {
+            "title": "Stretch",
+            "type": "integer"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "window_end": {
+            "format": "date-time",
+            "title": "Window End",
+            "type": "string"
+          },
+          "window_start": {
+            "format": "date-time",
+            "title": "Window Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "signal_name",
+          "stretch",
+          "window_start",
+          "window_end",
+          "state",
+          "score",
+          "abstention_reason",
+          "median",
+          "band_low",
+          "band_high",
+          "model_id",
+          "model_version",
+          "synthetic"
+        ],
+        "title": "ScoreRow",
+        "type": "object"
+      },
+      "ScoredEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "abstention_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abstention Reason"
+          },
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "confidence_calibration_status": {
+            "$ref": "#/components/schemas/CalibrationStatus"
+          },
+          "evidence": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/pumpcopilot__schema__EvidenceItem"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "feature_window": {
+            "$ref": "#/components/schemas/FeatureWindow"
+          },
+          "model_domain": {
+            "$ref": "#/components/schemas/SourceDataset"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "type": "string"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "output_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Label"
+          },
+          "presentation_state": {
+            "$ref": "#/components/schemas/PresentationState"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "source_dataset": {
+            "$ref": "#/components/schemas/SourceDataset"
+          }
+        },
+        "required": [
+          "asset_id",
+          "source_dataset",
+          "model_id",
+          "model_version",
+          "model_domain",
+          "feature_window",
+          "confidence_calibration_status",
+          "presentation_state"
+        ],
+        "title": "ScoredEvidence",
+        "type": "object"
+      },
+      "Scores": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "assumptions": {
+            "description": "IDs in docs/ASSUMPTIONS.md that apply",
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "model_version": {
+            "description": "the model versions that produced it",
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/components/schemas/ScoreRow"
+            },
+            "title": "Scores",
+            "type": "array"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          },
+          "synthetic": {
+            "description": "true if the data comes from a synthetic scenario",
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "synthetic",
+          "model_version",
+          "assumptions",
+          "asset_id",
+          "source_day",
+          "session_id",
+          "scores"
+        ],
+        "title": "Scores",
+        "type": "object"
+      },
+      "SegmentRow": {
+        "additionalProperties": false,
+        "properties": {
+          "end_at": {
+            "format": "date-time",
+            "title": "End At",
+            "type": "string"
+          },
+          "motor_unconfirmed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Motor Unconfirmed"
+          },
+          "pressurized_while_stopped": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pressurized While Stopped"
+          },
+          "rules_version": {
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "start_at": {
+            "format": "date-time",
+            "title": "Start At",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "running",
+              "off",
+              "transition"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "start_at",
+          "end_at",
+          "motor_unconfirmed",
+          "pressurized_while_stopped",
+          "rules_version"
+        ],
+        "title": "SegmentRow",
+        "type": "object"
+      },
+      "Segments": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentRow"
+            },
+            "title": "Segments",
+            "type": "array"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "source_day",
+          "segments",
+          "assumptions"
+        ],
+        "title": "Segments",
+        "type": "object"
+      },
+      "Session": {
+        "additionalProperties": false,
+        "properties": {
+          "anchor_cursor": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Cursor"
+          },
+          "anchor_wall": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Wall"
+          },
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "claimed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claimed By"
+          },
+          "config_name": {
+            "title": "Config Name",
+            "type": "string"
+          },
+          "config_sha256": {
+            "title": "Config Sha256",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "cursor_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor At"
+          },
+          "day_constants": {
+            "$ref": "#/components/schemas/DayConstants"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "heartbeat_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heartbeat At"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          },
+          "source_end": {
+            "format": "date-time",
+            "title": "Source End",
+            "type": "string"
+          },
+          "source_start": {
+            "format": "date-time",
+            "title": "Source Start",
+            "type": "string"
+          },
+          "speed": {
+            "title": "Speed",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "running",
+              "paused",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "session_id",
+          "asset_id",
+          "source_day",
+          "speed",
+          "status",
+          "cursor_at",
+          "source_start",
+          "source_end",
+          "scenario",
+          "synthetic",
+          "config_name",
+          "config_sha256",
+          "anchor_cursor",
+          "anchor_wall",
+          "claimed_by",
+          "heartbeat_at",
+          "error",
+          "created_at",
+          "day_constants"
+        ],
+        "title": "Session",
+        "type": "object"
+      },
+      "SessionBrief": {
+        "additionalProperties": false,
+        "properties": {
+          "cursor_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cursor At"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "integer"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          },
+          "speed": {
+            "title": "Speed",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "running",
+              "paused",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "session_id",
+          "source_day",
+          "status",
+          "cursor_at",
+          "speed",
+          "synthetic",
+          "scenario"
+        ],
+        "title": "SessionBrief",
+        "type": "object"
+      },
+      "SessionEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/Session"
+          }
+        },
+        "required": [
+          "session"
+        ],
+        "title": "SessionEnvelope",
         "type": "object"
       },
       "SessionIn": {
@@ -155,6 +3501,232 @@
         "title": "SessionIn",
         "type": "object"
       },
+      "SessionList": {
+        "additionalProperties": false,
+        "properties": {
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/Session"
+            },
+            "title": "Sessions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sessions"
+        ],
+        "title": "SessionList",
+        "type": "object"
+      },
+      "SignalProgress": {
+        "additionalProperties": false,
+        "properties": {
+          "band": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Band"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "baseline_end": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline End"
+          },
+          "baseline_start": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Start"
+          },
+          "first_reading": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Reading"
+          },
+          "fraction": {
+            "title": "Fraction",
+            "type": "number"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "settled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settled At"
+          },
+          "status": {
+            "enum": [
+              "waiting_for_reading",
+              "settling",
+              "forming",
+              "formed",
+              "abstained"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "fraction",
+          "settled_at",
+          "first_reading",
+          "baseline_start",
+          "baseline_end",
+          "reason"
+        ],
+        "title": "SignalProgress",
+        "type": "object"
+      },
+      "SignalSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "episodes": {
+            "title": "Episodes",
+            "type": "integer"
+          },
+          "first_window_start": {
+            "format": "date-time",
+            "title": "First Window Start",
+            "type": "string"
+          },
+          "last_window_end": {
+            "format": "date-time",
+            "title": "Last Window End",
+            "type": "string"
+          },
+          "max_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Score"
+          },
+          "windows": {
+            "title": "Windows",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "windows",
+          "episodes",
+          "first_window_start",
+          "last_window_end",
+          "max_score"
+        ],
+        "title": "SignalSummary",
+        "type": "object"
+      },
+      "Signals": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "resolution": {
+            "enum": [
+              "1m",
+              "raw"
+            ],
+            "title": "Resolution",
+            "type": "string"
+          },
+          "signals": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/components/schemas/MinutePoint"
+                  },
+                  "type": "array"
+                },
+                {
+                  "items": {
+                    "$ref": "#/components/schemas/RawPoint"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "title": "Signals",
+            "type": "object"
+          },
+          "source_day": {
+            "format": "date",
+            "title": "Source Day",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "source_day",
+          "resolution",
+          "signals",
+          "assumptions"
+        ],
+        "title": "Signals",
+        "type": "object"
+      },
+      "SourceDataset": {
+        "enum": [
+          "zema",
+          "cira"
+        ],
+        "title": "SourceDataset",
+        "type": "string"
+      },
       "SpeedIn": {
         "properties": {
           "speed": {
@@ -171,6 +3743,387 @@
           "speed"
         ],
         "title": "SpeedIn",
+        "type": "object"
+      },
+      "StreamEvent": {
+        "description": "One server-sent event: `id:` is the event id, `event:` the type, `data:` the JSON.",
+        "discriminator": {
+          "mapping": {
+            "case.event": "#/components/schemas/CaseEventMessage",
+            "replay.progress": "#/components/schemas/ReplayProgressMessage",
+            "score.batch": "#/components/schemas/ScoreBatchMessage"
+          },
+          "propertyName": "event"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ReplayProgressMessage"
+          },
+          {
+            "$ref": "#/components/schemas/ScoreBatchMessage"
+          },
+          {
+            "$ref": "#/components/schemas/CaseEventMessage"
+          }
+        ],
+        "title": "StreamEvent"
+      },
+      "TimelineEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "actor": {
+            "title": "Actor",
+            "type": "string"
+          },
+          "disposition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disposition"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "integer"
+          },
+          "event_type": {
+            "enum": [
+              "opened",
+              "acknowledged",
+              "note",
+              "disposition",
+              "closed"
+            ],
+            "title": "Event Type",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "related_case_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Related Case Id"
+          }
+        },
+        "required": [
+          "event_id",
+          "event_type",
+          "actor",
+          "recorded_at",
+          "note",
+          "disposition",
+          "reason",
+          "related_case_id"
+        ],
+        "title": "TimelineEvent",
+        "type": "object"
+      },
+      "WorkerHealth": {
+        "additionalProperties": false,
+        "properties": {
+          "alive": {
+            "title": "Alive",
+            "type": "boolean"
+          },
+          "stale_after_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stale After S"
+          },
+          "workers": {
+            "items": {
+              "$ref": "#/components/schemas/WorkerHeartbeat"
+            },
+            "title": "Workers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "alive",
+          "workers"
+        ],
+        "title": "WorkerHealth",
+        "type": "object"
+      },
+      "WorkerHeartbeat": {
+        "additionalProperties": false,
+        "properties": {
+          "age_s": {
+            "title": "Age S",
+            "type": "number"
+          },
+          "alive": {
+            "title": "Alive",
+            "type": "boolean"
+          },
+          "host": {
+            "title": "Host",
+            "type": "string"
+          },
+          "last_seen": {
+            "format": "date-time",
+            "title": "Last Seen",
+            "type": "string"
+          },
+          "last_session_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Session Id"
+          },
+          "pid": {
+            "title": "Pid",
+            "type": "integer"
+          },
+          "sessions_stepped": {
+            "title": "Sessions Stepped",
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "running",
+              "stopped"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "worker_id": {
+            "title": "Worker Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "worker_id",
+          "host",
+          "pid",
+          "status",
+          "started_at",
+          "last_seen",
+          "sessions_stepped",
+          "last_session_id",
+          "age_s",
+          "alive"
+        ],
+        "title": "WorkerHeartbeat",
+        "type": "object"
+      },
+      "pumpcopilot__api_models__EvidenceItem": {
+        "additionalProperties": false,
+        "properties": {
+          "band_high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band High"
+          },
+          "band_low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band Low"
+          },
+          "episode_start": {
+            "title": "Episode Start",
+            "type": "boolean"
+          },
+          "median": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "signal_name": {
+            "title": "Signal Name",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "normal",
+              "review_suggested",
+              "insufficient_evidence",
+              "data_unavailable"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "window_end": {
+            "format": "date-time",
+            "title": "Window End",
+            "type": "string"
+          },
+          "window_start": {
+            "format": "date-time",
+            "title": "Window Start",
+            "type": "string"
+          }
+        },
+        "required": [
+          "signal_name",
+          "window_start",
+          "window_end",
+          "state",
+          "score",
+          "median",
+          "band_low",
+          "band_high",
+          "model_version",
+          "synthetic",
+          "episode_start"
+        ],
+        "title": "EvidenceItem",
+        "type": "object"
+      },
+      "pumpcopilot__schema__EvidenceItem": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline High"
+          },
+          "baseline_low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Low"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "signal_name": {
+            "title": "Signal Name",
+            "type": "string"
+          },
+          "statement": {
+            "title": "Statement",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "ref",
+          "signal_name",
+          "statement"
+        ],
+        "title": "EvidenceItem",
         "type": "object"
       }
     }
@@ -189,7 +4142,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDays"
+                }
               }
             },
             "description": "Successful Response"
@@ -259,7 +4214,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDaySummary"
+                }
               }
             },
             "description": "Successful Response"
@@ -345,7 +4302,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Bands"
+                }
               }
             },
             "description": "Successful Response"
@@ -415,7 +4374,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AssetDayQuality"
+                }
               }
             },
             "description": "Successful Response"
@@ -520,7 +4481,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Scores"
+                }
               }
             },
             "description": "Successful Response"
@@ -590,7 +4553,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Segments"
+                }
               }
             },
             "description": "Successful Response"
@@ -727,7 +4692,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Signals"
+                }
               }
             },
             "description": "Successful Response"
@@ -776,7 +4743,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Assumptions"
+                }
               }
             },
             "description": "Successful Response"
@@ -926,7 +4895,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CaseList"
+                }
               }
             },
             "description": "Successful Response"
@@ -1000,7 +4971,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
               }
             },
             "description": "Successful Response"
@@ -1070,7 +5043,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CaseActionResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -1140,7 +5115,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CaseActionResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -1210,7 +5187,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CaseActionResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -1309,7 +5288,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/EvidencePage"
+                }
               }
             },
             "description": "Successful Response"
@@ -1383,11 +5364,17 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CaseExport"
+                }
               },
-              "text/markdown": {}
+              "text/markdown": {
+                "schema": {
+                  "type": "string"
+                }
+              }
             },
-            "description": "Successful Response"
+            "description": "JSON (format=json) or a Markdown evidence pack"
           },
           "404": {
             "content": {
@@ -1454,7 +5441,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/CaseActionResult"
+                }
               }
             },
             "description": "Successful Response"
@@ -1503,7 +5492,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/DataQuality"
+                }
               }
             },
             "description": "Successful Response"
@@ -1552,7 +5543,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Evaluation"
+                }
               }
             },
             "description": "Successful Response"
@@ -1601,7 +5594,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Fleet"
+                }
               }
             },
             "description": "Successful Response"
@@ -1650,7 +5645,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
               }
             },
             "description": "Successful Response"
@@ -1699,7 +5696,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Scenarios"
+                }
               }
             },
             "description": "Successful Response"
@@ -1748,7 +5747,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SessionList"
+                }
               }
             },
             "description": "Successful Response"
@@ -1805,7 +5806,9 @@
           "201": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SessionEnvelope"
+                }
               }
             },
             "description": "Successful Response"
@@ -1865,7 +5868,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SessionEnvelope"
+                }
               }
             },
             "description": "Successful Response"
@@ -1925,7 +5930,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Baseline"
+                }
               }
             },
             "description": "Successful Response"
@@ -1985,7 +5992,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SessionEnvelope"
+                }
               }
             },
             "description": "Successful Response"
@@ -2045,7 +6054,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SessionEnvelope"
+                }
               }
             },
             "description": "Successful Response"
@@ -2115,7 +6126,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SessionEnvelope"
+                }
               }
             },
             "description": "Successful Response"
@@ -2175,7 +6188,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SessionEnvelope"
+                }
               }
             },
             "description": "Successful Response"
@@ -2310,12 +6325,13 @@
         "responses": {
           "200": {
             "content": {
-              "application/json": {
-                "schema": {}
-              },
-              "text/event-stream": {}
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/StreamEvent"
+                }
+              }
             },
-            "description": "Successful Response"
+            "description": "server-sent events: each has `id:` (the event id), `event:` (the type) and `data:` (the payload as JSON)"
           },
           "404": {
             "content": {

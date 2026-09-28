@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { call, client } from "../api/client";
-import type { Assumption, PresentationState } from "../api/types";
 
 /** Shown wherever data is synthetic (an injected, in-memory fault). */
 export function Synthetic({ show }: { show: boolean | null | undefined }) {
@@ -9,7 +8,7 @@ export function Synthetic({ show }: { show: boolean | null | undefined }) {
   return <span className="synthetic" data-testid="synthetic-label">SYNTHETIC</span>;
 }
 
-export function StateBadge({ state }: { state: PresentationState | string }) {
+export function StateBadge({ state }: { state: string }) {
   return <span className={`state state-${state}`}>{String(state).replace(/_/g, " ")}</span>;
 }
 
@@ -26,7 +25,7 @@ export function Provenance({ model_version, assumptions }:
 function useAssumptions() {
   return useQuery({
     queryKey: ["assumptions"], staleTime: Infinity,
-    queryFn: () => call<{ assumptions: Assumption[] }>(client.GET("/api/assumptions")),
+    queryFn: () => call(client.GET("/api/assumptions")),
   });
 }
 

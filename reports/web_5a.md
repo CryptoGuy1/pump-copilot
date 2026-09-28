@@ -8,14 +8,32 @@ worker, the API (127.0.0.1:8000) and the web dev server (127.0.0.1:5173), which 
 ## Typed client
 
 - `openapi-typescript` generates `web/src/api/schema.d.ts` from `api/openapi.json`, and
-  `openapi-fetch` uses it. Paths, parameters and request bodies are typed; the type check
-  passes on every call.
+  `openapi-fetch` uses it. Paths, parameters, request bodies and responses are all typed.
 - `npm run build` runs `check:api` first, and fails if the generated file differs from what
   the committed schema produces (checked by editing it: the build exits 1).
-- The API declares no response models, so response bodies are typed by hand in
-  `web/src/api/types.ts`.
 - TypeScript is pinned to 5.x, because openapi-typescript needs the TypeScript 5 compiler
   API and TypeScript 7 does not provide it.
+
+### 5a-2: contract hardening
+
+- **Response models.** Every endpoint declares one (`src/pumpcopilot/api_models.py`), and
+  each forbids undeclared fields. `/api/stream` documents its `text/event-stream` payloads as
+  a union discriminated on the event type: `StreamEvent`, over `ReplayProgressEvent`,
+  `ScoreBatchEvent` and `CaseEvent`. The JSON export reuses the `ScoredEvidence` contract.
+- **Web types.** The handwritten `web/src/api/types.ts` is deleted. Screens use the generated
+  types directly: `call()` infers them from the client, and `Schema<"CaseDetail">` names one.
+  `useStream` types each event's payload from the generated event models. The generated
+  types exposed three things the handwritten ones had hidden:
+  - a case's `signals` can be null;
+  - the signals endpoint returns 1-minute points or raw points depending on resolution;
+  - the stored evaluation JSON is free-form.
+- **Contract tests.**
+  - Every `/api` route declares a model that forbids extra fields.
+  - The route sweep on the test database validates each actual response against its model,
+    including the case actions and replay controls.
+  - A read-only test on the real, reset local database validates every GET endpoint, for
+    every asset-day, session and case. It also covers raw resolution, and validates each
+    stored stream event against its payload model.
 
 ## Screens
 

@@ -510,6 +510,527 @@ export interface components {
              */
             actor: string;
         };
+        /** AssetDayQuality */
+        AssetDayQuality: {
+            /** Asset Id */
+            asset_id: string;
+            /** Assumptions */
+            assumptions: string[];
+            audit: components["schemas"]["AuditFile"] | null;
+            /** Flag Counts */
+            flag_counts: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            };
+            gaps: components["schemas"]["Gaps"] | null;
+            /** Site Gaps */
+            site_gaps: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+        };
+        /** AssetDayRow */
+        AssetDayRow: {
+            /** Asset Id */
+            asset_id: string;
+            /**
+             * End At
+             * Format: date-time
+             */
+            end_at: string;
+            /** Running Hours */
+            running_hours: number | null;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+            /**
+             * Start At
+             * Format: date-time
+             */
+            start_at: string;
+        };
+        /** AssetDaySummary */
+        AssetDaySummary: {
+            /** Asset Id */
+            asset_id: string;
+            /** Assumptions */
+            assumptions: string[];
+            /** Sessions */
+            sessions: components["schemas"]["DaySession"][];
+            /** Signals */
+            signals: string[];
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+        };
+        /** AssetDays */
+        AssetDays: {
+            /** Asset Days */
+            asset_days: components["schemas"]["AssetDayRow"][];
+        };
+        /** AssumptionItem */
+        AssumptionItem: {
+            /** Assumption */
+            assumption: string;
+            /** Evidence */
+            evidence: string;
+            /** How To Revisit */
+            how_to_revisit: string;
+            /** Id */
+            id: string;
+            /** Impact If Wrong */
+            impact_if_wrong: string;
+            /** Title */
+            title: string;
+        };
+        /** Assumptions */
+        Assumptions: {
+            /** Assumptions */
+            assumptions: components["schemas"]["AssumptionItem"][];
+            /** Source */
+            source: string;
+        };
+        /** AuditFile */
+        AuditFile: {
+            /** Blank Rows */
+            blank_rows: number | null;
+            /** Cadence Segments */
+            cadence_segments: components["schemas"]["CadenceSegment"][] | null;
+            /** Duplicate Timestamps */
+            duplicate_timestamps: number | null;
+            /** File */
+            file: string;
+            /** Issues */
+            issues: string[] | null;
+            /** Non Monotonic Steps */
+            non_monotonic_steps: number | null;
+            /** Rows */
+            rows: number | null;
+            /** Span */
+            span: string[] | null;
+            /** Timestamp Assumption */
+            timestamp_assumption: string | null;
+        };
+        /** Band */
+        Band: {
+            /** Center */
+            center: number;
+            /** High */
+            high: number;
+            /** Low */
+            low: number;
+            /** Unit */
+            unit: string;
+        };
+        /** BandChart */
+        BandChart: {
+            /** Max */
+            max: (number | null)[];
+            /** Median */
+            median: (number | null)[];
+            /** Min */
+            min: (number | null)[];
+            /** Review */
+            review: boolean[];
+            /** T */
+            t: string[];
+        };
+        /** Bands */
+        Bands: {
+            /** Asset Id */
+            asset_id: string;
+            /**
+             * Assumptions
+             * @description IDs in docs/ASSUMPTIONS.md that apply
+             */
+            assumptions: string[];
+            bands: components["schemas"]["BaselineProgress"] | null;
+            /**
+             * Model Version
+             * @description the model versions that produced it
+             */
+            model_version: string[];
+            /** Session Id */
+            session_id: number;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+            /**
+             * Synthetic
+             * @description true if the data comes from a synthetic scenario
+             */
+            synthetic: boolean;
+        };
+        /** Baseline */
+        Baseline: {
+            /**
+             * Assumptions
+             * @description IDs in docs/ASSUMPTIONS.md that apply
+             */
+            assumptions: string[];
+            baseline_progress: components["schemas"]["BaselineProgress"] | null;
+            /** Cursor At */
+            cursor_at: string | null;
+            /**
+             * Model Version
+             * @description the model versions that produced it
+             */
+            model_version: string[];
+            /** Session Id */
+            session_id: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "running" | "paused" | "completed" | "failed";
+            /**
+             * Synthetic
+             * @description true if the data comes from a synthetic scenario
+             */
+            synthetic: boolean;
+        };
+        /** BaselineProgress */
+        BaselineProgress: {
+            /**
+             * Cursor
+             * Format: date-time
+             */
+            cursor: string;
+            /** Runs */
+            runs: components["schemas"]["RunProgress"][];
+        };
+        /** CadenceSegment */
+        CadenceSegment: {
+            /** Cadence S */
+            cadence_s: number;
+            /** End */
+            end: string;
+            /** Start */
+            start: string;
+            /** Steps */
+            steps: number;
+        };
+        /**
+         * CalibrationStatus
+         * @enum {string}
+         */
+        CalibrationStatus: "calibrated" | "uncalibrated" | "not_applicable";
+        /** CaseActionResult */
+        CaseActionResult: {
+            /** Actions */
+            actions: ("acknowledge" | "note" | "disposition" | "close" | "export")[];
+            /**
+             * Assumptions
+             * @description IDs in docs/ASSUMPTIONS.md that apply
+             */
+            assumptions: string[];
+            case: components["schemas"]["CaseState"];
+            /**
+             * Model Version
+             * @description the model versions that produced it
+             */
+            model_version: string[];
+            /**
+             * Synthetic
+             * @description true if the data comes from a synthetic scenario
+             */
+            synthetic: boolean;
+        };
+        /** CaseDetail */
+        CaseDetail: {
+            /** Actions */
+            actions: ("acknowledge" | "note" | "disposition" | "close" | "export")[];
+            /**
+             * Assumptions
+             * @description IDs in docs/ASSUMPTIONS.md that apply
+             */
+            assumptions: string[];
+            case: components["schemas"]["CaseState"];
+            /** Chart Margin S */
+            chart_margin_s: number;
+            /** Evidence Url */
+            evidence_url: string;
+            /** Max Points */
+            max_points: number;
+            /**
+             * Model Version
+             * @description the model versions that produced it
+             */
+            model_version: string[];
+            related: components["schemas"]["Related"];
+            /** Signals */
+            signals: {
+                [key: string]: components["schemas"]["CaseSignal"];
+            };
+            /**
+             * Synthetic
+             * @description true if the data comes from a synthetic scenario
+             */
+            synthetic: boolean;
+            /** Timeline */
+            timeline: components["schemas"]["TimelineEvent"][];
+        };
+        /** CaseEvent */
+        CaseEvent: {
+            /** Actor */
+            actor: string;
+            /** Asset Id */
+            asset_id: string;
+            /** Case Id */
+            case_id: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Disposition
+             * @default null
+             */
+            disposition: string | null;
+            /**
+             * Event Type
+             * @enum {string}
+             */
+            event_type: "opened" | "evidence_added" | "acknowledged" | "note" | "disposition" | "closed";
+            /**
+             * @description worker: events in this step
+             * @default null
+             */
+            events: components["schemas"]["CaseEventCounts"] | null;
+            /**
+             * Related Case Id
+             * @default null
+             */
+            related_case_id: number | null;
+            /** Session Id */
+            session_id: number;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+            /**
+             * Status
+             * @description person's action: status after it
+             * @default null
+             */
+            status: ("open" | "acknowledged" | "dispositioned" | "closed") | null;
+            /** Synthetic */
+            synthetic: boolean;
+        };
+        /** CaseEventCounts */
+        CaseEventCounts: {
+            /** Evidence Added */
+            evidence_added: number;
+            /** Opened */
+            opened: number;
+        };
+        /** CaseEventMessage */
+        CaseEventMessage: {
+            data: components["schemas"]["CaseEvent"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            event: "case.event";
+            /** Id */
+            id: number;
+        };
+        /** CaseExport */
+        CaseExport: {
+            /**
+             * Assumptions
+             * @description IDs in docs/ASSUMPTIONS.md that apply
+             */
+            assumptions: string[];
+            case: components["schemas"]["CaseState"];
+            /** Events */
+            events: components["schemas"]["ExportEvent"][];
+            /** Evidence */
+            evidence: components["schemas"]["ExportEvidence"][];
+            /**
+             * Model Version
+             * @description the model versions that produced it
+             */
+            model_version: string[];
+            /** Note */
+            note: string;
+            /**
+             * Synthetic
+             * @description true if the data comes from a synthetic scenario
+             */
+            synthetic: boolean;
+        };
+        /** CaseList */
+        CaseList: {
+            /** Assumptions */
+            assumptions: string[];
+            /** Cases */
+            cases: components["schemas"]["CaseState"][];
+            /** Model Version */
+            model_version: string[];
+            /** Real Count */
+            real_count: number;
+            /** Synthetic Count */
+            synthetic_count: number;
+        };
+        /** CaseSignal */
+        CaseSignal: {
+            band: components["schemas"]["Band"] | null;
+            chart: components["schemas"]["BandChart"];
+            summary: components["schemas"]["SignalSummary"];
+        };
+        /** CaseState */
+        CaseState: {
+            /** Acknowledged */
+            acknowledged: boolean;
+            /** Asset Id */
+            asset_id: string;
+            /** Case Id */
+            case_id: number;
+            /** Closed */
+            closed: boolean;
+            /** Disposition */
+            disposition: string | null;
+            /** Disposition Reason */
+            disposition_reason: string | null;
+            /** Episodes */
+            episodes: number;
+            /** Evidence End */
+            evidence_end: string | null;
+            /** Evidence Start */
+            evidence_start: string | null;
+            /** Evidence Windows */
+            evidence_windows: number;
+            /**
+             * Last Event At
+             * Format: date-time
+             */
+            last_event_at: string;
+            /** Max Score */
+            max_score: number | null;
+            /** Notes */
+            notes: number;
+            /**
+             * Opened At
+             * Format: date-time
+             */
+            opened_at: string;
+            /** Related Case Id */
+            related_case_id: number | null;
+            /** Session Id */
+            session_id: number;
+            /** Signals */
+            signals: string[] | null;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "acknowledged" | "dispositioned" | "closed";
+            /** Stretch */
+            stretch: number;
+            /** Synthetic */
+            synthetic: boolean;
+        };
+        /** DataQuality */
+        DataQuality: {
+            /** Asset Days */
+            asset_days: components["schemas"]["QualityRow"][];
+            /** Audit Issues */
+            audit_issues: string[] | null;
+            /** Audit Ok */
+            audit_ok: boolean | null;
+        };
+        /** DataQualityBrief */
+        DataQualityBrief: {
+            /** Audit Issues */
+            audit_issues: number | null;
+            /** Flag Counts */
+            flag_counts: {
+                [key: string]: number;
+            };
+            /** Gaps */
+            gaps: number | null;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "issues" | "not_audited";
+        };
+        /** DatabaseHealth */
+        DatabaseHealth: {
+            /** Error */
+            error?: string | null;
+            /** Latency Ms */
+            latency_ms?: number | null;
+            /** Ok */
+            ok: boolean;
+            /**
+             * Pending Migrations
+             * @default []
+             */
+            pending_migrations: string[];
+        };
+        /** DayConstants */
+        DayConstants: {
+            /** Intervals */
+            intervals: {
+                [key: string]: number;
+            };
+            /** Max Window S */
+            max_window_s: number;
+            /** Signals */
+            signals: string[];
+            /**
+             * Source End
+             * Format: date-time
+             */
+            source_end: string;
+            /** Stale Limits */
+            stale_limits: {
+                [key: string]: number;
+            };
+        };
+        /** DaySession */
+        DaySession: {
+            /** Cursor At */
+            cursor_at: string | null;
+            /** Scenario */
+            scenario: string | null;
+            /** Session Id */
+            session_id: number;
+            /** Speed */
+            speed: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "running" | "paused" | "completed" | "failed";
+            /** Synthetic */
+            synthetic: boolean;
+        };
         /** DispositionIn */
         DispositionIn: {
             /**
@@ -543,6 +1064,217 @@ export interface components {
         ErrorResponse: {
             error: components["schemas"]["ErrorBody"];
         };
+        /** Evaluation */
+        Evaluation: {
+            /** Cases All Modes */
+            cases_all_modes: {
+                [key: string]: {
+                    [key: string]: {
+                        [key: string]: unknown;
+                    };
+                };
+            } | null;
+            /** Labels */
+            labels: string;
+            /** Modes */
+            modes: {
+                [key: string]: components["schemas"]["ModeResult"];
+            };
+            /** Report */
+            report: string;
+        };
+        /** EvidencePage */
+        EvidencePage: {
+            /**
+             * Assumptions
+             * @description IDs in docs/ASSUMPTIONS.md that apply
+             */
+            assumptions: string[];
+            /** Case Id */
+            case_id: number;
+            /** Items */
+            items: components["schemas"]["pumpcopilot__api_models__EvidenceItem"][];
+            /** Limit */
+            limit: number;
+            /**
+             * Model Version
+             * @description the model versions that produced it
+             */
+            model_version: string[];
+            /** Next Offset */
+            next_offset: number | null;
+            /** Offset */
+            offset: number;
+            /**
+             * Synthetic
+             * @description true if the data comes from a synthetic scenario
+             */
+            synthetic: boolean;
+            /** Total */
+            total: number;
+        };
+        /** ExportEvent */
+        ExportEvent: {
+            /** Actor */
+            actor: string;
+            /** Asset Id */
+            asset_id: string;
+            /** Case Id */
+            case_id: number;
+            /** Disposition */
+            disposition: string | null;
+            /** Episode Start */
+            episode_start: boolean | null;
+            /** Event Id */
+            event_id: number;
+            /**
+             * Event Type
+             * @enum {string}
+             */
+            event_type: "opened" | "evidence_added" | "acknowledged" | "note" | "disposition" | "closed";
+            /** Model Version */
+            model_version: string | null;
+            /** Note */
+            note: string | null;
+            /** Reason */
+            reason: string | null;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+            /** Related Case Id */
+            related_case_id: number | null;
+            /** Score */
+            score: number | null;
+            /** Session Id */
+            session_id: number;
+            /** Signal Name */
+            signal_name: string | null;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+            /** Stretch */
+            stretch: number;
+            /** Synthetic */
+            synthetic: boolean;
+            /** Window End */
+            window_end: string | null;
+            /** Window Start */
+            window_start: string | null;
+        };
+        /** ExportEvidence */
+        ExportEvidence: {
+            /** Band High */
+            band_high: number | null;
+            /** Band Low */
+            band_low: number | null;
+            /** Median */
+            median: number | null;
+            /** Model Id */
+            model_id: string;
+            /** Model Version */
+            model_version: string;
+            /**
+             * Presentation State
+             * @enum {string}
+             */
+            presentation_state: "normal" | "review_suggested" | "insufficient_evidence" | "data_unavailable";
+            /** Score */
+            score: number | null;
+            scored_evidence: components["schemas"]["ScoredEvidence"];
+            /** Signal Name */
+            signal_name: string;
+            /** Synthetic */
+            synthetic: boolean;
+            /**
+             * Window End
+             * Format: date-time
+             */
+            window_end: string;
+            /**
+             * Window Start
+             * Format: date-time
+             */
+            window_start: string;
+        };
+        /** FeatureWindow */
+        FeatureWindow: {
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+        };
+        /** Fleet */
+        Fleet: {
+            /** Pumps */
+            pumps: components["schemas"]["Pump"][];
+        };
+        /** Gaps */
+        Gaps: {
+            /** Count */
+            count: number;
+            /** Factor */
+            factor: number;
+            /** Items */
+            items: {
+                [key: string]: unknown;
+            }[];
+            /** Site Level */
+            site_level: number;
+        };
+        /** Health */
+        Health: {
+            database: components["schemas"]["DatabaseHealth"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "degraded" | "down";
+            worker: components["schemas"]["WorkerHealth"];
+        };
+        /** MinutePoint */
+        MinutePoint: {
+            /**
+             * Bucket
+             * Format: date-time
+             */
+            bucket: string;
+            /** Max */
+            max: number | null;
+            /** Mean */
+            mean: number | null;
+            /** Min */
+            min: number | null;
+            /** Readings */
+            readings: number;
+            /** Samples */
+            samples: number;
+        };
+        /** ModeResult */
+        ModeResult: {
+            /** File */
+            file: string;
+            /** Label */
+            label: string;
+            /** Note */
+            note: string | null;
+            /**
+             * Results
+             * @description the stored evaluation JSON, as scored
+             */
+            results: {
+                [key: string]: unknown;
+            } | null;
+        };
         /** NoteIn */
         NoteIn: {
             /**
@@ -552,6 +1284,463 @@ export interface components {
             actor: string;
             /** Text */
             text: string;
+        };
+        /** OpenCases */
+        OpenCases: {
+            all_sessions: components["schemas"]["RealSynthetic"];
+            /** Latest Session */
+            latest_session: number;
+        };
+        /**
+         * PresentationState
+         * @description The only four states the UI may show. There is intentionally no 'alarm'.
+         * @enum {string}
+         */
+        PresentationState: "normal" | "review_suggested" | "insufficient_evidence" | "data_unavailable";
+        /** Pump */
+        Pump: {
+            /** Asset Id */
+            asset_id: string;
+            /**
+             * Assumptions
+             * @description IDs in docs/ASSUMPTIONS.md that apply
+             */
+            assumptions: string[];
+            data_quality: components["schemas"]["DataQualityBrief"];
+            /** Days */
+            days: string[];
+            latest_session: components["schemas"]["SessionBrief"] | null;
+            /**
+             * Model Version
+             * @description the model versions that produced it
+             */
+            model_version: string[];
+            open_cases: components["schemas"]["OpenCases"];
+            state: components["schemas"]["PumpState"];
+            /**
+             * Synthetic
+             * @description true if the data comes from a synthetic scenario
+             */
+            synthetic: boolean;
+        };
+        /** PumpState */
+        PumpState: {
+            /** As Of */
+            as_of?: string | null;
+            /** Reason */
+            reason: string | null;
+            /** Signals */
+            signals: {
+                [key: string]: "normal" | "review_suggested" | "insufficient_evidence" | "data_unavailable";
+            };
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "normal" | "review_suggested" | "insufficient_evidence" | "data_unavailable";
+        };
+        /** QualityRow */
+        QualityRow: {
+            /** Asset Id */
+            asset_id: string;
+            /** Audit Issues */
+            audit_issues: number | null;
+            /** Flag Counts */
+            flag_counts: {
+                [key: string]: number;
+            };
+            /** Gaps */
+            gaps: number | null;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+        };
+        /** RawPoint */
+        RawPoint: {
+            /** Flags */
+            flags: string[];
+            /** Is Reading */
+            is_reading: boolean;
+            /** State */
+            state: string;
+            /**
+             * T
+             * Format: date-time
+             */
+            t: string;
+            /** Value */
+            value: number | null;
+        };
+        /** RealSynthetic */
+        RealSynthetic: {
+            /** Real */
+            real: number;
+            /** Synthetic */
+            synthetic: number;
+        };
+        /** Related */
+        Related: {
+            /** Related By */
+            related_by: components["schemas"]["CaseState"][];
+            related_case: components["schemas"]["CaseState"] | null;
+        };
+        /** ReplayProgressEvent */
+        ReplayProgressEvent: {
+            /** Asset Id */
+            asset_id: string;
+            /**
+             * Baseline
+             * @description signals per baseline status
+             */
+            baseline: {
+                [key: string]: number;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Cursor At */
+            cursor_at: string | null;
+            /** Scenario */
+            scenario: string | null;
+            /** Session Id */
+            session_id: number;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+            /** Speed */
+            speed: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "running" | "paused" | "completed" | "failed";
+            /** Synthetic */
+            synthetic: boolean;
+        };
+        /** ReplayProgressMessage */
+        ReplayProgressMessage: {
+            data: components["schemas"]["ReplayProgressEvent"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            event: "replay.progress";
+            /** Id */
+            id: number;
+        };
+        /** RunProgress */
+        RunProgress: {
+            /** Closed */
+            closed: boolean;
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /** Run */
+            run: number;
+            /** Signals */
+            signals: {
+                [key: string]: components["schemas"]["SignalProgress"];
+            };
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+        };
+        /** Scenario */
+        Scenario: {
+            /** Asset Id */
+            asset_id: string;
+            /**
+             * Fault
+             * @enum {string}
+             */
+            fault: "step" | "ramp" | "drift" | "stuck" | "dropout";
+            /** Name */
+            name: string;
+            /** Offset S */
+            offset_s: number;
+            /** Signal */
+            signal: string;
+            /** Size */
+            size: number;
+        };
+        /** Scenarios */
+        Scenarios: {
+            /** Note */
+            note: string;
+            /** Scenarios */
+            scenarios: components["schemas"]["Scenario"][];
+        };
+        /** ScoreBatchEvent */
+        ScoreBatchEvent: {
+            /** Asset Id */
+            asset_id: string;
+            /** Count */
+            count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Model Version */
+            model_version: string[];
+            /** Scenario */
+            scenario: string | null;
+            /** Session Id */
+            session_id: number;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+            /** States */
+            states: {
+                [key: string]: number;
+            };
+            /** Synthetic */
+            synthetic: boolean;
+            /**
+             * Window End First
+             * Format: date-time
+             */
+            window_end_first: string;
+            /**
+             * Window End Last
+             * Format: date-time
+             */
+            window_end_last: string;
+        };
+        /** ScoreBatchMessage */
+        ScoreBatchMessage: {
+            data: components["schemas"]["ScoreBatchEvent"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            event: "score.batch";
+            /** Id */
+            id: number;
+        };
+        /** ScoreRow */
+        ScoreRow: {
+            /** Abstention Reason */
+            abstention_reason: string | null;
+            /** Band High */
+            band_high: number | null;
+            /** Band Low */
+            band_low: number | null;
+            /** Median */
+            median: number | null;
+            /** Model Id */
+            model_id: string;
+            /** Model Version */
+            model_version: string;
+            /** Score */
+            score: number | null;
+            /** Signal Name */
+            signal_name: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "normal" | "review_suggested" | "insufficient_evidence" | "data_unavailable";
+            /** Stretch */
+            stretch: number;
+            /** Synthetic */
+            synthetic: boolean;
+            /**
+             * Window End
+             * Format: date-time
+             */
+            window_end: string;
+            /**
+             * Window Start
+             * Format: date-time
+             */
+            window_start: string;
+        };
+        /** ScoredEvidence */
+        ScoredEvidence: {
+            /** Abstention Reason */
+            abstention_reason?: string | null;
+            /** Asset Id */
+            asset_id: string;
+            confidence_calibration_status: components["schemas"]["CalibrationStatus"];
+            /**
+             * Evidence
+             * @default []
+             */
+            evidence: components["schemas"]["pumpcopilot__schema__EvidenceItem"][];
+            feature_window: components["schemas"]["FeatureWindow"];
+            model_domain: components["schemas"]["SourceDataset"];
+            /** Model Id */
+            model_id: string;
+            /** Model Version */
+            model_version: string;
+            /** Output Label */
+            output_label?: string | null;
+            presentation_state: components["schemas"]["PresentationState"];
+            /** Score */
+            score?: number | null;
+            source_dataset: components["schemas"]["SourceDataset"];
+        };
+        /** Scores */
+        Scores: {
+            /** Asset Id */
+            asset_id: string;
+            /**
+             * Assumptions
+             * @description IDs in docs/ASSUMPTIONS.md that apply
+             */
+            assumptions: string[];
+            /**
+             * Model Version
+             * @description the model versions that produced it
+             */
+            model_version: string[];
+            /** Scores */
+            scores: components["schemas"]["ScoreRow"][];
+            /** Session Id */
+            session_id: number;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+            /**
+             * Synthetic
+             * @description true if the data comes from a synthetic scenario
+             */
+            synthetic: boolean;
+        };
+        /** SegmentRow */
+        SegmentRow: {
+            /**
+             * End At
+             * Format: date-time
+             */
+            end_at: string;
+            /** Motor Unconfirmed */
+            motor_unconfirmed: boolean | null;
+            /** Pressurized While Stopped */
+            pressurized_while_stopped: boolean | null;
+            /** Rules Version */
+            rules_version: string;
+            /**
+             * Start At
+             * Format: date-time
+             */
+            start_at: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "running" | "off" | "transition";
+        };
+        /** Segments */
+        Segments: {
+            /** Asset Id */
+            asset_id: string;
+            /** Assumptions */
+            assumptions: string[];
+            /** Segments */
+            segments: components["schemas"]["SegmentRow"][];
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+        };
+        /** Session */
+        Session: {
+            /** Anchor Cursor */
+            anchor_cursor: string | null;
+            /** Anchor Wall */
+            anchor_wall: string | null;
+            /** Asset Id */
+            asset_id: string;
+            /** Claimed By */
+            claimed_by: string | null;
+            /** Config Name */
+            config_name: string;
+            /** Config Sha256 */
+            config_sha256: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Cursor At */
+            cursor_at: string | null;
+            day_constants: components["schemas"]["DayConstants"];
+            /** Error */
+            error: string | null;
+            /** Heartbeat At */
+            heartbeat_at: string | null;
+            /** Scenario */
+            scenario: string | null;
+            /** Session Id */
+            session_id: number;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+            /**
+             * Source End
+             * Format: date-time
+             */
+            source_end: string;
+            /**
+             * Source Start
+             * Format: date-time
+             */
+            source_start: string;
+            /** Speed */
+            speed: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "running" | "paused" | "completed" | "failed";
+            /** Synthetic */
+            synthetic: boolean;
+        };
+        /** SessionBrief */
+        SessionBrief: {
+            /** Cursor At */
+            cursor_at: string | null;
+            /** Scenario */
+            scenario: string | null;
+            /** Session Id */
+            session_id: number;
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+            /** Speed */
+            speed: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "running" | "paused" | "completed" | "failed";
+            /** Synthetic */
+            synthetic: boolean;
+        };
+        /** SessionEnvelope */
+        SessionEnvelope: {
+            session: components["schemas"]["Session"];
         };
         /** SessionIn */
         SessionIn: {
@@ -574,6 +1763,77 @@ export interface components {
              */
             speed: 1 | 10 | 60;
         };
+        /** SessionList */
+        SessionList: {
+            /** Sessions */
+            sessions: components["schemas"]["Session"][];
+        };
+        /** SignalProgress */
+        SignalProgress: {
+            band?: components["schemas"]["Band"] | null;
+            /** Baseline End */
+            baseline_end: string | null;
+            /** Baseline Start */
+            baseline_start: string | null;
+            /** First Reading */
+            first_reading: string | null;
+            /** Fraction */
+            fraction: number;
+            /** Reason */
+            reason: string | null;
+            /** Settled At */
+            settled_at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "waiting_for_reading" | "settling" | "forming" | "formed" | "abstained";
+        };
+        /** SignalSummary */
+        SignalSummary: {
+            /** Episodes */
+            episodes: number;
+            /**
+             * First Window Start
+             * Format: date-time
+             */
+            first_window_start: string;
+            /**
+             * Last Window End
+             * Format: date-time
+             */
+            last_window_end: string;
+            /** Max Score */
+            max_score: number | null;
+            /** Windows */
+            windows: number;
+        };
+        /** Signals */
+        Signals: {
+            /** Asset Id */
+            asset_id: string;
+            /** Assumptions */
+            assumptions: string[];
+            /**
+             * Resolution
+             * @enum {string}
+             */
+            resolution: "1m" | "raw";
+            /** Signals */
+            signals: {
+                [key: string]: components["schemas"]["MinutePoint"][] | components["schemas"]["RawPoint"][];
+            };
+            /**
+             * Source Day
+             * Format: date
+             */
+            source_day: string;
+        };
+        /**
+         * SourceDataset
+         * @enum {string}
+         */
+        SourceDataset: "zema" | "cira";
         /** SpeedIn */
         SpeedIn: {
             /**
@@ -581,6 +1841,128 @@ export interface components {
              * @enum {integer}
              */
             speed: 1 | 10 | 60;
+        };
+        /**
+         * StreamEvent
+         * @description One server-sent event: `id:` is the event id, `event:` the type, `data:` the JSON.
+         */
+        StreamEvent: components["schemas"]["ReplayProgressMessage"] | components["schemas"]["ScoreBatchMessage"] | components["schemas"]["CaseEventMessage"];
+        /** TimelineEvent */
+        TimelineEvent: {
+            /** Actor */
+            actor: string;
+            /** Disposition */
+            disposition: string | null;
+            /** Event Id */
+            event_id: number;
+            /**
+             * Event Type
+             * @enum {string}
+             */
+            event_type: "opened" | "acknowledged" | "note" | "disposition" | "closed";
+            /** Note */
+            note: string | null;
+            /** Reason */
+            reason: string | null;
+            /**
+             * Recorded At
+             * Format: date-time
+             */
+            recorded_at: string;
+            /** Related Case Id */
+            related_case_id: number | null;
+        };
+        /** WorkerHealth */
+        WorkerHealth: {
+            /** Alive */
+            alive: boolean;
+            /** Stale After S */
+            stale_after_s?: number | null;
+            /** Workers */
+            workers: components["schemas"]["WorkerHeartbeat"][];
+        };
+        /** WorkerHeartbeat */
+        WorkerHeartbeat: {
+            /** Age S */
+            age_s: number;
+            /** Alive */
+            alive: boolean;
+            /** Host */
+            host: string;
+            /**
+             * Last Seen
+             * Format: date-time
+             */
+            last_seen: string;
+            /** Last Session Id */
+            last_session_id: number | null;
+            /** Pid */
+            pid: number;
+            /** Sessions Stepped */
+            sessions_stepped: number;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "running" | "stopped";
+            /** Worker Id */
+            worker_id: string;
+        };
+        /** EvidenceItem */
+        pumpcopilot__api_models__EvidenceItem: {
+            /** Band High */
+            band_high: number | null;
+            /** Band Low */
+            band_low: number | null;
+            /** Episode Start */
+            episode_start: boolean;
+            /** Median */
+            median: number | null;
+            /** Model Version */
+            model_version: string;
+            /** Score */
+            score: number | null;
+            /** Signal Name */
+            signal_name: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "normal" | "review_suggested" | "insufficient_evidence" | "data_unavailable";
+            /** Synthetic */
+            synthetic: boolean;
+            /**
+             * Window End
+             * Format: date-time
+             */
+            window_end: string;
+            /**
+             * Window Start
+             * Format: date-time
+             */
+            window_start: string;
+        };
+        /** EvidenceItem */
+        pumpcopilot__schema__EvidenceItem: {
+            /** Baseline High */
+            baseline_high?: number | null;
+            /** Baseline Low */
+            baseline_low?: number | null;
+            /** Ref */
+            ref: string;
+            /** Signal Name */
+            signal_name: string;
+            /** Statement */
+            statement: string;
+            /** Unit */
+            unit?: string | null;
+            /** Value */
+            value?: number | null;
         };
     };
     responses: never;
@@ -606,7 +1988,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AssetDays"];
                 };
             };
             /** @description Not Found */
@@ -656,7 +2038,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AssetDaySummary"];
                 };
             };
             /** @description Not Found */
@@ -708,7 +2090,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Bands"];
                 };
             };
             /** @description Not Found */
@@ -758,7 +2140,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AssetDayQuality"];
                 };
             };
             /** @description Not Found */
@@ -811,7 +2193,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Scores"];
                 };
             };
             /** @description Not Found */
@@ -861,7 +2243,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Segments"];
                 };
             };
             /** @description Not Found */
@@ -916,7 +2298,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Signals"];
                 };
             };
             /** @description Not Found */
@@ -963,7 +2345,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Assumptions"];
                 };
             };
             /** @description Not Found */
@@ -1017,7 +2399,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CaseList"];
                 };
             };
             /** @description Not Found */
@@ -1069,7 +2451,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CaseDetail"];
                 };
             };
             /** @description Not Found */
@@ -1122,7 +2504,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CaseActionResult"];
                 };
             };
             /** @description Not Found */
@@ -1175,7 +2557,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CaseActionResult"];
                 };
             };
             /** @description Not Found */
@@ -1228,7 +2610,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CaseActionResult"];
                 };
             };
             /** @description Not Found */
@@ -1281,7 +2663,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["EvidencePage"];
                 };
             };
             /** @description Not Found */
@@ -1326,14 +2708,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description JSON (format=json) or a Markdown evidence pack */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                    "text/markdown": unknown;
+                    "application/json": components["schemas"]["CaseExport"];
+                    "text/markdown": string;
                 };
             };
             /** @description Not Found */
@@ -1386,7 +2768,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CaseActionResult"];
                 };
             };
             /** @description Not Found */
@@ -1433,7 +2815,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DataQuality"];
                 };
             };
             /** @description Not Found */
@@ -1480,7 +2862,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Evaluation"];
                 };
             };
             /** @description Not Found */
@@ -1527,7 +2909,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Fleet"];
                 };
             };
             /** @description Not Found */
@@ -1574,7 +2956,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Health"];
                 };
             };
             /** @description Not Found */
@@ -1621,7 +3003,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Scenarios"];
                 };
             };
             /** @description Not Found */
@@ -1668,7 +3050,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SessionList"];
                 };
             };
             /** @description Not Found */
@@ -1719,7 +3101,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SessionEnvelope"];
                 };
             };
             /** @description Not Found */
@@ -1768,7 +3150,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SessionEnvelope"];
                 };
             };
             /** @description Not Found */
@@ -1817,7 +3199,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Baseline"];
                 };
             };
             /** @description Not Found */
@@ -1866,7 +3248,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SessionEnvelope"];
                 };
             };
             /** @description Not Found */
@@ -1915,7 +3297,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SessionEnvelope"];
                 };
             };
             /** @description Not Found */
@@ -1968,7 +3350,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SessionEnvelope"];
                 };
             };
             /** @description Not Found */
@@ -2017,7 +3399,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SessionEnvelope"];
                 };
             };
             /** @description Not Found */
@@ -2067,14 +3449,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Successful Response */
+            /** @description server-sent events: each has `id:` (the event id), `event:` (the type) and `data:` (the payload as JSON) */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                    "text/event-stream": unknown;
+                    "text/event-stream": components["schemas"]["StreamEvent"];
                 };
             };
             /** @description Not Found */

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { call, client } from "../api/client";
-import type { CaseList } from "../api/types";
 import { Loading, Provenance, Synthetic, fmtTime } from "../components/common";
 
 type Status = "open" | "acknowledged" | "dispositioned" | "closed";
@@ -14,7 +13,7 @@ export function Cases() {
     status: (params.get("status") as Status | null) ?? undefined,
   };
   const q = useQuery({ queryKey: ["cases", query],
-                       queryFn: () => call<CaseList>(client.GET("/api/cases",
+                       queryFn: () => call(client.GET("/api/cases",
                                                                 { params: { query } })) });
   const set = (k: string, v: string) => {
     const next = new URLSearchParams(params);
@@ -52,7 +51,7 @@ export function Cases() {
                   <td>{c.status}{c.disposition && <div className="muted">{c.disposition}</div>}
                   </td>
                   <td>{fmtTime(c.evidence_start)}–{fmtTime(c.evidence_end)}</td>
-                  <td>{c.signals.join(", ")}</td>
+                  <td>{c.signals?.join(", ")}</td>
                   <td>{c.episodes}</td>
                 </tr>))}
             </tbody>
