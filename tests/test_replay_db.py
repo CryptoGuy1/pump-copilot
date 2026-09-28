@@ -112,6 +112,25 @@ def test_claim_uses_skip_locked(replay_db, db_url):
     assert third is None
 
 
+def test_a_case_action_is_not_blocked_by_a_worker_holding_its_session(replay_db, db_url):
+    """Regression (found by the Step 5a end-to-end test): the worker's claim locked the session
+    row FOR UPDATE for the whole step, which blocks the foreign-key check of any case event on
+    that session. A case action then waited for the step while holding the case's lock, and
+    the step deadlocked on that lock when it added evidence to the same case."""
+    conn, limits = replay_db
+    clock = Clock()
+    sid = replay.create_session(conn, ASSET, DAY, speed=60, stale_limits=limits)
+    run_to_end(conn, sid, clock, stop_at=START + pd.Timedelta(hours=2, minutes=20), wall_s=1.0)
+    cid = cases.list_cases(conn, session_id=sid)[0]["case_id"]
+    with db.connect(db_url) as worker, db.connect(db_url) as operator:
+        operator.execute("SET lock_timeout = '2s'")
+        with worker.transaction():
+            assert replay.claim(worker)["session_id"] == sid  # a step in progress
+            cases.acknowledge(operator, cid, actor="op")  # must not wait for the step
+            worker.execute("SELECT 1")
+    assert cases.get_case(conn, cid)["status"] == "acknowledged"
+
+
 # --- the key equivalence test, persisted -------------------------------------------------
 
 def test_worker_replay_equals_batch_3a3_and_cases(replay_db):

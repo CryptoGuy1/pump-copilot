@@ -57,6 +57,16 @@ def append(conn, case_id: int, event_type: str, actor: str, **fields) -> int:
         raise ValueError("a note needs text")
     from . import events
 
+    for attempt in range(3):
+        try:
+            return _append_once(conn, case_id, event_type, actor, events, fields)
+        except psycopg.errors.DeadlockDetected:
+            if attempt == 2:
+                raise
+    raise AssertionError("unreachable")
+
+
+def _append_once(conn, case_id, event_type, actor, events, fields) -> int:
     try:
         with conn.transaction():
             event_id = append_raw(conn, case_id, event_type, actor, **fields)

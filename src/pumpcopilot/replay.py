@@ -509,13 +509,16 @@ def list_sessions(conn) -> list[dict]:
 
 def claim(conn, worker_id: str | None = None) -> dict | None:
     """Lock one pending or running session (call inside a transaction). Sessions another
-    worker holds are skipped; the least recently stepped comes first."""
+    worker holds are skipped; the least recently stepped comes first. NO KEY UPDATE, not
+    UPDATE: it still excludes other workers, but lets foreign-key checks (case events written
+    by the API on this session) through, so a case action never waits for a step."""
     from psycopg.rows import dict_row
 
     with conn.cursor(row_factory=dict_row) as cur:
         return cur.execute(
             "SELECT * FROM replay_sessions WHERE status IN ('pending', 'running')"
-            " ORDER BY heartbeat_at NULLS FIRST, session_id LIMIT 1 FOR UPDATE SKIP LOCKED"
+            " ORDER BY heartbeat_at NULLS FIRST, session_id LIMIT 1"
+            " FOR NO KEY UPDATE SKIP LOCKED"
         ).fetchone()
 
 
