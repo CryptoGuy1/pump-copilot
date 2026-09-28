@@ -31,6 +31,10 @@ pumpcopilot replay pause|resume|rewind|latency|verify <id>
 pumpcopilot case list|show|ack|note|dispose|close|export [<id>] [--by NAME]
 pumpcopilot api [--port 8000]   # HTTP API + SSE stream on 127.0.0.1 only; docs at /docs
 pumpcopilot api --export-openapi  # regenerate api/openapi.json (a test checks it)
+make dev                        # database, worker, API and web UI (http://127.0.0.1:5173)
+make gen-api                    # regenerate api/openapi.json and the typed web client
+make test-web                   # Vitest (stream hook) and the TypeScript check
+make e2e                        # Playwright end to end, on its own database (pumpcopilot_e2e)
 ```
 
 ## Step 1 exit criteria (scope Week 1 stop rule)

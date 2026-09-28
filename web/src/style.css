@@ -1,0 +1,26 @@
+/* Plain and functional; no design work yet. */
+body { font: 14px/1.4 system-ui, sans-serif; margin: 0; color: #222; background: #fff; }
+nav { display: flex; gap: 1rem; padding: .6rem 1rem; border-bottom: 1px solid #ddd; }
+nav a.active { font-weight: bold; }
+.live { margin-left: auto; color: #666; }
+.live-open { color: #2a7a2a; }
+main { padding: 1rem; }
+footer { padding: 1rem; border-top: 1px solid #ddd; }
+table { border-collapse: collapse; margin: .5rem 0 1rem; }
+th, td { border: 1px solid #ddd; padding: .25rem .5rem; text-align: left; vertical-align: top; }
+.muted { color: #777; font-size: 12px; }
+.error { color: #b00; }
+.synthetic { background: #b00; color: #fff; font-weight: bold; padding: 0 .35rem;
+             border-radius: 3px; font-size: 12px; letter-spacing: .05em; }
+.notice { border-left: 4px solid #d90; background: #fff8e6; padding: .4rem .8rem;
+          margin: .5rem 0 1rem; }
+.notice p { margin: .3rem 0 0; }
+.state { padding: 0 .3rem; border-radius: 3px; background: #eee; }
+.state-review_suggested { background: #fde0c8; }
+.state-normal { background: #dff0d8; }
+.chart { margin: .5rem 0 1rem; max-width: 1100px; }
+.actions div { margin: .3rem 0; }
+.selected { background: #f3f7ff; }
+button.link { background: none; border: none; color: #0645ad; cursor: pointer; padding: 0; }
+pre.export, pre.assumption { white-space: pre-wrap; background: #f7f7f7; padding: .5rem;
+                             max-height: 30rem; overflow: auto; }
