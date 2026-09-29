@@ -215,6 +215,23 @@ def _db(action: str) -> None:
 ZEMA_CONFIG = DATA / "zema_benchmark.yaml"
 ZEMA_RESULTS = REPORTS / "zema_benchmark.json"
 ZEMA_PREREG_PATHS = ["data/zema_benchmark.yaml", "src/pumpcopilot"]
+ZEMA_PREREG_TAG = "prereg-3b-r2"
+ZEMA_SUPERSEDES = {
+    "tag": "prereg-3b", "commit": "eae1dbde5e5a7b14327a45a063e0f93ea6866cbc",
+    "test_parts_evaluated": False,
+    "reason": "Revised on review before any test evaluation: the test parts of prereg-3b "
+              "were never opened, so this is a new pre-registration, not a post-hoc change.",
+    "changes": [
+        "strata: counts and per-class recall always; macro-F1 only for strata with at least "
+        "2 classes and 30 cycles, otherwise 'too few cycles'",
+        "ZeMA scores carry cycle_id and time_is_placeholder: true (the time window is a "
+        "cycle x 60 s placeholder)",
+        "the stable-flag shortcut baseline is class-balanced in all three splits; the "
+        "stable-flag x leakage table and its mutual information over all cycles are reported",
+        "the headline model per split is pre-registered: the best validation macro-F1 among "
+        "majority, logistic regression and gradient boosting, ties to the simpler",
+    ],
+}
 ZEMA_PROTOCOL = [
     "Target: hydraulic test rig pump leakage (0, 1, 2) only.",
     "Features: per-cycle mean, std, min, max, 5/25/50/75/95th percentiles and slope per "
@@ -239,6 +256,17 @@ ZEMA_PROTOCOL = [
     "(2000 resamples) over leakage label runs; every result stratified by the stable flag and "
     "the cooler, valve and accumulator levels; Brier score and reliability curves on the test "
     "part. ScoredEvidence is marked calibrated only where that measurement exists.",
+    "Strata: counts and per-class recall are always reported; macro-F1 only for strata with "
+    "at least 2 classes and at least 30 cycles, otherwise 'too few cycles'.",
+    "The stable-flag shortcut baseline is fitted with class-balanced weighting (each class "
+    "weighted by 1 / its frequency) in all three splits.",
+    "The stable-flag x leakage table and its mutual information over all cycles are computed "
+    "by the evaluation (they include test cycles). The Step 1 audit already reported the "
+    "condition x leakage crosstabs over all cycles (reports/zema_audit.json).",
+    "ZeMA cycles have no clock: each ScoredEvidence carries cycle_id and "
+    "time_is_placeholder: true, and its time window is cycle x 60 s from 1970-01-01.",
+    "prereg-3b (eae1dbd) is superseded by this revision before any test evaluation; its test "
+    "parts were never opened. The tag is kept.",
 ]
 
 
@@ -269,7 +297,11 @@ def _zema(action: str, prereg: str | None) -> None:
     token = None
     if action == "eval":  # refuse before loading anything
         if not prereg:
-            raise SystemExit("zema eval needs --prereg prereg-3b")
+            raise SystemExit(f"zema eval needs --prereg {ZEMA_PREREG_TAG}")
+        if prereg != ZEMA_PREREG_TAG:
+            raise SystemExit(f"{prereg} is not the current pre-registration "
+                             f"({ZEMA_PREREG_TAG}); prereg-3b was superseded before any "
+                             "test evaluation")
         try:
             token = zb.EvaluationToken.issue(prereg, ZEMA_PREREG_PATHS)
         except zb.PreregistrationError as e:
@@ -284,9 +316,16 @@ def _zema(action: str, prereg: str | None) -> None:
                   "chronological": zb.split_chronological(len(y), gap=50)}
         vault = zb.LabelVault(labels, splits)
         frozen = zb.tune(feats, vault, splits, zb.small_grid())
+        heads = {s: zb.headline(frozen["selected"][s]) for s in splits}
         doc = {
-            "label": "3b: pre-registered ZeMA benchmark", "scope_note": zb.SCOPE_NOTE,
-            "protocol": ZEMA_PROTOCOL,
+            "label": "3b-r2: pre-registered ZeMA benchmark, revision 2",
+            "preregistration_tag": ZEMA_PREREG_TAG, "supersedes": ZEMA_SUPERSEDES,
+            "scope_note": zb.SCOPE_NOTE,
+            "protocol": ZEMA_PROTOCOL + [
+                "Headline model per split (the best validation macro-F1 among "
+                f"{', '.join(zb.HEADLINE_CANDIDATES)}; equal to 3 decimals goes to the simpler, "
+                "in that order): " + "; ".join(f"{s}: {m}" for s, m in heads.items()) + "."],
+            "headline": heads,
             "features": {"version": zb.FEATURE_VERSION, "channels": zb.channel_set(),
                          "include_virtual": False, "stats": list(zb.STATS),
                          "spectral": list(zb.SPECTRAL), "cache_key": key,
@@ -312,7 +351,8 @@ def _zema(action: str, prereg: str | None) -> None:
             print(f"  {split:13} " + ", ".join(
                 f"{m} {frozen['selected'][split][m]['val_macro_f1']:.3f}"
                 for m in zb.MODEL_NAMES))
-        print(f"[frozen] {ZEMA_CONFIG}; commit it and tag prereg-3b before `zema eval`")
+        print(f"  headline: {heads}")
+        print(f"[frozen] {ZEMA_CONFIG}; commit it and tag {ZEMA_PREREG_TAG} before `zema eval`")
         return
     # eval: once, with the pre-registered code and config only (token checked above)
     doc = yaml.safe_load(ZEMA_CONFIG.read_text())
@@ -328,7 +368,9 @@ def _zema(action: str, prereg: str | None) -> None:
     vault.unlock(token)
     results = zb.evaluate(feats, vault, lambda split, idx: runs[idx], splits, doc["frozen"],
                           n_boot=doc["bootstrap"]["n_boot"], seed=doc["bootstrap"]["seed"],
-                          bins=doc["calibration"]["bins"])
+                          bins=doc["calibration"]["bins"], headlines=doc["headline"])
+    results["headline"] = doc["headline"]
+    results["shortcut_analysis"] = zb.shortcut_analysis(labels)
     results["preregistration"] = {"tag": token.tag, "commit": token.commit,
                                   "paths": ZEMA_PREREG_PATHS, "unchanged": True}
     results["calibrated"] = {s: {m: True for m in zb.MODEL_NAMES} for s in splits}

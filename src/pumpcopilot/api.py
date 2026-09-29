@@ -794,8 +794,11 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
         zema = {"scope_note": zema_bench.SCOPE_NOTE,
                 "output_label": zema_bench.OUTPUT_LABEL.format(k="k"),
                 "status": "evaluated" if res else "pre-registered, not yet evaluated" if cfg
-                else "not_tuned", "preregistration_tag": "prereg-3b",
-                "config": cfg, "results": res, "report": "reports/zema_benchmark.md"}
+                else "not_tuned",
+                "preregistration_tag": (res or {}).get("preregistration", {}).get("tag")
+                or (cfg or {}).get("preregistration_tag") or "prereg-3b-r2",
+                "config": cfg, "results": res, "scores": (res or {}).get("scores", []),
+                "report": "reports/zema_benchmark.md"}
         return {"modes": modes, "cases_all_modes": load("cira_cases_all_modes.json"),
                 "report": "reports/cira_scoring_eval.md", "zema": zema,
                 "labels": "REAL results are unlabelled review cases, not confirmed faults;"

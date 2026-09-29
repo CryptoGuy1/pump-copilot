@@ -1,4 +1,19 @@
-label: '3b: pre-registered ZeMA benchmark'
+label: '3b-r2: pre-registered ZeMA benchmark, revision 2'
+preregistration_tag: prereg-3b-r2
+supersedes:
+  tag: prereg-3b
+  commit: eae1dbde5e5a7b14327a45a063e0f93ea6866cbc
+  test_parts_evaluated: false
+  reason: 'Revised on review before any test evaluation: the test parts of prereg-3b were never opened,
+    so this is a new pre-registration, not a post-hoc change.'
+  changes:
+  - 'strata: counts and per-class recall always; macro-F1 only for strata with at least 2 classes and
+    30 cycles, otherwise ''too few cycles'''
+  - 'ZeMA scores carry cycle_id and time_is_placeholder: true (the time window is a cycle x 60 s placeholder)'
+  - the stable-flag shortcut baseline is class-balanced in all three splits; the stable-flag x leakage
+    table and its mutual information over all cycles are reported
+  - 'the headline model per split is pre-registered: the best validation macro-F1 among majority, logistic
+    regression and gradient boosting, ties to the simpler'
 scope_note: These results come from a hydraulic test rig (ZeMA). They do not transfer to centrifugal pumps,
   and no ZeMA model scores CIRA data.
 protocol:
@@ -23,6 +38,23 @@ protocol:
   over leakage label runs; every result stratified by the stable flag and the cooler, valve and accumulator
   levels; Brier score and reliability curves on the test part. ScoredEvidence is marked calibrated only
   where that measurement exists.'
+- 'Strata: counts and per-class recall are always reported; macro-F1 only for strata with at least 2 classes
+  and at least 30 cycles, otherwise ''too few cycles''.'
+- The stable-flag shortcut baseline is fitted with class-balanced weighting (each class weighted by 1
+  / its frequency) in all three splits.
+- The stable-flag x leakage table and its mutual information over all cycles are computed by the evaluation
+  (they include test cycles). The Step 1 audit already reported the condition x leakage crosstabs over
+  all cycles (reports/zema_audit.json).
+- 'ZeMA cycles have no clock: each ScoredEvidence carries cycle_id and time_is_placeholder: true, and
+  its time window is cycle x 60 s from 1970-01-01.'
+- prereg-3b (eae1dbd) is superseded by this revision before any test evaluation; its test parts were never
+  opened. The tag is kept.
+- 'Headline model per split (the best validation macro-F1 among majority, logreg, gradient_boosting; equal
+  to 3 decimals goes to the simpler, in that order): random: logreg; grouped: logreg; chronological: logreg.'
+headline:
+  random: logreg
+  grouped: logreg
+  chronological: logreg
 features:
   version: 1
   channels:
@@ -156,7 +188,7 @@ models:
     inputs:
     - stable_flag
     grid:
-    - {}
+    - class_weight: balanced
   conditions_only:
     inputs:
     - cooler_pct
@@ -219,8 +251,9 @@ frozen:
           max_depth: null
         val_macro_f1: 0.997626
       shortcut_stable_flag:
-        params: &id002 {}
-        val_macro_f1: 0.23747
+        params: &id002
+          class_weight: balanced
+        val_macro_f1: 0.427793
       conditions_only:
         params: &id007
           learning_rate: 0.1
@@ -244,7 +277,7 @@ frozen:
         val_macro_f1: 0.84127
       shortcut_stable_flag:
         params: *id002
-        val_macro_f1: 0.236681
+        val_macro_f1: 0.466845
       conditions_only:
         params: &id008
           learning_rate: 0.05
@@ -363,7 +396,7 @@ frozen:
   - split: random
     model: shortcut_stable_flag
     params: *id002
-    val_macro_f1: 0.23747
+    val_macro_f1: 0.427793
   - split: random
     model: conditions_only
     params: *id003
@@ -467,7 +500,7 @@ frozen:
   - split: grouped
     model: shortcut_stable_flag
     params: *id002
-    val_macro_f1: 0.236681
+    val_macro_f1: 0.466845
   - split: grouped
     model: conditions_only
     params: *id003

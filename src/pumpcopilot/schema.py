@@ -18,7 +18,14 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 
 class SourceDataset(StrEnum):
@@ -156,6 +163,19 @@ class ScoredEvidence(_Frozen):
     presentation_state: PresentationState
     abstention_reason: str | None = None
     output_label: str | None = None  # e.g. "hydraulic test rig pump leakage state: 2"
+    # ZeMA cycles have no clock: their feature_window is cycle x 60 s from 1970-01-01, a
+    # placeholder. ZeMA scores carry the cycle number and say so; CIRA scores have neither
+    # (and serialize without both keys, so stored CIRA scores are unchanged).
+    cycle_id: int | None = None
+    time_is_placeholder: bool = False
+
+    @model_serializer(mode="wrap")
+    def _omit_zema_fields_for_cira(self, handler):
+        data = handler(self)
+        if self.source_dataset != SourceDataset.ZEMA:
+            data.pop("cycle_id", None)
+            data.pop("time_is_placeholder", None)
+        return data
 
     @model_validator(mode="after")
     def _guardrails(self) -> ScoredEvidence:
@@ -177,4 +197,10 @@ class ScoredEvidence(_Frozen):
             and not self.output_label.startswith("hydraulic test rig pump leakage state")
         ):
             raise ValueError("ZeMA outputs must keep the bench label")
+        if self.source_dataset == SourceDataset.ZEMA and (
+                self.cycle_id is None or not self.time_is_placeholder):
+            raise ValueError("ZeMA scores need a cycle_id and time_is_placeholder=True")
+        if self.source_dataset != SourceDataset.ZEMA and (
+                self.cycle_id is not None or self.time_is_placeholder):
+            raise ValueError("CIRA scores have real timestamps: no cycle_id or placeholder")
         return self

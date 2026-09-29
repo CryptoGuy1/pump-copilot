@@ -51,6 +51,11 @@ VIRTUAL = ("CE", "CP", "SE")
 CLASSES = (0, 1, 2)
 OUTPUT_LABEL = "hydraulic test rig pump leakage state: {k}"
 STRATA = ("stable_flag", "cooler_pct", "valve_pct", "accumulator_bar")
+STRATUM_MIN_CYCLES = 30  # macro-F1 only for strata this large ...
+STRATUM_MIN_CLASSES = 2  # ... with at least this many classes; otherwise "too few cycles"
+# the headline per split: the best validation macro-F1 among these, equal to 3 decimals going
+# to the simpler (earlier) one
+HEADLINE_CANDIDATES = ("majority", "logreg", "gradient_boosting")
 CONDITIONS = ["cooler_pct", "valve_pct", "accumulator_bar", "stable_flag"]
 MODEL_NAMES = ("majority", "logreg", "gradient_boosting", "shortcut_stable_flag",
                "conditions_only")
@@ -256,16 +261,24 @@ class LabelVault:
 # --- models ------------------------------------------------------------------------------
 
 class StableFlagLookup:
-    """Shortcut baseline: leakage from the stable flag alone (smoothed class shares per flag
-    value, learned on the train part)."""
+    """Shortcut baseline: leakage from the stable flag alone, learned on the train part.
+    class_weight="balanced" weights each class by 1 / its frequency, so a flag value predicts
+    the class it is most typical of, P(flag | class), not the class that is most common."""
+
+    def __init__(self, class_weight: str | None = None):
+        self.class_weight = class_weight
 
     def fit(self, x, y):
+        values = np.unique(x[:, 0])
+        per_class = np.bincount(y, minlength=3).astype(float)
         self.table_ = {}
-        for v in np.unique(x[:, 0]):
-            counts = np.bincount(y[x[:, 0] == v], minlength=3) + 1.0
+        for v in values:
+            counts = np.bincount(y[x[:, 0] == v], minlength=3) + 1.0  # smoothed
+            if self.class_weight == "balanced":
+                counts = counts / (per_class + len(values))
             self.table_[v] = counts / counts.sum()
-        counts = np.bincount(y, minlength=3) + 1.0
-        self.prior_ = counts / counts.sum()
+        prior = np.ones(3) if self.class_weight == "balanced" else per_class + 1.0
+        self.prior_ = prior / prior.sum()
         return self
 
     def predict_proba(self, x):
@@ -292,7 +305,7 @@ def build_model(name: str, params: dict):
             learning_rate=params["learning_rate"], max_iter=params["max_iter"],
             max_depth=params["max_depth"], random_state=0)
     if name == "shortcut_stable_flag":
-        return StableFlagLookup()
+        return StableFlagLookup(params.get("class_weight"))
     raise ValueError(f"unknown model {name}")
 
 
@@ -300,10 +313,10 @@ def small_grid() -> dict[str, list[dict]]:
     """Kept small; each list runs from the simplest setting, which wins ties."""
     gb = [{"learning_rate": lr, "max_iter": it, "max_depth": d}
           for d in (3, None) for it in (100, 300) for lr in (0.05, 0.1)]
-    return {"majority": [{}],
+    return {"majority": [{}], "shortcut_stable_flag": [{"class_weight": "balanced"}],
             "logreg": [{"C": c, "class_weight": w} for c in (0.01, 0.1, 1.0, 10.0)
                        for w in (None, "balanced")],
-            "gradient_boosting": gb, "shortcut_stable_flag": [{}], "conditions_only": gb}
+            "gradient_boosting": gb, "conditions_only": gb}
 
 
 def _x(model: str, features: pd.DataFrame, vault: LabelVault, idx, split: str) -> np.ndarray:
@@ -370,8 +383,9 @@ def block_bootstrap(y, pred, blocks, n_boot: int = 2000, seed: int = 0) -> dict:
 
 
 def stratified(y, pred, strata: pd.DataFrame) -> dict:
-    """Metrics within each value of the stable flag and each condition level. Macro-F1 is
-    over the classes present in the stratum."""
+    """Within each value of the stable flag and each condition level: counts and per-class
+    recall always; macro-F1 (over the classes present) only for strata with at least
+    STRATUM_MIN_CYCLES cycles and STRATUM_MIN_CLASSES classes, otherwise "too few cycles"."""
     y, pred = np.asarray(y), np.asarray(pred)
     out = {}
     for col in STRATA:
@@ -379,13 +393,46 @@ def stratified(y, pred, strata: pd.DataFrame) -> dict:
         out[col] = {}
         for v in np.unique(vals):
             m = vals == v
-            present = sorted(set(y[m].tolist()))
+            ys, ps = y[m], pred[m]
+            present = sorted(set(ys.tolist()))
+            enough = m.sum() >= STRATUM_MIN_CYCLES and len(present) >= STRATUM_MIN_CLASSES
             out[col][str(int(v))] = {
                 "n": int(m.sum()), "classes_present": present,
-                "macro_f1": macro_f1(y[m], pred[m], labels=present),
-                "accuracy": float((y[m] == pred[m]).mean()),
-                "recall": {str(c): float((pred[m][y[m] == c] == c).mean()) for c in present}}
+                "class_counts": {str(c): int((ys == c).sum()) for c in CLASSES},
+                "recall": {str(c): float((ps[ys == c] == c).mean()) if (ys == c).any()
+                           else None for c in CLASSES},
+                "accuracy": float((ys == ps).mean()),
+                "macro_f1": macro_f1(ys, ps, labels=present) if enough else None,
+                "note": None if enough else "too few cycles"}
     return out
+
+
+def shortcut_analysis(labels: pd.DataFrame) -> dict:
+    """The stable flag x leakage table and their mutual information, over all cycles."""
+    from sklearn.metrics import mutual_info_score
+
+    flag, leak = labels["stable_flag"].to_numpy(), labels["pump_leakage"].to_numpy()
+    table = {str(int(v)): {str(c): int(((flag == v) & (leak == c)).sum()) for c in CLASSES}
+             for v in np.unique(flag)}
+    mi = float(mutual_info_score(flag, leak))  # nats
+    p = np.bincount(leak, minlength=3) / len(leak)
+    h = float(-(p[p > 0] * np.log(p[p > 0])).sum())
+    return {"over": "all cycles", "n_cycles": int(len(leak)), "table": table,
+            "table_axes": "stable_flag -> pump_leakage -> cycles",
+            "mutual_information_nats": mi, "mutual_information_bits": mi / np.log(2),
+            "leakage_entropy_bits": h / np.log(2),
+            "normalized_by_leakage_entropy": mi / h if h else None}
+
+
+def headline(selected_split: dict) -> str:
+    """The best validation macro-F1 among HEADLINE_CANDIDATES; equal to 3 decimals goes to
+    the simpler (earlier) candidate."""
+    best = None
+    for name in HEADLINE_CANDIDATES:
+        f1 = round(selected_split[name]["val_macro_f1"], 3)
+        if best is None or f1 > best[1]:
+            best = (name, f1)
+    return best[0]
 
 
 def calibration(y, proba, bins: int = 10) -> dict:
@@ -439,11 +486,19 @@ def tune(features: pd.DataFrame, vault: LabelVault, splits: dict, grid: dict) ->
             "selected": selected, "table": table}
 
 
+def model_version(split: str, model: str, params: dict) -> str:
+    return hashlib.sha256(json.dumps([FEATURE_VERSION, split, model, params], sort_keys=True,
+                                     default=str).encode()).hexdigest()[:16]
+
+
 def evaluate(features: pd.DataFrame, vault: LabelVault, labels_strata_split, splits: dict,
-             frozen: dict, n_boot: int = 2000, seed: int = 0, bins: int = 10) -> dict:
-    """Once, after unlocking: fit each frozen setting on train, score the test part."""
+             frozen: dict, n_boot: int = 2000, seed: int = 0, bins: int = 10,
+             headlines: dict | None = None, n_scores: int = 10) -> dict:
+    """Once, after unlocking: fit each frozen setting on train, score the test part. The
+    first n_scores test cycles of each split's headline model are kept as ScoredEvidence
+    (calibrated: calibration is measured on this test part)."""
     check_domain(features)
-    results: dict = {"splits": {}}
+    results: dict = {"splits": {}, "scores": []}
     for split, parts in splits.items():
         test = parts["test"]
         y = vault.get(test, split)
@@ -463,6 +518,12 @@ def evaluate(features: pd.DataFrame, vault: LabelVault, labels_strata_split, spl
                 "test": metrics(y, pred), "ci95": block_bootstrap(y, pred, blocks, n_boot, seed),
                 "stratified": stratified(y, pred, strata),
                 "calibration": calibration(y, proba, bins)}
+            if headlines and headlines.get(split) == model:
+                ver = model_version(split, model, sel["params"])
+                for cid, p in list(zip(test, proba, strict=True))[:n_scores]:
+                    results["scores"].append({"split": split, "model": model, "evidence":
+                        scored_evidence(model, split, int(cid), p, ver,
+                                        calibration_measured=True).model_dump(mode="json")})
     return results
 
 
@@ -488,4 +549,4 @@ def scored_evidence(model: str, split: str, cycle_id: int, proba: np.ndarray,
                                        else CalibrationStatus.UNCALIBRATED),
         presentation_state=(PresentationState.REVIEW_SUGGESTED if review
                             else PresentationState.NORMAL),
-        output_label=label)
+        output_label=label, cycle_id=int(cycle_id), time_is_placeholder=True)

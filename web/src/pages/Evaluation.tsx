@@ -46,6 +46,24 @@ function Zema({ z }: { z: Schema<"ZemaBenchmark"> }) {
               <div className="muted">validation</div></> : "-"}</td>;
           })}</tr>))}</tbody>
       </table>
+      {z.config?.headline != null && <p>headline model per split (pre-registered):{" "}
+        {Object.entries(z.config.headline as Record<string, string>).map(([k, v]) =>
+          `${k}: ${v}`).join(" · ")}</p>}
+      {z.scores.length > 0 && <>
+        <h3>Headline-model scores, first test cycles</h3>
+        <p className="muted">ZeMA cycles have no clock: they are shown by cycle number. The
+          time window in each score is a placeholder (cycle × 60 s), marked
+          time_is_placeholder.</p>
+        <table data-testid="zema-scores">
+          <thead><tr><th>cycle</th><th>split</th><th>model</th><th>output</th>
+            <th>probability</th><th>calibration</th></tr></thead>
+          <tbody>{z.scores.map((s) => (
+            <tr key={`${s.split}-${s.evidence.cycle_id}`}>
+              <td>cycle {s.evidence.cycle_id}</td><td>{s.split}</td><td>{s.model}</td>
+              <td>{s.evidence.output_label}</td><td>{s.evidence.score?.toFixed(2)}</td>
+              <td>{s.evidence.confidence_calibration_status}</td></tr>))}</tbody>
+        </table>
+      </>}
       <p className="muted">{results ? "Test macro-F1, evaluated once after the "
         + "pre-registration." : "Validation macro-F1 of the frozen settings; the test parts "
         + "are not yet evaluated."} shortcut_stable_flag uses the stable flag alone;

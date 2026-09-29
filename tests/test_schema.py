@@ -55,7 +55,7 @@ def test_no_alarm_state_exists():
 
 def test_zema_output_keeps_bench_label():
     kw = dict(asset_id="zema-test-rig", source_dataset=SourceDataset.ZEMA,
-              model_domain=SourceDataset.ZEMA)
+              model_domain=SourceDataset.ZEMA, cycle_id=0, time_is_placeholder=True)
     with pytest.raises(ValidationError, match="bench label"):
         _evidence(**kw, output_label="severe leakage")
     assert _evidence(**kw, output_label="hydraulic test rig pump leakage state: 2")

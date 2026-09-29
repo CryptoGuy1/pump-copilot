@@ -529,6 +529,13 @@ class ModeResult(Model):
     note: str | None
 
 
+class ZemaScore(Model):
+    split: str
+    model: str
+    evidence: ScoredEvidence = Field(description="cycle_id is set and time_is_placeholder is "
+                                                 "true: ZeMA cycles have no clock")
+
+
 class ZemaBenchmark(Model):
     scope_note: str = Field(description="hydraulic test rig only; does not transfer")
     output_label: str
@@ -536,6 +543,8 @@ class ZemaBenchmark(Model):
     preregistration_tag: str
     config: dict[str, Any] | None = Field(description="the frozen, pre-registered config")
     results: dict[str, Any] | None = Field(description="the test results, once evaluated")
+    scores: list[ZemaScore] = Field(description="headline-model scores for the first test "
+                                                "cycles of each split")
     report: str
 
 

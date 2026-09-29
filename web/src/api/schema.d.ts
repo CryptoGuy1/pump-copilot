@@ -1576,6 +1576,8 @@ export interface components {
             /** Asset Id */
             asset_id: string;
             confidence_calibration_status: components["schemas"]["CalibrationStatus"];
+            /** Cycle Id */
+            cycle_id?: number | null;
             /**
              * Evidence
              * @default []
@@ -1593,6 +1595,11 @@ export interface components {
             /** Score */
             score?: number | null;
             source_dataset: components["schemas"]["SourceDataset"];
+            /**
+             * Time Is Placeholder
+             * @default false
+             */
+            time_is_placeholder: boolean;
         };
         /** Scores */
         Scores: {
@@ -1942,10 +1949,24 @@ export interface components {
              */
             scope_note: string;
             /**
+             * Scores
+             * @description headline-model scores for the first test cycles of each split
+             */
+            scores: components["schemas"]["ZemaScore"][];
+            /**
              * Status
              * @enum {string}
              */
             status: "not_tuned" | "pre-registered, not yet evaluated" | "evaluated";
+        };
+        /** ZemaScore */
+        ZemaScore: {
+            /** @description cycle_id is set and time_is_placeholder is true: ZeMA cycles have no clock */
+            evidence: components["schemas"]["ScoredEvidence"];
+            /** Model */
+            model: string;
+            /** Split */
+            split: string;
         };
         /** EvidenceItem */
         pumpcopilot__api_models__EvidenceItem: {

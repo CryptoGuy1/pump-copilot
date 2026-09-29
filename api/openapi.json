@@ -3000,6 +3000,17 @@
           "confidence_calibration_status": {
             "$ref": "#/components/schemas/CalibrationStatus"
           },
+          "cycle_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cycle Id"
+          },
           "evidence": {
             "default": [],
             "items": {
@@ -3049,6 +3060,11 @@
           },
           "source_dataset": {
             "$ref": "#/components/schemas/SourceDataset"
+          },
+          "time_is_placeholder": {
+            "default": false,
+            "title": "Time Is Placeholder",
+            "type": "boolean"
           }
         },
         "required": [
@@ -4008,6 +4024,14 @@
             "title": "Scope Note",
             "type": "string"
           },
+          "scores": {
+            "description": "headline-model scores for the first test cycles of each split",
+            "items": {
+              "$ref": "#/components/schemas/ZemaScore"
+            },
+            "title": "Scores",
+            "type": "array"
+          },
           "status": {
             "enum": [
               "not_tuned",
@@ -4025,9 +4049,34 @@
           "preregistration_tag",
           "config",
           "results",
+          "scores",
           "report"
         ],
         "title": "ZemaBenchmark",
+        "type": "object"
+      },
+      "ZemaScore": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "$ref": "#/components/schemas/ScoredEvidence",
+            "description": "cycle_id is set and time_is_placeholder is true: ZeMA cycles have no clock"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "split": {
+            "title": "Split",
+            "type": "string"
+          }
+        },
+        "required": [
+          "split",
+          "model",
+          "evidence"
+        ],
+        "title": "ZemaScore",
         "type": "object"
       },
       "pumpcopilot__api_models__EvidenceItem": {

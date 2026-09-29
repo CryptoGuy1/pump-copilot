@@ -132,11 +132,24 @@ def test_the_zema_benchmark_is_served_with_its_scope_and_status(tmp_path):
     (data / "zema_benchmark.yaml").write_text(yaml.safe_dump({"frozen": {"selected": {}}}))
     z = TestClient(_app(reports=reports, data=data)).get("/api/evaluation").json()["zema"]
     assert z["status"] == "pre-registered, not yet evaluated" and z["config"]
-    assert z["preregistration_tag"] == "prereg-3b"
-    (reports / "zema_benchmark.json").write_text(json.dumps({"splits": {}, "preregistration":
-                                                             {"tag": "prereg-3b"}}))
+    assert z["scores"] == []
+    import numpy as np
+
+    from pumpcopilot import zema_bench
+
+    score = zema_bench.scored_evidence("logreg", "chronological", 1814,
+                                       np.array([0.2, 0.7, 0.1]), "v1",
+                                       calibration_measured=True).model_dump(mode="json")
+    (reports / "zema_benchmark.json").write_text(json.dumps({
+        "splits": {}, "preregistration": {"tag": "prereg-3b-r2"},
+        "scores": [{"split": "chronological", "model": "logreg", "evidence": score}]}))
     z = TestClient(_app(reports=reports, data=data)).get("/api/evaluation").json()["zema"]
-    assert z["status"] == "evaluated" and z["results"]["preregistration"]["tag"] == "prereg-3b"
+    assert z["status"] == "evaluated"
+    assert z["results"]["preregistration"]["tag"] == "prereg-3b-r2"
+    ev = z["scores"][0]["evidence"]
+    assert ev["cycle_id"] == 1814 and ev["time_is_placeholder"] is True
+    assert ev["output_label"] == "hydraulic test rig pump leakage state: 1"
+    assert z["preregistration_tag"] == "prereg-3b-r2"
     assert z["output_label"] == "hydraulic test rig pump leakage state: k"
 
 
