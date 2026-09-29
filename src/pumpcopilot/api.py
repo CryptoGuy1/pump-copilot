@@ -223,10 +223,11 @@ def _case_versions(conn, case_ids) -> list[str]:
 
 def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                docs_dir: Path | None = None, cors_origins: list[str] | None = None,
-               role: str = API_ROLE) -> FastAPI:
+               role: str = API_ROLE, data_dir: Path | None = None) -> FastAPI:
     url = database_url or db.database_url()
     reports = Path(reports_dir or ROOT / "reports")
     docs = Path(docs_dir or ROOT / "docs")
+    data = Path(data_dir or ROOT / "data")
 
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -783,8 +784,20 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
             modes[mode] = {"label": label, "file": f"reports/{name}", "results": res,
                            "note": None if res is not None else
                            f"reports/{name} not found: run the evaluation first"}
+        import yaml
+
+        from . import zema_bench
+
+        cfg_file = data / "zema_benchmark.yaml"
+        cfg = yaml.safe_load(cfg_file.read_text()) if cfg_file.exists() else None
+        res = load("zema_benchmark.json")
+        zema = {"scope_note": zema_bench.SCOPE_NOTE,
+                "output_label": zema_bench.OUTPUT_LABEL.format(k="k"),
+                "status": "evaluated" if res else "pre-registered, not yet evaluated" if cfg
+                else "not_tuned", "preregistration_tag": "prereg-3b",
+                "config": cfg, "results": res, "report": "reports/zema_benchmark.md"}
         return {"modes": modes, "cases_all_modes": load("cira_cases_all_modes.json"),
-                "report": "reports/cira_scoring_eval.md",
+                "report": "reports/cira_scoring_eval.md", "zema": zema,
                 "labels": "REAL results are unlabelled review cases, not confirmed faults;"
                           " SYNTHETIC results come from in-memory injections"}
 

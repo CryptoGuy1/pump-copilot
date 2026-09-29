@@ -1082,6 +1082,7 @@ export interface components {
             };
             /** Report */
             report: string;
+            zema: components["schemas"]["ZemaBenchmark"];
         };
         /** EvidencePage */
         EvidencePage: {
@@ -1912,6 +1913,39 @@ export interface components {
             status: "running" | "stopped";
             /** Worker Id */
             worker_id: string;
+        };
+        /** ZemaBenchmark */
+        ZemaBenchmark: {
+            /**
+             * Config
+             * @description the frozen, pre-registered config
+             */
+            config: {
+                [key: string]: unknown;
+            } | null;
+            /** Output Label */
+            output_label: string;
+            /** Preregistration Tag */
+            preregistration_tag: string;
+            /** Report */
+            report: string;
+            /**
+             * Results
+             * @description the test results, once evaluated
+             */
+            results: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Scope Note
+             * @description hydraulic test rig only; does not transfer
+             */
+            scope_note: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "not_tuned" | "pre-registered, not yet evaluated" | "evaluated";
         };
         /** EvidenceItem */
         pumpcopilot__api_models__EvidenceItem: {

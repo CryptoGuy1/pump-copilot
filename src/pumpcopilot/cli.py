@@ -57,6 +57,9 @@ def main(argv: list[str] | None = None) -> None:
     wk.add_argument("--until-idle", action="store_true",
                     help="exit when no session is pending or running")
     wk.add_argument("--max-seconds", type=float)
+    zp = sub.add_parser("zema", help="ZeMA hydraulic test rig pump-leakage benchmark (3b)")
+    zp.add_argument("action", choices=["features", "tune", "eval", "report"])
+    zp.add_argument("--prereg", help="eval: the pre-registration tag (prereg-3b)")
     ap = sub.add_parser("api", help="serve the HTTP API and live stream on 127.0.0.1 only")
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--export-openapi", action="store_true",
@@ -102,6 +105,8 @@ def main(argv: list[str] | None = None) -> None:
         _case(args)
     elif args.cmd == "api":
         _api(args.port, args.export_openapi)
+    elif args.cmd == "zema":
+        _zema(args.action, args.prereg)
     elif args.cmd == "score":
         if args.action in ("tune-3a3", "report", "eval-3a3"):
             _score_3a3(args.action, args.prereg)
@@ -205,6 +210,135 @@ def _db(action: str) -> None:
             for k in ("day_1m", "hour_raw"):
                 print(f"    {k:9} {res[k]['rows']:7d} rows  median {res[k]['median_ms']} ms"
                       f"  best {res[k]['best_ms']} ms  ({res['repeats']} runs)")
+
+
+ZEMA_CONFIG = DATA / "zema_benchmark.yaml"
+ZEMA_RESULTS = REPORTS / "zema_benchmark.json"
+ZEMA_PREREG_PATHS = ["data/zema_benchmark.yaml", "src/pumpcopilot"]
+ZEMA_PROTOCOL = [
+    "Target: hydraulic test rig pump leakage (0, 1, 2) only.",
+    "Features: per-cycle mean, std, min, max, 5/25/50/75/95th percentiles and slope per "
+    "measured channel, plus a spectral summary (dominant frequency, centroid, power share "
+    "below 1 Hz, 1-5 Hz, above 5 Hz) for the 100 Hz channels. Virtual channels CE, CP, SE "
+    "excluded.",
+    "Splits: (a) stratified random 60/20/20; (b) grouped by contiguous leakage run (5 "
+    "stratified group folds: test, validation, 3 x train); (c) chronological 60/20/20 with a "
+    "50-cycle gap on each side of the validation part: the PRIMARY result.",
+    "Splits (a) and (b) are built from the leakage label sequence of all cycles, as their "
+    "definitions require (stratification, run boundaries); only the assignment of cycles to "
+    "parts is kept. (c) uses cycle order alone. No test label is used to fit, tune or score "
+    "anything before the evaluation.",
+    "Models: majority class, logistic regression, gradient boosting (scikit-learn); and two "
+    "baselines: the stable flag alone (shortcut) and the four other condition labels "
+    "(conditions only: not observable in practice, shows the confounding).",
+    "Tuning: each model's settings are chosen by macro-F1 on the validation part of each "
+    "split (fit on train). The final fit is on the train part only.",
+    "Evaluation: once, on the test parts, by `pumpcopilot zema eval --prereg prereg-3b`, "
+    "which refuses to run if src/pumpcopilot or this config changed since the tag.",
+    "Metrics: macro-F1, per-class recall, confusion matrices; 95% block-bootstrap intervals "
+    "(2000 resamples) over leakage label runs; every result stratified by the stable flag and "
+    "the cooler, valve and accumulator levels; Brier score and reliability curves on the test "
+    "part. ScoredEvidence is marked calibrated only where that measurement exists.",
+]
+
+
+def _zema_inputs():
+    from . import zema
+    from . import zema_bench as zb
+
+    raw = DATA / "raw" / "zema"
+    feats, key = zb.load_features(raw, DATA / "cache")
+    labels = zema.load_labels(zema.find_root(raw))
+    y = labels["pump_leakage"].to_numpy()
+    runs = zb.leakage_runs(y)
+    return feats, key, labels, y, runs
+
+
+def _zema(action: str, prereg: str | None) -> None:
+    import yaml
+
+    from . import zema_bench as zb
+    from . import zema_report
+
+    if action == "report":
+        doc = yaml.safe_load(ZEMA_CONFIG.read_text())
+        res = json.loads(ZEMA_RESULTS.read_text()) if ZEMA_RESULTS.exists() else None
+        (REPORTS / "zema_benchmark.md").write_text(zema_report.markdown(doc, res))
+        print(f"[written] {REPORTS / 'zema_benchmark.md'}")
+        return
+    token = None
+    if action == "eval":  # refuse before loading anything
+        if not prereg:
+            raise SystemExit("zema eval needs --prereg prereg-3b")
+        try:
+            token = zb.EvaluationToken.issue(prereg, ZEMA_PREREG_PATHS)
+        except zb.PreregistrationError as e:
+            raise SystemExit(str(e)) from None
+    feats, key, labels, y, runs = _zema_inputs()
+    if action == "features":
+        print(f"[features] {feats.shape[0]} cycles x {feats.shape[1]} features, cache {key}")
+        return
+    if action == "tune":
+        grouped, seed_used = zb.split_grouped(y, runs, 0, return_seed=True)
+        splits = {"random": zb.split_random(y, 0), "grouped": grouped,
+                  "chronological": zb.split_chronological(len(y), gap=50)}
+        vault = zb.LabelVault(labels, splits)
+        frozen = zb.tune(feats, vault, splits, zb.small_grid())
+        doc = {
+            "label": "3b: pre-registered ZeMA benchmark", "scope_note": zb.SCOPE_NOTE,
+            "protocol": ZEMA_PROTOCOL,
+            "features": {"version": zb.FEATURE_VERSION, "channels": zb.channel_set(),
+                         "include_virtual": False, "stats": list(zb.STATS),
+                         "spectral": list(zb.SPECTRAL), "cache_key": key,
+                         "n_cycles": int(feats.shape[0]), "n_features": int(feats.shape[1])},
+            "splits": {
+                "random": {"definition": "stratified random 60/20/20, seed 0",
+                           "seed": 0, "parts": zb.split_fingerprint(splits["random"])},
+                "grouped": {"definition": f"5 stratified group folds over {runs.max() + 1} "
+                            f"leakage runs, seed {seed_used}", "seed": seed_used,
+                            "parts": zb.split_fingerprint(grouped)},
+                "chronological": {"definition": "cycle order 60/20/20, 50-cycle gap on each "
+                                  "side of validation", "gap": 50,
+                                  "parts": zb.split_fingerprint(splits["chronological"])}},
+            "models": {m: {"inputs": zb.MODEL_INPUTS[m], "grid": zb.small_grid()[m]}
+                       for m in zb.MODEL_NAMES},
+            "bootstrap": {"n_boot": 2000, "seed": 0, "unit": "leakage label run"},
+            "calibration": {"bins": 10}, "strata": list(zb.STRATA),
+            "frozen": frozen,
+        }
+        ZEMA_CONFIG.write_text(yaml.safe_dump(doc, sort_keys=False, width=100))
+        (REPORTS / "zema_benchmark.md").write_text(zema_report.markdown(doc, None))
+        for split in ("chronological", "grouped", "random"):
+            print(f"  {split:13} " + ", ".join(
+                f"{m} {frozen['selected'][split][m]['val_macro_f1']:.3f}"
+                for m in zb.MODEL_NAMES))
+        print(f"[frozen] {ZEMA_CONFIG}; commit it and tag prereg-3b before `zema eval`")
+        return
+    # eval: once, with the pre-registered code and config only (token checked above)
+    doc = yaml.safe_load(ZEMA_CONFIG.read_text())
+    if key != doc["features"]["cache_key"]:
+        raise SystemExit("features differ from the pre-registered ones (raw files changed)")
+    grouped = zb.split_grouped(y, runs, doc["splits"]["grouped"]["seed"], tries=1)
+    splits = {"random": zb.split_random(y, doc["splits"]["random"]["seed"]),
+              "grouped": grouped, "chronological": zb.split_chronological(len(y), gap=50)}
+    for name, parts in splits.items():
+        if zb.split_fingerprint(parts) != doc["splits"][name]["parts"]:
+            raise SystemExit(f"split {name} differs from the pre-registered one")
+    vault = zb.LabelVault(labels, splits)
+    vault.unlock(token)
+    results = zb.evaluate(feats, vault, lambda split, idx: runs[idx], splits, doc["frozen"],
+                          n_boot=doc["bootstrap"]["n_boot"], seed=doc["bootstrap"]["seed"],
+                          bins=doc["calibration"]["bins"])
+    results["preregistration"] = {"tag": token.tag, "commit": token.commit,
+                                  "paths": ZEMA_PREREG_PATHS, "unchanged": True}
+    results["calibrated"] = {s: {m: True for m in zb.MODEL_NAMES} for s in splits}
+    ZEMA_RESULTS.write_text(json.dumps(results, indent=2, default=str))
+    (REPORTS / "zema_benchmark.md").write_text(zema_report.markdown(doc, results))
+    for split in ("chronological", "grouped", "random"):
+        print(f"  {split:13} " + ", ".join(
+            f"{m} {results['splits'][split][m]['test']['macro_f1']:.3f}"
+            for m in zb.MODEL_NAMES))
+    print(f"[written] {ZEMA_RESULTS}, {REPORTS / 'zema_benchmark.md'}")
 
 
 OPENAPI = ROOT / "api" / "openapi.json"

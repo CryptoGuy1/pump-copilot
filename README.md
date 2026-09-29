@@ -21,6 +21,9 @@ pumpcopilot db load cira        # idempotent: a second run inserts 0 rows
 pumpcopilot db perf             # -> reports/db_perf.json
 pumpcopilot score tune          # B June only -> data/scoring_config.yaml (frozen)
 pumpcopilot score eval          # fit June, score October -> reports/cira_scoring_eval.md
+pumpcopilot zema features       # ZeMA per-cycle features, cached as Parquet in data/cache/
+pumpcopilot zema tune           # validation parts only -> data/zema_benchmark.yaml (frozen)
+pumpcopilot zema eval --prereg prereg-3b  # the test parts, once -> reports/zema_benchmark.md
 pumpcopilot db storage          # bytes per hypertable, compression state
 pumpcopilot db reset --yes-i-mean-it  # drop, recreate and migrate; refuses non-local URLs
 pumpcopilot replay create cira-pump-B 2024-10-30 --speed 60 [--scenario B_stuck_pressure]

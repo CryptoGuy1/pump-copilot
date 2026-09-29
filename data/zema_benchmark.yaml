@@ -1,0 +1,606 @@
+label: '3b: pre-registered ZeMA benchmark'
+scope_note: These results come from a hydraulic test rig (ZeMA). They do not transfer to centrifugal pumps,
+  and no ZeMA model scores CIRA data.
+protocol:
+- 'Target: hydraulic test rig pump leakage (0, 1, 2) only.'
+- 'Features: per-cycle mean, std, min, max, 5/25/50/75/95th percentiles and slope per measured channel,
+  plus a spectral summary (dominant frequency, centroid, power share below 1 Hz, 1-5 Hz, above 5 Hz) for
+  the 100 Hz channels. Virtual channels CE, CP, SE excluded.'
+- 'Splits: (a) stratified random 60/20/20; (b) grouped by contiguous leakage run (5 stratified group folds:
+  test, validation, 3 x train); (c) chronological 60/20/20 with a 50-cycle gap on each side of the validation
+  part: the PRIMARY result.'
+- Splits (a) and (b) are built from the leakage label sequence of all cycles, as their definitions require
+  (stratification, run boundaries); only the assignment of cycles to parts is kept. (c) uses cycle order
+  alone. No test label is used to fit, tune or score anything before the evaluation.
+- 'Models: majority class, logistic regression, gradient boosting (scikit-learn); and two baselines: the
+  stable flag alone (shortcut) and the four other condition labels (conditions only: not observable in
+  practice, shows the confounding).'
+- 'Tuning: each model''s settings are chosen by macro-F1 on the validation part of each split (fit on
+  train). The final fit is on the train part only.'
+- 'Evaluation: once, on the test parts, by `pumpcopilot zema eval --prereg prereg-3b`, which refuses to
+  run if src/pumpcopilot or this config changed since the tag.'
+- 'Metrics: macro-F1, per-class recall, confusion matrices; 95% block-bootstrap intervals (2000 resamples)
+  over leakage label runs; every result stratified by the stable flag and the cooler, valve and accumulator
+  levels; Brier score and reliability curves on the test part. ScoredEvidence is marked calibrated only
+  where that measurement exists.'
+features:
+  version: 1
+  channels:
+  - PS1
+  - PS2
+  - PS3
+  - PS4
+  - PS5
+  - PS6
+  - EPS1
+  - FS1
+  - FS2
+  - TS1
+  - TS2
+  - TS3
+  - TS4
+  - VS1
+  include_virtual: false
+  stats:
+  - mean
+  - std
+  - min
+  - max
+  - p5
+  - p25
+  - p50
+  - p75
+  - p95
+  - slope
+  spectral:
+  - dominant_hz
+  - centroid_hz
+  - power_lt1
+  - power_1_5
+  - power_gt5
+  cache_key: e57afc0fa219bd05
+  n_cycles: 2205
+  n_features: 175
+splits:
+  random:
+    definition: stratified random 60/20/20, seed 0
+    seed: 0
+    parts:
+      train:
+        n: 1323
+        sha256: 6fda45c30aa29548
+      val:
+        n: 441
+        sha256: 5ffc0c274d2d13e3
+      test:
+        n: 441
+        sha256: 55bca9f08591a882
+  grouped:
+    definition: 5 stratified group folds over 37 leakage runs, seed 0
+    seed: 0
+    parts:
+      train:
+        n: 1293
+        sha256: 975e8ad52ff25923
+      val:
+        n: 456
+        sha256: 3398afde9e9a1829
+      test:
+        n: 456
+        sha256: d74984b686ac7c3c
+  chronological:
+    definition: cycle order 60/20/20, 50-cycle gap on each side of validation
+    gap: 50
+    parts:
+      train:
+        n: 1323
+        sha256: 7b39fb50a50e34f9
+      val:
+        n: 391
+        sha256: f456b756d16a9fc6
+      test:
+        n: 391
+        sha256: b200f1a1cf8f48da
+models:
+  majority:
+    inputs: features
+    grid:
+    - {}
+  logreg:
+    inputs: features
+    grid:
+    - C: 0.01
+      class_weight: null
+    - C: 0.01
+      class_weight: balanced
+    - C: 0.1
+      class_weight: null
+    - C: 0.1
+      class_weight: balanced
+    - C: 1.0
+      class_weight: null
+    - C: 1.0
+      class_weight: balanced
+    - C: 10.0
+      class_weight: null
+    - C: 10.0
+      class_weight: balanced
+  gradient_boosting:
+    inputs: features
+    grid:
+    - learning_rate: 0.05
+      max_iter: 100
+      max_depth: 3
+    - learning_rate: 0.1
+      max_iter: 100
+      max_depth: 3
+    - learning_rate: 0.05
+      max_iter: 300
+      max_depth: 3
+    - learning_rate: 0.1
+      max_iter: 300
+      max_depth: 3
+    - learning_rate: 0.05
+      max_iter: 100
+      max_depth: null
+    - learning_rate: 0.1
+      max_iter: 100
+      max_depth: null
+    - learning_rate: 0.05
+      max_iter: 300
+      max_depth: null
+    - learning_rate: 0.1
+      max_iter: 300
+      max_depth: null
+  shortcut_stable_flag:
+    inputs:
+    - stable_flag
+    grid:
+    - {}
+  conditions_only:
+    inputs:
+    - cooler_pct
+    - valve_pct
+    - accumulator_bar
+    - stable_flag
+    grid:
+    - learning_rate: 0.05
+      max_iter: 100
+      max_depth: 3
+    - learning_rate: 0.1
+      max_iter: 100
+      max_depth: 3
+    - learning_rate: 0.05
+      max_iter: 300
+      max_depth: 3
+    - learning_rate: 0.1
+      max_iter: 300
+      max_depth: 3
+    - learning_rate: 0.05
+      max_iter: 100
+      max_depth: null
+    - learning_rate: 0.1
+      max_iter: 100
+      max_depth: null
+    - learning_rate: 0.05
+      max_iter: 300
+      max_depth: null
+    - learning_rate: 0.1
+      max_iter: 300
+      max_depth: null
+bootstrap:
+  n_boot: 2000
+  seed: 0
+  unit: leakage label run
+calibration:
+  bins: 10
+strata:
+- stable_flag
+- cooler_pct
+- valve_pct
+- accumulator_bar
+frozen:
+  tuned_on: validation parts only
+  final_fit: train part only
+  selected:
+    random:
+      majority:
+        params: &id001 {}
+        val_macro_f1: 0.23747
+      logreg:
+        params: &id006
+          C: 10.0
+          class_weight: balanced
+        val_macro_f1: 0.997623
+      gradient_boosting:
+        params: &id010
+          learning_rate: 0.1
+          max_iter: 300
+          max_depth: null
+        val_macro_f1: 0.997626
+      shortcut_stable_flag:
+        params: &id002 {}
+        val_macro_f1: 0.23747
+      conditions_only:
+        params: &id007
+          learning_rate: 0.1
+          max_iter: 100
+          max_depth: 3
+        val_macro_f1: 0.419501
+    grouped:
+      majority:
+        params: *id001
+        val_macro_f1: 0.236681
+      logreg:
+        params: &id004
+          C: 0.1
+          class_weight: balanced
+        val_macro_f1: 0.848937
+      gradient_boosting:
+        params: &id003
+          learning_rate: 0.05
+          max_iter: 100
+          max_depth: 3
+        val_macro_f1: 0.84127
+      shortcut_stable_flag:
+        params: *id002
+        val_macro_f1: 0.236681
+      conditions_only:
+        params: &id008
+          learning_rate: 0.05
+          max_iter: 300
+          max_depth: 3
+        val_macro_f1: 0.224349
+    chronological:
+      majority:
+        params: *id001
+        val_macro_f1: 0.265641
+      logreg:
+        params: &id005
+          C: 10.0
+          class_weight: null
+        val_macro_f1: 0.707386
+      gradient_boosting:
+        params: *id003
+        val_macro_f1: 0.657845
+      shortcut_stable_flag:
+        params: *id002
+        val_macro_f1: 0.50489
+      conditions_only:
+        params: &id009
+          learning_rate: 0.1
+          max_iter: 300
+          max_depth: 3
+        val_macro_f1: 0.456192
+  table:
+  - split: random
+    model: majority
+    params: *id001
+    val_macro_f1: 0.23747
+  - split: random
+    model: logreg
+    params: &id014
+      C: 0.01
+      class_weight: null
+    val_macro_f1: 0.967233
+  - split: random
+    model: logreg
+    params: &id015
+      C: 0.01
+      class_weight: balanced
+    val_macro_f1: 0.981826
+  - split: random
+    model: logreg
+    params: &id016
+      C: 0.1
+      class_weight: null
+    val_macro_f1: 0.985208
+  - split: random
+    model: logreg
+    params: *id004
+    val_macro_f1: 0.985208
+  - split: random
+    model: logreg
+    params: &id017
+      C: 1.0
+      class_weight: null
+    val_macro_f1: 0.994256
+  - split: random
+    model: logreg
+    params: &id018
+      C: 1.0
+      class_weight: balanced
+    val_macro_f1: 0.994256
+  - split: random
+    model: logreg
+    params: *id005
+    val_macro_f1: 0.995261
+  - split: random
+    model: logreg
+    params: *id006
+    val_macro_f1: 0.997623
+  - split: random
+    model: gradient_boosting
+    params: *id003
+    val_macro_f1: 0.994242
+  - split: random
+    model: gradient_boosting
+    params: *id007
+    val_macro_f1: 0.994242
+  - split: random
+    model: gradient_boosting
+    params: *id008
+    val_macro_f1: 0.994242
+  - split: random
+    model: gradient_boosting
+    params: *id009
+    val_macro_f1: 0.997626
+  - split: random
+    model: gradient_boosting
+    params: &id011
+      learning_rate: 0.05
+      max_iter: 100
+      max_depth: null
+    val_macro_f1: 0.994242
+  - split: random
+    model: gradient_boosting
+    params: &id012
+      learning_rate: 0.1
+      max_iter: 100
+      max_depth: null
+    val_macro_f1: 0.997626
+  - split: random
+    model: gradient_boosting
+    params: &id013
+      learning_rate: 0.05
+      max_iter: 300
+      max_depth: null
+    val_macro_f1: 0.997626
+  - split: random
+    model: gradient_boosting
+    params: *id010
+    val_macro_f1: 0.997626
+  - split: random
+    model: shortcut_stable_flag
+    params: *id002
+    val_macro_f1: 0.23747
+  - split: random
+    model: conditions_only
+    params: *id003
+    val_macro_f1: 0.416773
+  - split: random
+    model: conditions_only
+    params: *id007
+    val_macro_f1: 0.419501
+  - split: random
+    model: conditions_only
+    params: *id008
+    val_macro_f1: 0.418986
+  - split: random
+    model: conditions_only
+    params: *id009
+    val_macro_f1: 0.41317
+  - split: random
+    model: conditions_only
+    params: *id011
+    val_macro_f1: 0.403335
+  - split: random
+    model: conditions_only
+    params: *id012
+    val_macro_f1: 0.403783
+  - split: random
+    model: conditions_only
+    params: *id013
+    val_macro_f1: 0.403783
+  - split: random
+    model: conditions_only
+    params: *id010
+    val_macro_f1: 0.401293
+  - split: grouped
+    model: majority
+    params: *id001
+    val_macro_f1: 0.236681
+  - split: grouped
+    model: logreg
+    params: *id014
+    val_macro_f1: 0.769925
+  - split: grouped
+    model: logreg
+    params: *id015
+    val_macro_f1: 0.812717
+  - split: grouped
+    model: logreg
+    params: *id016
+    val_macro_f1: 0.848278
+  - split: grouped
+    model: logreg
+    params: *id004
+    val_macro_f1: 0.848937
+  - split: grouped
+    model: logreg
+    params: *id017
+    val_macro_f1: 0.847005
+  - split: grouped
+    model: logreg
+    params: *id018
+    val_macro_f1: 0.847005
+  - split: grouped
+    model: logreg
+    params: *id005
+    val_macro_f1: 0.829236
+  - split: grouped
+    model: logreg
+    params: *id006
+    val_macro_f1: 0.829236
+  - split: grouped
+    model: gradient_boosting
+    params: *id003
+    val_macro_f1: 0.84127
+  - split: grouped
+    model: gradient_boosting
+    params: *id007
+    val_macro_f1: 0.84127
+  - split: grouped
+    model: gradient_boosting
+    params: *id008
+    val_macro_f1: 0.84127
+  - split: grouped
+    model: gradient_boosting
+    params: *id009
+    val_macro_f1: 0.84127
+  - split: grouped
+    model: gradient_boosting
+    params: *id011
+    val_macro_f1: 0.84127
+  - split: grouped
+    model: gradient_boosting
+    params: *id012
+    val_macro_f1: 0.84127
+  - split: grouped
+    model: gradient_boosting
+    params: *id013
+    val_macro_f1: 0.84127
+  - split: grouped
+    model: gradient_boosting
+    params: *id010
+    val_macro_f1: 0.84127
+  - split: grouped
+    model: shortcut_stable_flag
+    params: *id002
+    val_macro_f1: 0.236681
+  - split: grouped
+    model: conditions_only
+    params: *id003
+    val_macro_f1: 0.210895
+  - split: grouped
+    model: conditions_only
+    params: *id007
+    val_macro_f1: 0.220827
+  - split: grouped
+    model: conditions_only
+    params: *id008
+    val_macro_f1: 0.224349
+  - split: grouped
+    model: conditions_only
+    params: *id009
+    val_macro_f1: 0.224349
+  - split: grouped
+    model: conditions_only
+    params: *id011
+    val_macro_f1: 0.210895
+  - split: grouped
+    model: conditions_only
+    params: *id012
+    val_macro_f1: 0.210895
+  - split: grouped
+    model: conditions_only
+    params: *id013
+    val_macro_f1: 0.210895
+  - split: grouped
+    model: conditions_only
+    params: *id010
+    val_macro_f1: 0.210895
+  - split: chronological
+    model: majority
+    params: *id001
+    val_macro_f1: 0.265641
+  - split: chronological
+    model: logreg
+    params: *id014
+    val_macro_f1: 0.624818
+  - split: chronological
+    model: logreg
+    params: *id015
+    val_macro_f1: 0.491833
+  - split: chronological
+    model: logreg
+    params: *id016
+    val_macro_f1: 0.526627
+  - split: chronological
+    model: logreg
+    params: *id004
+    val_macro_f1: 0.478319
+  - split: chronological
+    model: logreg
+    params: *id017
+    val_macro_f1: 0.532942
+  - split: chronological
+    model: logreg
+    params: *id018
+    val_macro_f1: 0.502731
+  - split: chronological
+    model: logreg
+    params: *id005
+    val_macro_f1: 0.707386
+  - split: chronological
+    model: logreg
+    params: *id006
+    val_macro_f1: 0.655909
+  - split: chronological
+    model: gradient_boosting
+    params: *id003
+    val_macro_f1: 0.657845
+  - split: chronological
+    model: gradient_boosting
+    params: *id007
+    val_macro_f1: 0.657845
+  - split: chronological
+    model: gradient_boosting
+    params: *id008
+    val_macro_f1: 0.657845
+  - split: chronological
+    model: gradient_boosting
+    params: *id009
+    val_macro_f1: 0.657845
+  - split: chronological
+    model: gradient_boosting
+    params: *id011
+    val_macro_f1: 0.611695
+  - split: chronological
+    model: gradient_boosting
+    params: *id012
+    val_macro_f1: 0.597815
+  - split: chronological
+    model: gradient_boosting
+    params: *id013
+    val_macro_f1: 0.611695
+  - split: chronological
+    model: gradient_boosting
+    params: *id010
+    val_macro_f1: 0.611695
+  - split: chronological
+    model: shortcut_stable_flag
+    params: *id002
+    val_macro_f1: 0.50489
+  - split: chronological
+    model: conditions_only
+    params: *id003
+    val_macro_f1: 0.377987
+  - split: chronological
+    model: conditions_only
+    params: *id007
+    val_macro_f1: 0.339434
+  - split: chronological
+    model: conditions_only
+    params: *id008
+    val_macro_f1: 0.339434
+  - split: chronological
+    model: conditions_only
+    params: *id009
+    val_macro_f1: 0.456192
+  - split: chronological
+    model: conditions_only
+    params: *id011
+    val_macro_f1: 0.377987
+  - split: chronological
+    model: conditions_only
+    params: *id012
+    val_macro_f1: 0.339434
+  - split: chronological
+    model: conditions_only
+    params: *id013
+    val_macro_f1: 0.339434
+  - split: chronological
+    model: conditions_only
+    params: *id010
+    val_macro_f1: 0.339434

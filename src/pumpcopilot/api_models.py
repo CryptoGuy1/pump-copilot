@@ -529,11 +529,22 @@ class ModeResult(Model):
     note: str | None
 
 
+class ZemaBenchmark(Model):
+    scope_note: str = Field(description="hydraulic test rig only; does not transfer")
+    output_label: str
+    status: Literal["not_tuned", "pre-registered, not yet evaluated", "evaluated"]
+    preregistration_tag: str
+    config: dict[str, Any] | None = Field(description="the frozen, pre-registered config")
+    results: dict[str, Any] | None = Field(description="the test results, once evaluated")
+    report: str
+
+
 class Evaluation(Model):
     modes: dict[str, ModeResult]
     cases_all_modes: dict[str, dict[str, dict[str, Any]]] | None
     report: str
     labels: str
+    zema: ZemaBenchmark
 
 
 class AssumptionItem(Model):

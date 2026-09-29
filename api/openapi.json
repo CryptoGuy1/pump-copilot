@@ -1630,13 +1630,17 @@
           "report": {
             "title": "Report",
             "type": "string"
+          },
+          "zema": {
+            "$ref": "#/components/schemas/ZemaBenchmark"
           }
         },
         "required": [
           "modes",
           "cases_all_modes",
           "report",
-          "labels"
+          "labels",
+          "zema"
         ],
         "title": "Evaluation",
         "type": "object"
@@ -3956,6 +3960,74 @@
           "alive"
         ],
         "title": "WorkerHeartbeat",
+        "type": "object"
+      },
+      "ZemaBenchmark": {
+        "additionalProperties": false,
+        "properties": {
+          "config": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "the frozen, pre-registered config",
+            "title": "Config"
+          },
+          "output_label": {
+            "title": "Output Label",
+            "type": "string"
+          },
+          "preregistration_tag": {
+            "title": "Preregistration Tag",
+            "type": "string"
+          },
+          "report": {
+            "title": "Report",
+            "type": "string"
+          },
+          "results": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "the test results, once evaluated",
+            "title": "Results"
+          },
+          "scope_note": {
+            "description": "hydraulic test rig only; does not transfer",
+            "title": "Scope Note",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "not_tuned",
+              "pre-registered, not yet evaluated",
+              "evaluated"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scope_note",
+          "output_label",
+          "status",
+          "preregistration_tag",
+          "config",
+          "results",
+          "report"
+        ],
+        "title": "ZemaBenchmark",
         "type": "object"
       },
       "pumpcopilot__api_models__EvidenceItem": {

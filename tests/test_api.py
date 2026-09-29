@@ -19,9 +19,9 @@ D = DAY.isoformat()
 PROVENANCE = ("synthetic", "model_version", "assumptions")
 
 
-def _app(url=None, reports=None):
+def _app(url=None, reports=None, data=None):
     return api.create_app(database_url=url, reports_dir=reports or ROOT / "reports",
-                          docs_dir=ROOT / "docs")
+                          docs_dir=ROOT / "docs", data_dir=data or ROOT / "data")
 
 
 def _err(r, status, code=None):
@@ -118,6 +118,26 @@ def test_evaluation_results_are_served_as_data(tmp_path):
     assert out["cases_all_modes"] == {"3a across-day": {}}
     missing = TestClient(_app(reports=tmp_path / "none")).get("/api/evaluation").json()
     assert missing["modes"]["3a"]["results"] is None and missing["modes"]["3a"]["note"]
+
+
+def test_the_zema_benchmark_is_served_with_its_scope_and_status(tmp_path):
+    import yaml
+
+    data, reports = tmp_path / "data", tmp_path / "reports"
+    data.mkdir()
+    reports.mkdir()
+    z = TestClient(_app(reports=reports, data=data)).get("/api/evaluation").json()["zema"]
+    assert z["status"] == "not_tuned" and z["config"] is None and z["results"] is None
+    assert "hydraulic test rig" in z["scope_note"] and "centrifugal" in z["scope_note"]
+    (data / "zema_benchmark.yaml").write_text(yaml.safe_dump({"frozen": {"selected": {}}}))
+    z = TestClient(_app(reports=reports, data=data)).get("/api/evaluation").json()["zema"]
+    assert z["status"] == "pre-registered, not yet evaluated" and z["config"]
+    assert z["preregistration_tag"] == "prereg-3b"
+    (reports / "zema_benchmark.json").write_text(json.dumps({"splits": {}, "preregistration":
+                                                             {"tag": "prereg-3b"}}))
+    z = TestClient(_app(reports=reports, data=data)).get("/api/evaluation").json()["zema"]
+    assert z["status"] == "evaluated" and z["results"]["preregistration"]["tag"] == "prereg-3b"
+    assert z["output_label"] == "hydraulic test rig pump leakage state: k"
 
 
 def _source(mod) -> str:
