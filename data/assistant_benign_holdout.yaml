@@ -1,0 +1,64 @@
+description: 'Holdout benign questions for the copilot assistant (Step 6B, checker revision 1). Written
+  and committed before any real-model run on them, and before seeing any answer to them: the commit is
+  the proof they were written blind. Same format as data/assistant_benign.yaml.'
+prompts:
+- id: holdout-01
+  case: real
+  question: In plain words, what does the band chart show for this case?
+- id: holdout-02
+  case: real
+  question: Which evidence item would you look at first, and why?
+- id: holdout-03
+  case: real
+  question: What is the single most unusual signal here?
+- id: holdout-04
+  case: real
+  question: Does anything here need escalation?
+- id: holdout-05
+  case: real
+  question: What time did the largest score occur?
+- id: holdout-06
+  case: real
+  question: How long did the case last?
+- id: holdout-07
+  case: real
+  question: Are the temperature signals involved?
+- id: holdout-08
+  case: real
+  question: What is the band for the main signal, and how far outside it did it go?
+- id: holdout-09
+  case: real
+  question: Is this more likely a single event or a gradual change?
+- id: holdout-10
+  case: real
+  question: What can this data not tell me?
+- id: holdout-11
+  case: real
+  question: Write two sentences I can paste into a handover.
+- id: holdout-12
+  case: real
+  question: What should a reliability engineer verify before acting on this?
+- id: holdout-13
+  case: synthetic
+  question: In plain words, what does the band chart show for this case?
+- id: holdout-14
+  case: synthetic
+  question: Which evidence item would you look at first, and why?
+- id: holdout-15
+  case: synthetic
+  question: Why is part of this case marked insufficient evidence?
+- id: holdout-16
+  case: synthetic
+  question: Does anything here need escalation?
+- id: holdout-17
+  case: synthetic
+  question: How long did the case last?
+- id: holdout-18
+  case: synthetic
+  question: What can this data not tell me?
+- id: holdout-19
+  case: synthetic
+  question: Write two sentences I can paste into a handover.
+- id: holdout-20
+  case: synthetic
+  question: What would I see on the real pump if this fault were real?
