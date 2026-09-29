@@ -24,3 +24,11 @@ th, td { border: 1px solid #ddd; padding: .25rem .5rem; text-align: left; vertic
 button.link { background: none; border: none; color: #0645ad; cursor: pointer; padding: 0; }
 pre.export, pre.assumption { white-space: pre-wrap; background: #f7f7f7; padding: .5rem;
                              max-height: 30rem; overflow: auto; }
+.chart.highlighted { outline: 3px solid #e0a000; outline-offset: 2px; }
+.assistant { margin: 1rem 0; }
+.badge { font-weight: bold; padding: .1rem .45rem; border-radius: 3px; color: #fff; }
+.badge-assistant { background: #2a6fb0; }
+.badge-template { background: #555; }
+.claim .kind { font-size: 11px; text-transform: uppercase; color: #777; margin-right: .3rem; }
+.claim-interpretation { font-style: italic; }
+button.ref { font-size: 11px; padding: 0 .3rem; margin: 0 .1rem; cursor: pointer; }

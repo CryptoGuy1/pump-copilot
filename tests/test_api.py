@@ -196,6 +196,45 @@ def test_guardrail_api_code_reaches_nothing_outside_the_app():
     assert "escalate to reliability engineer (export only)" in cases.DISPOSITIONS
 
 
+def _imported_modules(start: str) -> set[str]:
+    """pumpcopilot modules the API process imports (following `from . import x`)."""
+    import pumpcopilot
+
+    pkg = Path(pumpcopilot.__file__).parent
+    seen, todo = set(), [start]
+    while todo:
+        name = todo.pop()
+        if name in seen or not (pkg / f"{name}.py").exists():
+            continue
+        seen.add(name)
+        for n in ast.walk(ast.parse((pkg / f"{name}.py").read_text())):
+            if isinstance(n, ast.ImportFrom) and n.level == 1:
+                todo += [n.module] if n.module else [a.name for a in n.names]
+    return seen
+
+
+def test_guardrail_only_the_assistant_module_has_a_network_client():
+    import pumpcopilot
+
+    clients = {"requests", "httpx", "httpx2", "urllib", "smtplib", "aiohttp", "ftplib",
+               "http", "anthropic", "websocket", "websockets", "paramiko"}
+    mods = _imported_modules("api")
+    assert {"api", "cases", "events", "replay", "assistant"} <= mods
+    pkg = Path(pumpcopilot.__file__).parent
+    for name in sorted(mods):
+        tree = ast.parse((pkg / f"{name}.py").read_text())
+        names = {a.name for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
+        names |= {n.module for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)
+                  and n.module and n.level == 0}
+        used = {x for x in names if x.split(".")[0] in clients}
+        if name == "assistant":
+            assert used <= {"httpx2", "anthropic"}, used
+        else:
+            assert not used, (name, used)
+    src = (pkg / "assistant.py").read_text()
+    assert 'ALLOWED_HOST = "api.anthropic.com"' in src and "AllowlistTransport()" in src
+
+
 def test_guardrail_api_queries_telemetry_only_through_scoped_functions():
     import re
 
@@ -534,6 +573,7 @@ def _fingerprint(url):
 
 @pytest.mark.db
 def test_no_endpoint_writes_telemetry_or_reaches_outside(env, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     sid, (cid, *_) = _fresh_session(env)
     before = _fingerprint(env["url"])
     outbound = []
@@ -549,7 +589,8 @@ def test_no_endpoint_writes_telemetry_or_reaches_outside(env, monkeypatch):
               "disposition": {"actor": "op", "reason": "export for review",
                               "disposition": "escalate to reliability engineer (export only)"},
               "close": {"actor": "op"}, "sessions": {"asset_id": ASSET, "source_day": D,
-                                                     "speed": 60}, "speed": {"speed": 10}}
+                                                     "speed": 60}, "speed": {"speed": 10},
+              "assistant": {"question": "What happened? Should I stop the pump?"}}
     order = ["acknowledge", "notes", "disposition", "close"]
     called = set()
     with TestClient(_app(env["url"], env["reports"])) as c:
@@ -687,3 +728,124 @@ def test_every_get_endpoint_validates_against_its_model_on_real_data(real):
         api_models.StreamEvent.model_validate({"id": e["event_id"], "event": e["event_type"],
                                                "data": {**e["payload"],
                                                         "created_at": e["created_at"]}})
+
+
+# --- the assistant -------------------------------------------------------------------------
+
+def _app_with(env, provider):
+    return api.create_app(database_url=env["url"], reports_dir=env["reports"],
+                          docs_dir=ROOT / "docs", assistant_provider=lambda: provider)
+
+
+@pytest.mark.db
+def test_assistant_serves_a_checked_answer_and_logs_the_run(env):
+    from pumpcopilot import assistant as a
+
+    _, (cid, *_) = _fresh_session(env)
+    with db.connect(env["url"]) as c:
+        ctx = a.build_context(c, cid)
+    good = a.TemplateProvider().generate(ctx, "")
+    good["claims"][0]["text"] = "Checked: " + good["claims"][0]["text"]
+    with TestClient(_app_with(env, a.FakeProvider([good]))) as client:
+        r = client.post(f"/api/cases/{cid}/assistant", json={"question": "What happened?"})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert (body["served"], body["label"], body["provider"]) == (
+        "assistant", "Assistant, checked", "fake")
+    assert body["check"] == {"passed": True, "reasons": []}
+    assert body["answer"]["claims"][0]["text"].startswith("Checked: ")
+    assert [e["id"] for e in body["evidence"]][:2] == ["E1", "E2"]
+    assert body["evidence"][1]["signal_name"] and body["evidence"][1]["first_window"]
+    assert {"synthetic", "model_version", "assumptions"} <= set(body)
+    with db.connect(env["url"]) as c:
+        run = c.execute("SELECT case_id, question_sha256, provider, served, check_passed,"
+                        " context_sha256, latency_ms, raw_output FROM assistant_runs WHERE"
+                        " run_id = %s", [body["run_id"]]).fetchone()
+        assert run[0] == cid and run[2] == "fake" and run[3] == "assistant" and run[4]
+        import hashlib
+
+        assert run[1] == hashlib.sha256(b"What happened?").hexdigest()  # a hash, not the text
+        assert run[5] == body["context_hash"] and run[6] >= 0 and run[7]
+        assert cases.get_case(c, cid)["notes"] == 0  # the draft note is not saved
+
+
+@pytest.mark.db
+def test_a_rejected_answer_falls_back_and_says_why(env):
+    from pumpcopilot import assistant as a
+
+    _, (cid, *_) = _fresh_session(env)
+    bad = {"claims": [{"text": "Stop the pump. The root cause is the bearing.",
+                       "evidence_refs": ["E2"], "kind": "observation"}],
+           "suggested_checks": [], "draft_note": None}
+    with TestClient(_app_with(env, a.FakeProvider([bad]))) as client:
+        body = client.post(f"/api/cases/{cid}/assistant",
+                           json={"question": "Should I stop it?"}).json()
+    assert (body["served"], body["label"]) == ("template", "Evidence summary")
+    assert body["check"]["passed"] is True
+    assert body["fallback_reason"] == "rejected by the checker"
+    assert any("forbidden" in x for x in body["rejected"]["reasons"])
+    with db.connect(env["url"]) as c:
+        row = c.execute("SELECT served, check_passed, rejection_reasons, fallback_reason FROM"
+                        " assistant_runs WHERE run_id = %s", [body["run_id"]]).fetchone()
+        assert row[0] == "template" and row[1] is False and row[2] and row[3]
+
+
+@pytest.mark.db
+def test_without_a_key_the_evidence_summary_is_served(env, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    _, (cid, *_) = _fresh_session(env, scenario="B_stuck_pressure")
+    with TestClient(_app(env["url"], env["reports"])) as client:
+        body = client.post(f"/api/cases/{cid}/assistant", json={"question": "Summary?"}).json()
+    assert body["label"] == "Evidence summary" and body["fallback_reason"] == \
+        "no ANTHROPIC_API_KEY"
+    assert body["synthetic"] is True
+    assert "SYNTHETIC" in " ".join(c["text"] for c in body["answer"]["claims"])
+    assert "SYNTHETIC" in body["answer"]["draft_note"]
+
+
+@pytest.mark.db
+def test_with_a_key_the_api_only_attempts_api_anthropic_com(env, monkeypatch):
+    import httpx2
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    hosts = []
+
+    def refuse(self, request):
+        hosts.append(request.url.host)
+        raise httpx2.ConnectError("blocked in tests", request=request)
+
+    monkeypatch.setattr(httpx2.HTTPTransport, "handle_request", refuse)
+    _, (cid, *_) = _fresh_session(env)
+    with TestClient(_app(env["url"], env["reports"])) as client:
+        body = client.post(f"/api/cases/{cid}/assistant", json={"question": "q"}).json()
+    assert body["served"] == "template" and "provider error" in body["fallback_reason"]
+    assert hosts and set(hosts) == {"api.anthropic.com"}
+
+
+@pytest.mark.db
+def test_assistant_runs_are_append_only_and_the_api_role_only_inserts(env):
+    with db.connect(env["url"]) as c:
+        for sql in ("UPDATE assistant_runs SET provider = 'x'", "DELETE FROM assistant_runs"):
+            with pytest.raises(psycopg.errors.RaiseException, match="append-only"):
+                c.execute(sql)
+    app = _app(env["url"], env["reports"])
+    with TestClient(app), app.state.pool.connection() as c:
+        for sql in ("UPDATE assistant_runs SET provider = 'x' WHERE false",
+                    "DELETE FROM assistant_runs WHERE false"):
+            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+                c.execute(sql)
+
+
+@pytest.mark.db
+def test_assistant_question_is_validated(env, client):
+    _err(client.post("/api/cases/1/assistant", json={"question": ""}), 422)
+    _err(client.post("/api/cases/1/assistant", json={"question": "x" * 2001}), 422)
+    _err(client.post("/api/cases/999999999/assistant", json={"question": "q"}), 404)
+
+
+def test_assistant_eval_command(capsys):
+    from pumpcopilot import cli
+
+    cli.main(["assistant", "eval", "--provider", "template"])
+    out = capsys.readouterr().out
+    assert "50/50" in out and "100%" in out

@@ -1,0 +1,5 @@
+# The copilot assistant (Step 6). The Anthropic provider reads ANTHROPIC_API_KEY from the
+# environment; without it, or on any failure, the deterministic evidence summary is served.
+model: claude-sonnet-5
+timeout_s: 20
+max_tokens: 1500

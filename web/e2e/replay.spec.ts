@@ -37,6 +37,22 @@ test("synthetic stuck-pressure case, live, from replay to export", async ({ page
   await page.getByRole("button", { name: "Acknowledge" }).click();
   await expect(status).toHaveText("acknowledged");
   await expect(page.getByRole("alert")).toHaveCount(0);
+
+  // the assistant: no key here, so the evidence summary, labelled as such
+  await page.getByLabel("question").fill("What does the evidence show? Should I stop the pump?");
+  await page.getByRole("button", { name: "Ask" }).click();
+  await expect(page.getByTestId("assistant-badge")).toHaveText("Evidence summary");
+  await expect(page.getByTestId("assistant-fallback")).toContainText("no ANTHROPIC_API_KEY");
+  const answer = page.getByTestId("assistant-answer"); // the answer, not the question box
+  await expect(answer).toContainText("SYNTHETIC");
+  await expect(answer).not.toContainText(/stop the pump|safe to operate/i);
+  await page.getByTestId("ref-E2").first().click();
+  await expect(page.locator("[data-highlighted=true]").first()).toBeVisible();
+  await expect(page.getByTestId("highlight-note")).toContainText("E2");
+  await page.getByRole("button", { name: "Approve and save" }).click();
+  await expect(page.getByTestId("draft-saved")).toBeVisible();
+  await expect(page.locator("ul li").filter({ hasText: /note by operator: SYNTHETIC scenario/ }))
+    .toHaveCount(1);
   const reason = "e2e: outlet pressure held constant, stuck sensor (synthetic)";
   await page.getByLabel("disposition").selectOption(
     "escalate to reliability engineer (export only)");

@@ -13,6 +13,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel
 
+from .assistant import AssistantAnswer
 from .schema import ScoredEvidence
 
 PresentationState = Literal["normal", "review_suggested", "insufficient_evidence",
@@ -643,3 +644,52 @@ class CaseEventMessage(Model):
 class StreamEvent(RootModel[Annotated[ReplayProgressMessage | ScoreBatchMessage |
                                        CaseEventMessage, Field(discriminator="event")]]):
     """One server-sent event: `id:` is the event id, `event:` the type, `data:` the JSON."""
+
+
+# --- the copilot assistant ---------------------------------------------------------------
+
+class AssistantQuestion(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    question: str = Field(min_length=1, max_length=2000)
+    provider: Literal["auto", "template"] = Field(
+        "auto", description="auto: the configured model, falling back to the evidence "
+                            "summary; template: the evidence summary only")
+
+
+class CheckOut(Model):
+    passed: bool
+    reasons: list[str]
+
+
+class Rejected(Model):
+    provider: str
+    model: str | None
+    reasons: list[str] = Field(description="why the checker rejected the provider's answer")
+
+
+class EvidenceRef(Model):
+    id: str
+    kind: Literal["case", "signal"]
+    signal_name: str | None
+    first_window: dt.datetime | None
+    last_window: dt.datetime | None
+    values: dict[str, float]
+    unit: str | None = None
+    times: list[str]
+
+
+class AssistantResponse(Provenance):
+    case_id: int
+    run_id: int
+    served: Literal["assistant", "template"]
+    label: Literal["Assistant, checked", "Evidence summary"]
+    provider: str
+    model: str | None
+    answer: AssistantAnswer
+    check: CheckOut = Field(description="the check of the answer that is shown")
+    rejected: Rejected | None = Field(description="the provider's answer, if it was rejected")
+    fallback_reason: str | None
+    evidence: list[EvidenceRef]
+    calibration_status: str
+    context_hash: str
+    latency_ms: float

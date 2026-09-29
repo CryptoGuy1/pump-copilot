@@ -6,6 +6,7 @@ cd "$(dirname "$0")/../.."
 export PATH="$PWD/.venv/bin:$PATH"
 base="${DATABASE_URL:-postgresql://pump:pump_dev_only@localhost:5432/pumpcopilot}"
 export DATABASE_URL="${base%/*}/pumpcopilot_e2e"
+unset ANTHROPIC_API_KEY  # the end-to-end test never calls a real model
 
 state=$(python - <<'PY'
 import psycopg
@@ -32,4 +33,4 @@ PY
 pumpcopilot worker --poll 0.05 &
 worker=$!
 trap 'kill $worker 2>/dev/null || true' EXIT INT TERM
-pumpcopilot api --port 8001
+pumpcopilot api --port 8001 --no-dotenv

@@ -60,10 +60,18 @@ def main(argv: list[str] | None = None) -> None:
     zp = sub.add_parser("zema", help="ZeMA hydraulic test rig pump-leakage benchmark (3b)")
     zp.add_argument("action", choices=["features", "tune", "eval", "report"])
     zp.add_argument("--prereg", help="eval: the pre-registration tag (prereg-3b)")
+    asp = sub.add_parser("assistant", help="copilot assistant: adversarial evaluation, ping")
+    asp.add_argument("action", choices=["eval", "ping"])
+    asp.add_argument("--no-dotenv", action="store_true", help="ping: do not load .env")
+    asp.add_argument("--provider", choices=["fake", "template"], default="fake")
+    asp.add_argument("--timeout", type=float, default=0.2,
+                     help="seconds before the fake model's slow answers time out")
     ap = sub.add_parser("api", help="serve the HTTP API and live stream on 127.0.0.1 only")
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--export-openapi", action="store_true",
                     help="write api/openapi.json and exit")
+    ap.add_argument("--no-dotenv", action="store_true",
+                    help="do not load .env (the end-to-end test never calls a real model)")
     cs = sub.add_parser("case", help="cases: list, show, ack, note, dispose, close, export")
     cs.add_argument("action", choices=["list", "show", "ack", "note", "dispose", "close",
                                        "export"])
@@ -104,9 +112,13 @@ def main(argv: list[str] | None = None) -> None:
     elif args.cmd == "case":
         _case(args)
     elif args.cmd == "api":
-        _api(args.port, args.export_openapi)
+        _api(args.port, args.export_openapi, args.no_dotenv)
     elif args.cmd == "zema":
         _zema(args.action, args.prereg)
+    elif args.cmd == "assistant" and args.action == "ping":
+        _assistant_ping(args.no_dotenv)
+    elif args.cmd == "assistant":
+        _assistant_eval(args.provider, args.timeout)
     elif args.cmd == "score":
         if args.action in ("tune-3a3", "report", "eval-3a3"):
             _score_3a3(args.action, args.prereg)
@@ -383,12 +395,59 @@ def _zema(action: str, prereg: str | None) -> None:
     print(f"[written] {ZEMA_RESULTS}, {REPORTS / 'zema_benchmark.md'}")
 
 
+def _assistant_ping(no_dotenv: bool) -> None:
+    """Whether a key is present and the model answers. Never prints the key or any of it."""
+    import os
+
+    from . import assistant
+
+    if not no_dotenv and ENV_FILE.exists():
+        from dotenv import load_dotenv
+
+        load_dotenv(ENV_FILE, override=False)
+    r = assistant.ping()
+    key = os.environ.get("ANTHROPIC_API_KEY")
+    say = lambda s: print(assistant.redact(s, key))  # noqa: E731
+    if not r["key_present"]:
+        say("key: not set (ANTHROPIC_API_KEY); the assistant serves the evidence summary")
+        raise SystemExit(1)
+    say("key: present")
+    if r["responds"]:
+        say(f"model responds: yes ({r['model']}, {r['latency_ms']} ms)")
+        return
+    say(f"model responds: no ({r['model']}): {r['error']}")
+    raise SystemExit(1)
+
+
+def _assistant_eval(provider: str, timeout_s: float) -> None:
+    from . import assistant
+
+    rep = assistant.run_adversarial(provider, timeout_s=timeout_s)
+    REPORTS.mkdir(exist_ok=True)
+    (REPORTS / f"assistant_adversarial_{provider}.json").write_text(json.dumps(rep, indent=2))
+    print(f"[assistant eval] {provider}: {rep['passed']}/{rep['total']} final answers pass "
+          f"({rep['pass_rate']:.0%}); served: {rep['served']['assistant']} checked assistant, "
+          f"{rep['served']['template']} evidence summary"
+          + (f"; fake outputs rejected: {rep['fake_outputs_rejected']}"
+             if provider == "fake" else ""))
+    for f in rep["failures"]:
+        print(f"  FAIL {f['id']}: {'; '.join(f['problems'])}")
+    if rep["failures"]:
+        raise SystemExit(1)
+
+
 OPENAPI = ROOT / "api" / "openapi.json"
+ENV_FILE = ROOT / ".env"  # the API key lives here; gitignored, see .env.example
 
 
-def _api(port: int, export_openapi: bool) -> None:
+def _api(port: int, export_openapi: bool, no_dotenv: bool = False) -> None:
     from . import api
 
+    if not export_openapi and not no_dotenv and ENV_FILE.exists():
+        # the API only (and so `make dev`); variables already in the environment win
+        from dotenv import load_dotenv
+
+        load_dotenv(ENV_FILE, override=False)
     app = api.create_app()
     if export_openapi:
         OPENAPI.parent.mkdir(exist_ok=True)

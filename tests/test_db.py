@@ -180,6 +180,13 @@ def test_load_succeeds_while_the_refresh_policy_is_running(conn, cira_dir, tmp_p
                        " materialization_hypertable_name) FROM"
                        " timescaledb_information.continuous_aggregates WHERE view_name ="
                        " 'telemetry_1m'").fetchone()[0]
+    # the policy may already have run once at creation; make that certain, then give it
+    # something new to refresh: one row for a probe asset, in a window the loader's first file
+    # overlaps (without it the run below finds nothing to do and never takes a range)
+    conn.execute("CALL run_job(%s)", [job])
+    conn.execute("INSERT INTO telemetry VALUES ('2024-04-10 08:05:00+00', 'probe', "
+                 "'2024-04-10', 'probe.csv', 'probe:1', 'x', 1, 'bar', 'running', '{}', true, "
+                 "'probe-row-0000000001', NULL)")
     holder = psycopg.connect(db_url)
     holder.execute(f"LOCK TABLE {mat} IN EXCLUSIVE MODE")
     policy_error = []

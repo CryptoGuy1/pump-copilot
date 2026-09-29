@@ -12,6 +12,7 @@
         "Bash(git log *)",
         "Bash(git add *)"
       ],
-      "ask": ["Bash(git commit *)", "Bash(git push *)"]
+      "ask": ["Bash(git commit *)", "Bash(git push *)"],
+      "deny": ["Read(./.env)", "Edit(./.env)"]
     }
   }

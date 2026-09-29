@@ -33,6 +33,9 @@ pumpcopilot replay pause|resume|rewind|latency|verify <id>
                                 # events are kept and nothing is appended twice
 pumpcopilot case list|show|ack|note|dispose|close|export [<id>] [--by NAME]
 pumpcopilot api [--port 8000]   # HTTP API + SSE stream on 127.0.0.1 only; docs at /docs
+cp .env.example .env            # then set ANTHROPIC_API_KEY in .env (gitignored); the API and
+                                # make dev load it; without a key the assistant serves the
+                                # evidence summary
 pumpcopilot api --export-openapi  # regenerate api/openapi.json (a test checks it)
 make dev                        # database, worker, API and web UI (http://127.0.0.1:5173)
 make gen-api                    # regenerate api/openapi.json and the typed web client

@@ -36,7 +36,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import api_models as M
-from . import cases, db, events, replay, scoring
+from . import assistant, cases, db, events, replay, scoring
 
 ROOT = Path(__file__).resolve().parents[2]
 HOST = "127.0.0.1"
@@ -223,11 +223,13 @@ def _case_versions(conn, case_ids) -> list[str]:
 
 def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                docs_dir: Path | None = None, cors_origins: list[str] | None = None,
-               role: str = API_ROLE, data_dir: Path | None = None) -> FastAPI:
+               role: str = API_ROLE, data_dir: Path | None = None,
+               assistant_provider=None) -> FastAPI:
     url = database_url or db.database_url()
     reports = Path(reports_dir or ROOT / "reports")
     docs = Path(docs_dir or ROOT / "docs")
     data = Path(data_dir or ROOT / "data")
+    provider_for = assistant_provider or (lambda: assistant.AnthropicProvider())
 
     @contextlib.asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -687,6 +689,39 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
             return PlainTextResponse(cases.export_markdown(pack, prov, titles),
                                      media_type="text/markdown; charset=utf-8")
         return {**jsonable_encoder(pack), **prov}
+
+    # -- the copilot assistant --
+
+    @app.post("/api/cases/{case_id}/assistant", tags=["assistant"],
+              response_model=M.AssistantResponse)
+    def ask_assistant(request: Request, case_id: int, body: M.AssistantQuestion):
+        """Answer a question about the case from its evidence. The answer is checked before
+        it is shown; otherwise the evidence summary is shown. Nothing is saved to the case:
+        a draft note is saved only when the engineer approves it (POST .../notes)."""
+        with conn_for(request) as c:
+            ctx = assistant.build_context(c, case_id)
+        provider = (assistant.TemplateProvider() if body.provider == "template"
+                    else provider_for())
+        result = assistant.answer(ctx, body.question, provider)
+        with conn_for(request) as c:
+            run_id = assistant.log_run(c, case_id, body.question, result)
+        rej = result.rejected
+        return {"case_id": case_id, "run_id": run_id, "served": result.served,
+                "label": result.label, "provider": result.provider, "model": result.model,
+                "answer": result.answer, "check": {"passed": result.check.passed,
+                                                   "reasons": result.check.reasons},
+                "rejected": None if rej is None else {
+                    "provider": rej["provider"], "model": rej["model"],
+                    "reasons": rej["check"]["reasons"]},
+                "fallback_reason": result.fallback_reason,
+                "evidence": [{k: e.get(k) for k in ("id", "kind", "signal_name",
+                                                     "first_window", "last_window", "values",
+                                                     "unit", "times")}
+                             for e in ctx["evidence"]],
+                "calibration_status": ctx["calibration_status"],
+                "context_hash": result.context_hash, "latency_ms": result.latency_ms,
+                "synthetic": ctx["synthetic"], "model_version": ctx["model_version"],
+                "assumptions": [x["id"] for x in ctx["assumptions"]]}
 
     # -- replay control --
 

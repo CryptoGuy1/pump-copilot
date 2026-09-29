@@ -20,9 +20,9 @@ const secs = (t: string) => new Date(t).getTime() / 1000;
 export const toSeconds = (ts: string[]) => ts.map(secs);
 
 /** A uPlot time-series chart. `shade` paints background spans (state segments). */
-export function Chart({ title, x, series, shade = [], height = 180 }:
+export function Chart({ title, x, series, shade = [], height = 180, highlighted = false }:
                       { title: string; x: number[]; series: ChartSeries[]; shade?: Shade[];
-                        height?: number }) {
+                        height?: number; highlighted?: boolean }) {
   const el = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!el.current || !x.length) return;
@@ -52,5 +52,9 @@ export function Chart({ title, x, series, shade = [], height = 180 }:
     }
     return () => plot.destroy();
   }, [title, x, series, shade, height]);
-  return <div className="chart" ref={el} data-testid="chart" />;
+  useEffect(() => {
+    if (highlighted) el.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+  }, [highlighted]);
+  return <div className={`chart${highlighted ? " highlighted" : ""}`} ref={el}
+              data-testid="chart" data-highlighted={highlighted ? "true" : "false"} />;
 }

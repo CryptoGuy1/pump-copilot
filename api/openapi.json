@@ -191,6 +191,206 @@
         "title": "AssetDays",
         "type": "object"
       },
+      "AssistantAnswer": {
+        "additionalProperties": false,
+        "description": "What the assistant returns (the model returns it through tool use).",
+        "properties": {
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "minItems": 1,
+            "title": "Claims",
+            "type": "array"
+          },
+          "draft_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "optional; saved only if the engineer approves it",
+            "title": "Draft Note"
+          },
+          "suggested_checks": {
+            "description": "read-only things the engineer could look at",
+            "items": {
+              "type": "string"
+            },
+            "title": "Suggested Checks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "claims",
+          "suggested_checks"
+        ],
+        "title": "AssistantAnswer",
+        "type": "object"
+      },
+      "AssistantQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "provider": {
+            "default": "auto",
+            "description": "auto: the configured model, falling back to the evidence summary; template: the evidence summary only",
+            "enum": [
+              "auto",
+              "template"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "question": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "AssistantQuestion",
+        "type": "object"
+      },
+      "AssistantResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "$ref": "#/components/schemas/AssistantAnswer"
+          },
+          "assumptions": {
+            "description": "IDs in docs/ASSUMPTIONS.md that apply",
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "calibration_status": {
+            "title": "Calibration Status",
+            "type": "string"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "integer"
+          },
+          "check": {
+            "$ref": "#/components/schemas/CheckOut",
+            "description": "the check of the answer that is shown"
+          },
+          "context_hash": {
+            "title": "Context Hash",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceRef"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "fallback_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Reason"
+          },
+          "label": {
+            "enum": [
+              "Assistant, checked",
+              "Evidence summary"
+            ],
+            "title": "Label",
+            "type": "string"
+          },
+          "latency_ms": {
+            "title": "Latency Ms",
+            "type": "number"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "model_version": {
+            "description": "the model versions that produced it",
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "rejected": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Rejected"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "the provider's answer, if it was rejected"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "integer"
+          },
+          "served": {
+            "enum": [
+              "assistant",
+              "template"
+            ],
+            "title": "Served",
+            "type": "string"
+          },
+          "synthetic": {
+            "description": "true if the data comes from a synthetic scenario",
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "synthetic",
+          "model_version",
+          "assumptions",
+          "case_id",
+          "run_id",
+          "served",
+          "label",
+          "provider",
+          "model",
+          "answer",
+          "check",
+          "rejected",
+          "fallback_reason",
+          "evidence",
+          "calibration_status",
+          "context_hash",
+          "latency_ms"
+        ],
+        "title": "AssistantResponse",
+        "type": "object"
+      },
       "AssumptionItem": {
         "additionalProperties": false,
         "properties": {
@@ -1306,6 +1506,62 @@
         "title": "CaseState",
         "type": "object"
       },
+      "CheckOut": {
+        "additionalProperties": false,
+        "properties": {
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "passed",
+          "reasons"
+        ],
+        "title": "CheckOut",
+        "type": "object"
+      },
+      "Claim": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_refs": {
+            "description": "IDs from the context's evidence, e.g. E2",
+            "items": {
+              "type": "string"
+            },
+            "title": "Evidence Refs",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "observation",
+              "interpretation",
+              "limitation"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "evidence_refs",
+          "kind"
+        ],
+        "title": "Claim",
+        "type": "object"
+      },
       "DataQuality": {
         "additionalProperties": false,
         "properties": {
@@ -1754,6 +2010,94 @@
           "items"
         ],
         "title": "EvidencePage",
+        "type": "object"
+      },
+      "EvidenceRef": {
+        "additionalProperties": false,
+        "properties": {
+          "first_window": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Window"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "case",
+              "signal"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "last_window": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Window"
+          },
+          "signal_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signal Name"
+          },
+          "times": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Times",
+            "type": "array"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "signal_name",
+          "first_window",
+          "last_window",
+          "values",
+          "times"
+        ],
+        "title": "EvidenceRef",
         "type": "object"
       },
       "ExportEvent": {
@@ -2547,6 +2891,41 @@
           "synthetic"
         ],
         "title": "RealSynthetic",
+        "type": "object"
+      },
+      "Rejected": {
+        "additionalProperties": false,
+        "properties": {
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "reasons": {
+            "description": "why the checker rejected the provider's answer",
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "provider",
+          "model",
+          "reasons"
+        ],
+        "title": "Rejected",
         "type": "object"
       },
       "Related": {
@@ -5255,6 +5634,79 @@
         "summary": "Acknowledge",
         "tags": [
           "cases"
+        ]
+      }
+    },
+    "/api/cases/{case_id}/assistant": {
+      "post": {
+        "description": "Answer a question about the case from its evidence. The answer is checked before\nit is shown; otherwise the evidence summary is shown. Nothing is saved to the case:\na draft note is saved only when the engineer approves it (POST .../notes).",
+        "operationId": "ask_assistant_api_cases__case_id__assistant_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantQuestion"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Ask Assistant",
+        "tags": [
+          "assistant"
         ]
       }
     },

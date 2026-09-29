@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { call, client } from "../api/client";
 
 /** Shown wherever data is synthetic (an injected, in-memory fault). */
@@ -56,3 +56,9 @@ export function Loading({ q, children }: { q: { isLoading: boolean; error: unkno
 
 export const fmtTime = (t: string | null | undefined) =>
   t ? new Date(t).toISOString().slice(11, 19) : "-";
+
+/** Who is acting (remembered in this browser). */
+export function useActor(): [string, (s: string) => void] {
+  const [actor, setActor] = useState(() => localStorage.getItem("actor") ?? "operator");
+  return [actor, (s: string) => { localStorage.setItem("actor", s); setActor(s); }];
+}

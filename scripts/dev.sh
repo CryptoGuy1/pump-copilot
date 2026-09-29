@@ -24,7 +24,7 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 pumpcopilot worker & pids+=($!)
-pumpcopilot api & pids+=($!)
+pumpcopilot api & pids+=($!)  # the API loads .env (ANTHROPIC_API_KEY) itself
 (cd web && exec npm run dev) & pids+=($!)
 echo "web: http://127.0.0.1:5173   api: http://127.0.0.1:8000/docs   (Ctrl-C to stop)"
 # bash 3.2 (macOS) has no `wait -n`: stop everything as soon as one of them exits

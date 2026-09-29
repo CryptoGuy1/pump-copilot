@@ -191,6 +191,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cases/{case_id}/assistant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask Assistant
+         * @description Answer a question about the case from its evidence. The answer is checked before
+         *     it is shown; otherwise the evidence summary is shown. Nothing is saved to the case:
+         *     a draft note is saved only when the engineer approves it (POST .../notes).
+         */
+        post: operations["ask_assistant_api_cases__case_id__assistant_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cases/{case_id}/close": {
         parameters: {
             query?: never;
@@ -576,6 +598,87 @@ export interface components {
         AssetDays: {
             /** Asset Days */
             asset_days: components["schemas"]["AssetDayRow"][];
+        };
+        /**
+         * AssistantAnswer
+         * @description What the assistant returns (the model returns it through tool use).
+         */
+        AssistantAnswer: {
+            /** Claims */
+            claims: components["schemas"]["Claim"][];
+            /**
+             * Draft Note
+             * @description optional; saved only if the engineer approves it
+             */
+            draft_note?: string | null;
+            /**
+             * Suggested Checks
+             * @description read-only things the engineer could look at
+             */
+            suggested_checks: string[];
+        };
+        /** AssistantQuestion */
+        AssistantQuestion: {
+            /**
+             * Provider
+             * @description auto: the configured model, falling back to the evidence summary; template: the evidence summary only
+             * @default auto
+             * @enum {string}
+             */
+            provider: "auto" | "template";
+            /** Question */
+            question: string;
+        };
+        /** AssistantResponse */
+        AssistantResponse: {
+            answer: components["schemas"]["AssistantAnswer"];
+            /**
+             * Assumptions
+             * @description IDs in docs/ASSUMPTIONS.md that apply
+             */
+            assumptions: string[];
+            /** Calibration Status */
+            calibration_status: string;
+            /** Case Id */
+            case_id: number;
+            /** @description the check of the answer that is shown */
+            check: components["schemas"]["CheckOut"];
+            /** Context Hash */
+            context_hash: string;
+            /** Evidence */
+            evidence: components["schemas"]["EvidenceRef"][];
+            /** Fallback Reason */
+            fallback_reason: string | null;
+            /**
+             * Label
+             * @enum {string}
+             */
+            label: "Assistant, checked" | "Evidence summary";
+            /** Latency Ms */
+            latency_ms: number;
+            /** Model */
+            model: string | null;
+            /**
+             * Model Version
+             * @description the model versions that produced it
+             */
+            model_version: string[];
+            /** Provider */
+            provider: string;
+            /** @description the provider's answer, if it was rejected */
+            rejected: components["schemas"]["Rejected"] | null;
+            /** Run Id */
+            run_id: number;
+            /**
+             * Served
+             * @enum {string}
+             */
+            served: "assistant" | "template";
+            /**
+             * Synthetic
+             * @description true if the data comes from a synthetic scenario
+             */
+            synthetic: boolean;
         };
         /** AssumptionItem */
         AssumptionItem: {
@@ -972,6 +1075,28 @@ export interface components {
             /** Synthetic */
             synthetic: boolean;
         };
+        /** CheckOut */
+        CheckOut: {
+            /** Passed */
+            passed: boolean;
+            /** Reasons */
+            reasons: string[];
+        };
+        /** Claim */
+        Claim: {
+            /**
+             * Evidence Refs
+             * @description IDs from the context's evidence, e.g. E2
+             */
+            evidence_refs: string[];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "observation" | "interpretation" | "limitation";
+            /** Text */
+            text: string;
+        };
         /** DataQuality */
         DataQuality: {
             /** Asset Days */
@@ -1136,6 +1261,30 @@ export interface components {
             synthetic: boolean;
             /** Total */
             total: number;
+        };
+        /** EvidenceRef */
+        EvidenceRef: {
+            /** First Window */
+            first_window: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "case" | "signal";
+            /** Last Window */
+            last_window: string | null;
+            /** Signal Name */
+            signal_name: string | null;
+            /** Times */
+            times: string[];
+            /** Unit */
+            unit?: string | null;
+            /** Values */
+            values: {
+                [key: string]: number;
+            };
         };
         /** ExportEvent */
         ExportEvent: {
@@ -1403,6 +1552,18 @@ export interface components {
             real: number;
             /** Synthetic */
             synthetic: number;
+        };
+        /** Rejected */
+        Rejected: {
+            /** Model */
+            model: string | null;
+            /** Provider */
+            provider: string;
+            /**
+             * Reasons
+             * @description why the checker rejected the provider's answer
+             */
+            reasons: string[];
         };
         /** Related */
         Related: {
@@ -2585,6 +2746,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CaseActionResult"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    ask_assistant_api_cases__case_id__assistant_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantQuestion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantResponse"];
                 };
             };
             /** @description Not Found */

@@ -3,17 +3,13 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ApiError, type Schema, call, client } from "../api/client";
 import { Chart, toSeconds } from "../components/Chart";
-import { A8Notice, Loading, Provenance, Synthetic, fmtTime }
+import { AssistantPanel, type Highlight } from "../components/Assistant";
+import { A8Notice, Loading, Provenance, Synthetic, fmtTime, useActor }
   from "../components/common";
 
 const DISPOSITIONS = ["monitor", "known condition, no action", "data quality issue",
                       "escalate to reliability engineer (export only)"] as const;
 type Disposition = (typeof DISPOSITIONS)[number];
-
-function useActor(): [string, (s: string) => void] {
-  const [actor, setActor] = useState(() => localStorage.getItem("actor") ?? "operator");
-  return [actor, (s: string) => { localStorage.setItem("actor", s); setActor(s); }];
-}
 
 function RelatedLink({ c }: { c: Schema<"CaseState"> }) {
   return <Link to={`/cases/${c.case_id}`}>#{c.case_id} ({c.status})</Link>;
@@ -129,6 +125,9 @@ export function CaseDetail() {
   const q = useQuery({ queryKey: ["case", id], queryFn: () =>
     call(client.GET("/api/cases/{case_id}", { params: { path: { case_id: id } } })) });
   const d = q.data;
+  const [actor] = useActor();
+  const [hl, setHl] = useState<Highlight | null>(null);
+  const HL = "rgba(255, 190, 0, 0.28)";
   return (
     <section>
       <Loading q={q}>
@@ -150,6 +149,11 @@ export function CaseDetail() {
             {d.related.related_by.map((c) => <span key={c.case_id}> followed by{" "}
               <RelatedLink c={c} /></span>)}</p>}
           <Actions d={d} />
+          <AssistantPanel caseId={id} actor={actor} canNote={d.actions.includes("note")}
+                          onHighlight={setHl} />
+          {hl && <p className="muted" data-testid="highlight-note">highlighting {hl.id}
+            {hl.signal ? ` (${hl.signal})` : " (the whole case)"}{" "}
+            <button className="link" onClick={() => setHl(null)}>clear</button></p>}
           <h2>Signals against their band</h2>
           <table>
             <thead><tr><th>signal</th><th>windows</th><th>episodes</th><th>first–last</th>
@@ -163,7 +167,12 @@ export function CaseDetail() {
           </table>
           {Object.entries(d.signals).map(([sig, s]) => {
             const n = s.chart.t.length;
-            return <Chart key={sig} title={sig} x={toSeconds(s.chart.t)} series={[
+            const on = !!hl && (hl.signal === sig || hl.signal === null);
+            const shade = on && hl.from && hl.to
+              ? [{ from: Date.parse(hl.from) / 1000, to: Date.parse(hl.to) / 1000, color: HL }]
+              : [];
+            return <Chart key={sig} title={sig} x={toSeconds(s.chart.t)} highlighted={on}
+              shade={shade} series={[
               { label: "median", values: s.chart.median, color: "#2060c0" },
               { label: "min", values: s.chart.min, color: "#9ab", dash: [2, 3] },
               { label: "max", values: s.chart.max, color: "#9ab", dash: [2, 3] },
