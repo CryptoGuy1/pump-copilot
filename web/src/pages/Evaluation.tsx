@@ -14,7 +14,17 @@ interface Interval { lo: number | null; hi: number | null }
 interface ModelResult {
   test: { macro_f1: number; recall: Record<string, number | null> };
   ci95: { macro_f1: Interval; n_blocks: number };
-  calibration: { brier: number };
+  calibration: { brier: number; ece_top_label: number };
+}
+
+// the same plain-language grade as the API and the report (zema_bench.calibration_grade)
+const grade = (ece: number) =>
+  ece < 0.05 ? "good" : ece < 0.1 ? "fair" : ece < 0.2 ? "poor" : "very poor";
+
+function Calibration({ c }: { c: Schema<"ZemaScore">["calibration"] }) {
+  if (!c) return <>calibration measured (values not available)</>;
+  return <span title={c.text}>calibration measured: <strong>{c.grade}</strong>
+    <div className="muted">Brier {c.brier.toFixed(3)} · ECE {c.ece.toFixed(3)}</div></span>;
 }
 const SPLITS: [string, string][] = [
   ["chronological", "(c) chronological, 50-cycle gaps: PRIMARY"],
@@ -42,7 +52,8 @@ function Zema({ z }: { z: Schema<"ZemaBenchmark"> }) {
             const v = selected[split]?.[m];
             return <td key={m}>{r ? <>{f(r.test.macro_f1)}<div className="muted">
               95% {f(r.ci95.macro_f1.lo)}–{f(r.ci95.macro_f1.hi)} over {r.ci95.n_blocks} runs ·
-              Brier {f(r.calibration.brier)}</div></> : v ? <>{f(v.val_macro_f1)}
+              calibration {grade(r.calibration.ece_top_label)}: Brier {f(r.calibration.brier)}
+              · ECE {f(r.calibration.ece_top_label)}</div></> : v ? <>{f(v.val_macro_f1)}
               <div className="muted">validation</div></> : "-"}</td>;
           })}</tr>))}</tbody>
       </table>
@@ -61,7 +72,10 @@ function Zema({ z }: { z: Schema<"ZemaBenchmark"> }) {
             <tr key={`${s.split}-${s.evidence.cycle_id}`}>
               <td>cycle {s.evidence.cycle_id}</td><td>{s.split}</td><td>{s.model}</td>
               <td>{s.evidence.output_label}</td><td>{s.evidence.score?.toFixed(2)}</td>
-              <td>{s.evidence.confidence_calibration_status}</td></tr>))}</tbody>
+              <td>{s.evidence.confidence_calibration_status === "calibration_measured"
+                ? <Calibration c={s.calibration} />
+                : s.evidence.confidence_calibration_status.replace(/_/g, " ")}</td></tr>))}
+          </tbody>
         </table>
       </>}
       <p className="muted">{results ? "Test macro-F1, evaluated once after the "

@@ -62,7 +62,9 @@ class PresentationState(StrEnum):
 
 
 class CalibrationStatus(StrEnum):
-    CALIBRATED = "calibrated"  # probability calibration measured on held-out data
+    # calibration measured on held-out data (Brier, ECE): a measurement, not a claim that
+    # the probabilities are good; show the measured values alongside
+    CALIBRATION_MEASURED = "calibration_measured"
     UNCALIBRATED = "uncalibrated"
     NOT_APPLICABLE = "not_applicable"  # e.g. robust z-scores, no probability claim
 

@@ -373,7 +373,7 @@ def _zema(action: str, prereg: str | None) -> None:
     results["shortcut_analysis"] = zb.shortcut_analysis(labels)
     results["preregistration"] = {"tag": token.tag, "commit": token.commit,
                                   "paths": ZEMA_PREREG_PATHS, "unchanged": True}
-    results["calibrated"] = {s: {m: True for m in zb.MODEL_NAMES} for s in splits}
+    results["calibration_measured"] = {s: {m: True for m in zb.MODEL_NAMES} for s in splits}
     ZEMA_RESULTS.write_text(json.dumps(results, indent=2, default=str))
     (REPORTS / "zema_benchmark.md").write_text(zema_report.markdown(doc, results))
     for split in ("chronological", "grouped", "random"):

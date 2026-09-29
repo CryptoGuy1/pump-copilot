@@ -657,9 +657,47 @@
         "title": "CadenceSegment",
         "type": "object"
       },
+      "CalibrationGrade": {
+        "additionalProperties": false,
+        "properties": {
+          "brier": {
+            "description": "multi-class Brier score on the test part",
+            "title": "Brier",
+            "type": "number"
+          },
+          "ece": {
+            "description": "top-label expected calibration error on the test part",
+            "title": "Ece",
+            "type": "number"
+          },
+          "grade": {
+            "enum": [
+              "good",
+              "fair",
+              "poor",
+              "very poor"
+            ],
+            "title": "Grade",
+            "type": "string"
+          },
+          "text": {
+            "description": "the measurement in plain language",
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "brier",
+          "ece",
+          "grade",
+          "text"
+        ],
+        "title": "CalibrationGrade",
+        "type": "object"
+      },
       "CalibrationStatus": {
         "enum": [
-          "calibrated",
+          "calibration_measured",
           "uncalibrated",
           "not_applicable"
         ],
@@ -4058,6 +4096,17 @@
       "ZemaScore": {
         "additionalProperties": false,
         "properties": {
+          "calibration": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationGrade"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "measured on the test part of this split, for this model"
+          },
           "evidence": {
             "$ref": "#/components/schemas/ScoredEvidence",
             "description": "cycle_id is set and time_is_placeholder is true: ZeMA cycles have no clock"
@@ -4074,6 +4123,7 @@
         "required": [
           "split",
           "model",
+          "calibration",
           "evidence"
         ],
         "title": "ZemaScore",

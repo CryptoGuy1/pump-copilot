@@ -721,11 +721,34 @@ export interface components {
             /** Steps */
             steps: number;
         };
+        /** CalibrationGrade */
+        CalibrationGrade: {
+            /**
+             * Brier
+             * @description multi-class Brier score on the test part
+             */
+            brier: number;
+            /**
+             * Ece
+             * @description top-label expected calibration error on the test part
+             */
+            ece: number;
+            /**
+             * Grade
+             * @enum {string}
+             */
+            grade: "good" | "fair" | "poor" | "very poor";
+            /**
+             * Text
+             * @description the measurement in plain language
+             */
+            text: string;
+        };
         /**
          * CalibrationStatus
          * @enum {string}
          */
-        CalibrationStatus: "calibrated" | "uncalibrated" | "not_applicable";
+        CalibrationStatus: "calibration_measured" | "uncalibrated" | "not_applicable";
         /** CaseActionResult */
         CaseActionResult: {
             /** Actions */
@@ -1961,6 +1984,8 @@ export interface components {
         };
         /** ZemaScore */
         ZemaScore: {
+            /** @description measured on the test part of this split, for this model */
+            calibration: components["schemas"]["CalibrationGrade"] | null;
             /** @description cycle_id is set and time_is_placeholder is true: ZeMA cycles have no clock */
             evidence: components["schemas"]["ScoredEvidence"];
             /** Model */

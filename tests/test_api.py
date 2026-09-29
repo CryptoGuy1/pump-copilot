@@ -120,6 +120,27 @@ def test_evaluation_results_are_served_as_data(tmp_path):
     assert missing["modes"]["3a"]["results"] is None and missing["modes"]["3a"]["note"]
 
 
+def test_zema_scores_carry_their_measured_calibration_in_plain_language(tmp_path):
+    import numpy as np
+
+    from pumpcopilot import zema_bench
+
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    score = zema_bench.scored_evidence("logreg", "chronological", 1814, np.array([.2, .7, .1]),
+                                       "v1", calibration_measured=True).model_dump(mode="json")
+    cal = {"brier": 0.875, "ece_top_label": 0.404}
+    (reports / "zema_benchmark.json").write_text(json.dumps({
+        "preregistration": {"tag": "prereg-3b-r2"}, "splits": {"chronological": {
+            "logreg": {"calibration": cal}, "majority": {"calibration": {"brier": 0.709,
+                                                                         "ece_top_label": 0}}}},
+        "scores": [{"split": "chronological", "model": "logreg", "evidence": score}]}))
+    z = TestClient(_app(reports=reports, data=tmp_path)).get("/api/evaluation").json()["zema"]
+    c = z["scores"][0]["calibration"]
+    assert (c["brier"], c["ece"], c["grade"]) == (0.875, 0.404, "very poor")
+    assert "worse than always predicting the class shares" in c["text"]
+
+
 def test_the_zema_benchmark_is_served_with_its_scope_and_status(tmp_path):
     import yaml
 
@@ -148,6 +169,8 @@ def test_the_zema_benchmark_is_served_with_its_scope_and_status(tmp_path):
     assert z["results"]["preregistration"]["tag"] == "prereg-3b-r2"
     ev = z["scores"][0]["evidence"]
     assert ev["cycle_id"] == 1814 and ev["time_is_placeholder"] is True
+    assert ev["confidence_calibration_status"] == "calibration_measured"
+    assert z["scores"][0]["calibration"] is None  # the results carry no measurement here
     assert ev["output_label"] == "hydraulic test rig pump leakage state: 1"
     assert z["preregistration_tag"] == "prereg-3b-r2"
     assert z["output_label"] == "hydraulic test rig pump leakage state: k"

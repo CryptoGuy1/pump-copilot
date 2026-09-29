@@ -529,9 +529,18 @@ class ModeResult(Model):
     note: str | None
 
 
+class CalibrationGrade(Model):
+    brier: float = Field(description="multi-class Brier score on the test part")
+    ece: float = Field(description="top-label expected calibration error on the test part")
+    grade: Literal["good", "fair", "poor", "very poor"]
+    text: str = Field(description="the measurement in plain language")
+
+
 class ZemaScore(Model):
     split: str
     model: str
+    calibration: CalibrationGrade | None = Field(
+        description="measured on the test part of this split, for this model")
     evidence: ScoredEvidence = Field(description="cycle_id is set and time_is_placeholder is "
                                                  "true: ZeMA cycles have no clock")
 

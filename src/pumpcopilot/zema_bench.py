@@ -496,7 +496,7 @@ def evaluate(features: pd.DataFrame, vault: LabelVault, labels_strata_split, spl
              headlines: dict | None = None, n_scores: int = 10) -> dict:
     """Once, after unlocking: fit each frozen setting on train, score the test part. The
     first n_scores test cycles of each split's headline model are kept as ScoredEvidence
-    (calibrated: calibration is measured on this test part)."""
+    (calibration_measured: calibration is measured on this test part)."""
     check_domain(features)
     results: dict = {"splits": {}, "scores": []}
     for split, parts in splits.items():
@@ -530,8 +530,9 @@ def evaluate(features: pd.DataFrame, vault: LabelVault, labels_strata_split, spl
 def scored_evidence(model: str, split: str, cycle_id: int, proba: np.ndarray,
                     model_version: str, calibration_measured: bool,
                     source_dataset: SourceDataset = SourceDataset.ZEMA) -> ScoredEvidence:
-    """One cycle's prediction. Calibrated only where calibration was measured on held-out
-    data for this model and split; the model's domain is ZeMA whatever the caller says."""
+    """One cycle's prediction. calibration_measured only where calibration was measured on
+    held-out data for this model and split; the model's domain is ZeMA whatever the caller
+    says."""
     k = int(np.argmax(proba))
     label = OUTPUT_LABEL.format(k=k)
     review = k != 0
@@ -545,8 +546,69 @@ def scored_evidence(model: str, split: str, cycle_id: int, proba: np.ndarray,
         model_domain=SourceDataset.ZEMA,
         feature_window=FeatureWindow(start=start, end=start + dt.timedelta(seconds=60)),
         evidence=items, score=float(proba[k]),
-        confidence_calibration_status=(CalibrationStatus.CALIBRATED if calibration_measured
+        confidence_calibration_status=(CalibrationStatus.CALIBRATION_MEASURED
+                                       if calibration_measured
                                        else CalibrationStatus.UNCALIBRATED),
         presentation_state=(PresentationState.REVIEW_SUGGESTED if review
                             else PresentationState.NORMAL),
         output_label=label, cycle_id=int(cycle_id), time_is_placeholder=True)
+
+
+# --- presentation ------------------------------------------------------------------------
+
+# top-label ECE thresholds for a plain-language grade (upper bounds, exclusive)
+CALIBRATION_GRADES = ((0.05, "good"), (0.10, "fair"), (0.20, "poor"), (float("inf"), "very poor"))
+
+
+def calibration_grade(brier: float, ece: float, baseline_brier: float | None = None) -> dict:
+    """The measured Brier score and top-label ECE, with a grade in plain language. The
+    baseline is the majority model, which always predicts the training class shares."""
+    grade = next(g for bound, g in CALIBRATION_GRADES if ece < bound)
+    text = f"{grade}: top-label probabilities are off by {ece:.2f} on average (ECE)"
+    if baseline_brier is not None:
+        rel = "better than" if brier < baseline_brier else "worse than"
+        text += (f"; Brier {brier:.3f}, {rel} always predicting the class shares "
+                 f"({baseline_brier:.3f})")
+    else:
+        text += f"; Brier {brier:.3f}"
+    return {"brier": brier, "ece": ece, "grade": grade, "text": text}
+
+
+_RENAME = {"calibrated": "calibration_measured"}
+
+
+def migrate_results(results: dict) -> dict:
+    """Stored results from before the rename of the calibration status: rename only. Every
+    number stays as evaluated (numbers() is unchanged); the migration is recorded."""
+    import copy
+
+    out = copy.deepcopy(results)
+    changed = False
+    if "calibrated" in out:
+        out["calibration_measured"] = out.pop("calibrated")
+        changed = True
+    for s in out.get("scores", []):
+        ev = s.get("evidence", {})
+        if ev.get("confidence_calibration_status") in _RENAME:
+            ev["confidence_calibration_status"] = _RENAME[ev["confidence_calibration_status"]]
+            changed = True
+    if changed:
+        out.setdefault("presentation_migrations", []).append({
+            "rename": dict(_RENAME), "what": "the calibration status and the results key; "
+            "a presentation change, no number changed"})
+    return out
+
+
+def numbers(obj, path: str = "") -> list[tuple[str, float]]:
+    """Every numeric leaf with its path (booleans excluded), for before/after comparisons."""
+    if isinstance(obj, bool):
+        return []
+    if isinstance(obj, int | float):
+        return [(path, obj)]
+    if isinstance(obj, dict):
+        key = {"calibration_measured": "calibrated"}
+        return sorted(x for k, v in obj.items() for x in numbers(v, f"{path}/{key.get(k, k)}")
+                      if k != "presentation_migrations")
+    if isinstance(obj, list):
+        return [x for i, v in enumerate(obj) for x in numbers(v, f"{path}[{i}]")]
+    return []

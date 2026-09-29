@@ -791,13 +791,26 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
         cfg_file = data / "zema_benchmark.yaml"
         cfg = yaml.safe_load(cfg_file.read_text()) if cfg_file.exists() else None
         res = load("zema_benchmark.json")
+        if res:
+            res = zema_bench.migrate_results(res)
+
+        def graded(split: str, model: str):
+            sp = (res or {}).get("splits", {}).get(split, {})
+            cal = sp.get(model, {}).get("calibration")
+            if not cal or "ece_top_label" not in cal:
+                return None
+            base = sp.get("majority", {}).get("calibration", {}).get("brier")
+            return zema_bench.calibration_grade(cal["brier"], cal["ece_top_label"], base)
+
+        scores = [{**x, "calibration": graded(x["split"], x["model"])}
+                  for x in (res or {}).get("scores", [])]
         zema = {"scope_note": zema_bench.SCOPE_NOTE,
                 "output_label": zema_bench.OUTPUT_LABEL.format(k="k"),
                 "status": "evaluated" if res else "pre-registered, not yet evaluated" if cfg
                 else "not_tuned",
                 "preregistration_tag": (res or {}).get("preregistration", {}).get("tag")
                 or (cfg or {}).get("preregistration_tag") or "prereg-3b-r2",
-                "config": cfg, "results": res, "scores": (res or {}).get("scores", []),
+                "config": cfg, "results": res, "scores": scores,
                 "report": "reports/zema_benchmark.md"}
         return {"modes": modes, "cases_all_modes": load("cira_cases_all_modes.json"),
                 "report": "reports/cira_scoring_eval.md", "zema": zema,

@@ -290,11 +290,13 @@ def test_calibration_brier_and_reliability():
     assert zb.calibration(y, uniform)["brier"] == pytest.approx(2 / 3)
 
 
-def test_scored_evidence_is_calibrated_only_where_measured_and_keeps_the_rig_label():
+def test_scored_evidence_says_calibration_measured_only_where_it_was():
     p = np.array([0.1, 0.2, 0.7])
     measured = zb.scored_evidence("gradient_boosting", "chronological", 7, p, "v1",
                                   calibration_measured=True)
-    assert measured.confidence_calibration_status == CalibrationStatus.CALIBRATED
+    assert measured.confidence_calibration_status == CalibrationStatus.CALIBRATION_MEASURED
+    assert measured.model_dump(mode="json")["confidence_calibration_status"] == \
+        "calibration_measured"
     assert measured.output_label == "hydraulic test rig pump leakage state: 2"
     assert measured.presentation_state == PresentationState.REVIEW_SUGGESTED
     assert measured.source_dataset == measured.model_domain == SourceDataset.ZEMA
@@ -335,6 +337,39 @@ def test_placeholder_time_fields_are_zema_only_and_leave_cira_scores_unchanged()
                        presentation_state="normal", cycle_id=3)
 
 
+def test_the_status_is_calibration_measured_not_calibrated():
+    values = {c.value for c in CalibrationStatus}
+    assert "calibration_measured" in values and "calibrated" not in values
+
+
+@pytest.mark.parametrize("ece,grade", [(0.004, "good"), (0.07, "fair"), (0.15, "poor"),
+                                       (0.40, "very poor")])
+def test_calibration_grade_in_plain_language(ece, grade):
+    g = zb.calibration_grade(brier=0.3, ece=ece, baseline_brier=0.7)
+    assert g["grade"] == grade and g["brier"] == 0.3 and g["ece"] == ece
+    assert f"{ece:.2f}" in g["text"] and "better than" in g["text"]
+    worse = zb.calibration_grade(brier=0.875, ece=0.404, baseline_brier=0.709)
+    assert worse["grade"] == "very poor"
+    assert "worse than always predicting the class shares" in worse["text"]
+    grades = ((0.05, "good"), (0.10, "fair"), (0.20, "poor"), (float("inf"), "very poor"))
+    assert grades == zb.CALIBRATION_GRADES
+
+
+def test_legacy_results_migrate_by_renaming_only():
+    old = {"splits": {"random": {"logreg": {"calibration": {"brier": 0.1}}}},
+           "calibrated": {"random": {"logreg": True}},
+           "scores": [{"split": "random", "model": "logreg", "evidence": {
+               "confidence_calibration_status": "calibrated", "score": 0.9}}]}
+    new = zb.migrate_results(old)
+    assert new["scores"][0]["evidence"]["confidence_calibration_status"] == \
+        "calibration_measured"
+    assert new["calibration_measured"] == {"random": {"logreg": True}}
+    assert "calibrated" not in new and new["splits"] == old["splits"]
+    assert new["presentation_migrations"][0]["rename"] == {"calibrated": "calibration_measured"}
+    assert zb.numbers(new) == zb.numbers(old)
+    assert zb.migrate_results(new) == new  # idempotent
+
+
 def test_zema_models_never_score_cira():
     with pytest.raises(ValueError, match="may not score"):
         zb.scored_evidence("logreg", "random", 1, np.array([1.0, 0, 0]), "v1",
@@ -372,6 +407,15 @@ def test_report_opens_with_the_test_rig_note():
     st = {"n": 12, "class_counts": {"0": 12, "1": 0, "2": 0}, "macro_f1": None,
           "note": "too few cycles", "recall": {"0": 1.0, "1": None, "2": None}}
     assert "too few cycles" in zema_report.stratum_cell(st)
+    res = {"preregistration": {"tag": "prereg-3b-r2", "commit": "3ab44276f478"},
+           "headline": {"chronological": "logreg"}, "splits": {"chronological": {
+               "logreg": {"val_macro_f1": 0.707, "test": {"macro_f1": 0.476},
+                          "ci95": {"macro_f1": {"lo": 0.244, "hi": 0.611}, "n_blocks": 9},
+                          "stratified": {"cooler_pct": {"100": {}}}}}}}
+    summary = zema_report.summary(res)
+    assert "well below validation, with wide uncertainty (9 test runs)" in summary
+    assert "can't separate time drift from condition shift" in summary
+    assert "0.476" in summary and "0.707" in summary
     assert "0.50" in zema_report.stratum_cell({**st, "macro_f1": 0.5, "note": None})
     first = md.lstrip().splitlines()[0:4]
     assert "hydraulic test rig" in " ".join(first).lower()

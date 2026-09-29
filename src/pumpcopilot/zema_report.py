@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .zema_bench import MODEL_NAMES, SCOPE_NOTE, STRATA
+from .zema_bench import MODEL_NAMES, SCOPE_NOTE, STRATA, calibration_grade
 
 SPLITS = (("chronological", "(c) chronological 60/20/20, 50-cycle gaps: PRIMARY"),
           ("grouped", "(b) grouped by leakage run"),
@@ -13,6 +13,28 @@ def stratum_cell(st: dict) -> str:
     if st.get("macro_f1") is None:
         return f"{st.get('note') or 'too few cycles'} (n {st['n']})"
     return f"{st['macro_f1']:.2f} (n {st['n']})"
+
+
+def summary(results: dict) -> str:
+    """The primary result in brief."""
+    model = results["headline"]["chronological"]
+    r = results["splits"]["chronological"][model]
+    ci = r["ci95"]["macro_f1"]
+    coolers = ", ".join(f"{k}%" for k in r.get("stratified", {}).get("cooler_pct", {}))
+    return (f"Primary result (chronological split, headline model {model}): test macro-F1 "
+            f"{r['test']['macro_f1']:.3f} (95% interval {ci['lo']:.3f}–{ci['hi']:.3f}), well "
+            f"below validation, with wide uncertainty ({r['ci95']['n_blocks']} test runs). "
+            f"Its validation macro-F1 was {r['val_macro_f1']:.3f}. "
+            f"The data can't separate time drift from "
+            f"condition shift: the chronological test part comes later in the recording and "
+            f"also covers different conditions (cooler at {coolers or '-'} only), so the drop "
+            f"may come from either, or both.")
+
+
+def _grade(results: dict, split: str, model: str) -> str:
+    cal = results["splits"][split][model]["calibration"]
+    base = results["splits"][split]["majority"]["calibration"]["brier"]
+    return calibration_grade(cal["brier"], cal["ece_top_label"], base)["grade"]
 
 
 def _ci(c: dict) -> str:
@@ -60,6 +82,7 @@ def markdown(doc: dict, results: dict | None) -> str:
                 "`pumpcopilot zema eval --prereg prereg-3b`, after the pre-registration "
                 "commit.", ""]
         return "\n".join(out) + "\n"
+    out += ["## Result in brief", "", summary(results), ""]
     sa = results.get("shortcut_analysis")
     if sa:
         t = sa["table"]
@@ -73,8 +96,10 @@ def markdown(doc: dict, results: dict | None) -> str:
             f" = `{results['preregistration']['commit'][:12]}`)", "",
             "Intervals are 95% block-bootstrap percentile intervals over leakage label runs "
             "(the number of runs in each test part is given), not over cycles.", "",
-            "| split | model | macro-F1 | 95% interval | recall 0 / 1 / 2 | runs | Brier |",
-            "|---|---|---|---|---|---|---|"]
+            "Calibration is measured on each test part: Brier score, top-label ECE and a plain "
+            "grade (ECE below 0.05 good, below 0.10 fair, below 0.20 poor, else very poor).", "",
+            "| split | model | macro-F1 | 95% interval | recall 0 / 1 / 2 | runs | Brier | ECE |"
+            " calibration |", "|---|---|---|---|---|---|---|---|---|"]
     for split, title in SPLITS:
         for model in MODEL_NAMES:
             r = results["splits"][split][model]
@@ -82,7 +107,9 @@ def markdown(doc: dict, results: dict | None) -> str:
                              r["test"]["recall"].values())
             out.append(f"| {title if model == MODEL_NAMES[0] else ''} | {model} | "
                        f"{r['test']['macro_f1']:.3f} | {_ci(r['ci95']['macro_f1'])} | {rec} | "
-                       f"{r['ci95']['n_blocks']} | {r['calibration']['brier']:.3f} |")
+                       f"{r['ci95']['n_blocks']} | {r['calibration']['brier']:.3f} | "
+                       f"{r['calibration']['ece_top_label']:.3f} | "
+                       f"{_grade(results, split, model)} |")
     out.append("")
     for split, title in SPLITS:
         out += [f"### {title}: confusion matrices (rows true 0/1/2, columns predicted)", ""]
