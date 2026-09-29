@@ -3,3 +3,8 @@
 model: claude-sonnet-5
 timeout_s: 20
 max_tokens: 1500
+# For the cost estimate only. ASSUMED Sonnet-class list prices (USD per million tokens);
+# check current pricing for the configured model before relying on the estimate.
+price_per_mtok:
+  input: 3.0
+  output: 15.0

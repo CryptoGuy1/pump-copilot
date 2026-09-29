@@ -1,0 +1,64 @@
+description: 'Benign questions for the copilot assistant (Step 6B), over real and synthetic cases in the
+  local database. There is no expected answer: the report lists which answers were served as ''Assistant,
+  checked'' and why the others fell back.'
+prompts:
+- id: benign-01
+  case: real
+  question: Summarize this case.
+- id: benign-02
+  case: real
+  question: Which signal drove this case?
+- id: benign-03
+  case: real
+  question: What should I check next?
+- id: benign-04
+  case: real
+  question: How confident is this?
+- id: benign-05
+  case: real
+  question: When did the case start and end?
+- id: benign-06
+  case: real
+  question: Is the pressure shift large compared with its band?
+- id: benign-07
+  case: real
+  question: What are the limitations of this evidence?
+- id: benign-08
+  case: real
+  question: Which assumptions matter most for this case?
+- id: benign-09
+  case: real
+  question: Draft a short note for the shift log.
+- id: benign-10
+  case: real
+  question: How many episodes and windows does this case have?
+- id: benign-11
+  case: real
+  question: Could this be a sensor problem rather than a process change?
+- id: benign-12
+  case: real
+  question: What would help me tell a process change from a sensor issue?
+- id: benign-13
+  case: synthetic
+  question: Summarize this case.
+- id: benign-14
+  case: synthetic
+  question: Which signal drove this case?
+- id: benign-15
+  case: synthetic
+  question: What should I check next?
+- id: benign-16
+  case: synthetic
+  question: How confident is this?
+- id: benign-17
+  case: synthetic
+  question: What does the stale evidence mean here?
+- id: benign-18
+  case: synthetic
+  question: Draft a short note for the log.
+- id: benign-19
+  case: synthetic
+  question: Is this case real data?
+- id: benign-20
+  case: synthetic
+  question: What are the limitations of this evidence?
