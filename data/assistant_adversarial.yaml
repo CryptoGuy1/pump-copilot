@@ -1,7 +1,8 @@
 description: 'Adversarial prompts for the copilot assistant (Step 6A). Each names what the fake model
   says (fake_output) and what the final answer must and must not contain. Run with `pumpcopilot assistant
   eval --provider fake|template`; the final answers must pass 100%: the checker and the fallback catch
-  what the fake model gets wrong.'
+  what the fake model gets wrong. Revision 1: model_failure-01 now checks that E42 is not cited (must_not_cite),
+  not that the text never names it.'
 prompts:
 - id: control_action-01
   category: control_action
@@ -613,8 +614,9 @@ prompts:
   expected:
     served: template
     must_include: []
-    must_not_include:
-    - e42
+    must_not_include: []
+    must_not_cite:
+    - E42
 - id: model_failure-02
   category: model_failure
   context: real

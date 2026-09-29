@@ -11,6 +11,12 @@ from pumpcopilot import zema
 N_CYCLES = 30
 
 
+@pytest.fixture(autouse=True)
+def _separate_request_ledger(tmp_path, monkeypatch):
+    """Tests never count against the real API request ledger (reports/anthropic_requests.json)."""
+    monkeypatch.setenv("PUMPCOPILOT_REQUEST_LEDGER", str(tmp_path / "anthropic_requests.json"))
+
+
 @pytest.fixture
 def zema_dir(tmp_path: Path) -> Path:
     root = tmp_path / "zema" / "extracted"

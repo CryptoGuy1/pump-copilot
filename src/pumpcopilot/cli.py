@@ -61,9 +61,16 @@ def main(argv: list[str] | None = None) -> None:
     zp.add_argument("action", choices=["features", "tune", "eval", "report"])
     zp.add_argument("--prereg", help="eval: the pre-registration tag (prereg-3b)")
     asp = sub.add_parser("assistant", help="copilot assistant: adversarial evaluation, ping")
-    asp.add_argument("action", choices=["eval", "ping"])
-    asp.add_argument("--no-dotenv", action="store_true", help="ping: do not load .env")
-    asp.add_argument("--provider", choices=["fake", "template"], default="fake")
+    asp.add_argument("action", choices=["eval", "ping", "keyscan", "report"])
+    asp.add_argument("--no-dotenv", action="store_true", help="do not load .env")
+    asp.add_argument("--provider", choices=["fake", "template", "anthropic"], default="fake")
+    asp.add_argument("--set", dest="which", default="adversarial",
+                     help="anthropic: comma-separated sets from adversarial, benign, holdout "
+                          "(or both = adversarial,benign)")
+    asp.add_argument("--ledger", default=None,
+                     help="anthropic: a named request ledger (reports/anthropic_requests_"
+                          "<name>.json) with its own --cap; default: the Step 6B ledger")
+    asp.add_argument("--cap", type=int, default=None, help="anthropic: that ledger's cap")
     asp.add_argument("--timeout", type=float, default=0.2,
                      help="seconds before the fake model's slow answers time out")
     ap = sub.add_parser("api", help="serve the HTTP API and live stream on 127.0.0.1 only")
@@ -117,6 +124,12 @@ def main(argv: list[str] | None = None) -> None:
         _zema(args.action, args.prereg)
     elif args.cmd == "assistant" and args.action == "ping":
         _assistant_ping(args.no_dotenv)
+    elif args.cmd == "assistant" and args.action == "keyscan":
+        _assistant_keyscan(args.no_dotenv)
+    elif args.cmd == "assistant" and args.action == "report":
+        _assistant_report()
+    elif args.cmd == "assistant" and args.provider == "anthropic":
+        _assistant_eval_real(args.which, args.no_dotenv, args.ledger, args.cap)
     elif args.cmd == "assistant":
         _assistant_eval(args.provider, args.timeout)
     elif args.cmd == "score":
@@ -405,7 +418,8 @@ def _assistant_ping(no_dotenv: bool) -> None:
         from dotenv import load_dotenv
 
         load_dotenv(ENV_FILE, override=False)
-    r = assistant.ping()
+    r = assistant.ping(assistant.AnthropicProvider(max_retries=0,
+                                                   ledger=assistant.RequestLedger()))
     key = os.environ.get("ANTHROPIC_API_KEY")
     say = lambda s: print(assistant.redact(s, key))  # noqa: E731
     if not r["key_present"]:
@@ -417,6 +431,154 @@ def _assistant_ping(no_dotenv: bool) -> None:
         return
     say(f"model responds: no ({r['model']}): {r['error']}")
     raise SystemExit(1)
+
+
+SETS = {"adversarial": 50, "adversarial_r1": 15, "benign": 20, "holdout": 20}
+HOLDOUT_FILE = "data/assistant_benign_holdout.yaml"
+
+
+def holdout_commit() -> str | None:
+    """The commit that last changed the holdout file, if it is tracked and unchanged since;
+    otherwise None (it must be committed before any real-model run on it)."""
+    import subprocess
+
+    def git(*a):
+        return subprocess.run(["git", "-C", str(ROOT), *a], capture_output=True, text=True)
+    if git("ls-files", "--error-unmatch", HOLDOUT_FILE).returncode != 0:
+        return None
+    if git("diff", "--quiet", "HEAD", "--", HOLDOUT_FILE).returncode != 0:
+        return None
+    sha = git("log", "-1", "--format=%H", "--", HOLDOUT_FILE).stdout.strip()
+    return sha or None
+
+
+def _load_env(no_dotenv: bool) -> None:
+    if not no_dotenv and ENV_FILE.exists():
+        from dotenv import load_dotenv
+
+        load_dotenv(ENV_FILE, override=False)
+
+
+def _assistant_eval_real(which: str, no_dotenv: bool, ledger_name: str | None = None,
+                         cap: int | None = None) -> None:
+    """The real model, once per set, within a ledger's cap. Results are saved after each
+    set; on a failure the run stops and says how many requests were used."""
+    import os
+
+    from . import assistant, db
+
+    _load_env(no_dotenv)
+    key = os.environ.get("ANTHROPIC_API_KEY")
+    if not key:
+        raise SystemExit("key: not set (ANTHROPIC_API_KEY)")
+    sets = ["adversarial", "benign"] if which == "both" else [x.strip() for x in
+                                                               which.split(",") if x.strip()]
+    if set(sets) - set(SETS):
+        raise SystemExit(f"unknown sets {sorted(set(sets) - set(SETS))}; use {sorted(SETS)}")
+    if ledger_name:
+        if cap is None:
+            raise SystemExit("--ledger needs --cap")
+        ledger = assistant.RequestLedger(REPORTS / f"anthropic_requests_{ledger_name}.json",
+                                         cap=cap)
+    else:
+        ledger = assistant.RequestLedger()
+    holdout_sha = None
+    if "holdout" in sets:
+        holdout_sha = holdout_commit()
+        if not holdout_sha:
+            raise SystemExit(f"{HOLDOUT_FILE} must be committed, and unchanged since, before a "
+                             "real-model run on the holdout set: not started")
+    planned = sum(SETS[x] for x in sets)
+    if ledger.remaining() < planned:
+        raise SystemExit(f"{planned} requests planned, only {ledger.remaining()} left of the "
+                         f"cap of {ledger.cap}: not started (ask before raising a cap)")
+    p = assistant.AnthropicProvider(max_retries=0, ledger=ledger)
+    out = {"model": p.model, "checker_version": assistant.CHECKER_VERSION,
+           "ledger": str(ledger.path.name), "cap": ledger.cap,
+           "requests_before": ledger.used(), "sets": sets, "holdout_commit": holdout_sha}
+    REPORTS.mkdir(exist_ok=True)
+    path = REPORTS / (f"assistant_eval_{ledger_name}.json" if ledger_name
+                      else "assistant_anthropic_eval.json")
+    names = {x: x for x in SETS}
+
+    def save(incomplete: str | None = None) -> None:
+        """After each set, so a crash in a later set cannot lose finished results."""
+        out["requests_after"] = ledger.used()
+        done = [names[x] for x in sets if names[x] in out]
+        usage = {k: sum(out[s]["usage"][k] for s in done)
+                 for k in ("requests", "input_tokens", "output_tokens")}
+        out.update(usage=usage, estimated_cost_usd=assistant.cost_usd(usage),
+                   price_note="estimate from ASSUMED prices in data/assistant.yaml",
+                   incomplete=incomplete)
+        path.write_text(assistant.redact(json.dumps(out, indent=2, default=str), key))
+
+    try:
+        for x in sets:
+            if x in ("adversarial", "adversarial_r1"):
+                items = assistant.load_adversarial(
+                    assistant.ADVERSARIAL_R1 if x == "adversarial_r1" else assistant.ADVERSARIAL)
+                out[x] = assistant.run_adversarial("anthropic", provider_obj=p, items=items)
+                out[x]["label"] = ("revision-1 adversarial additions" if x == "adversarial_r1"
+                                   else "adversarial")
+            else:
+                with db.connect() as conn:
+                    items = assistant.load_benign(assistant.BENIGN_HOLDOUT
+                                                  if x == "holdout" else assistant.BENIGN)
+                    out[names[x]] = assistant.run_benign(conn, p, items=items)
+                out[names[x]]["label"] = ("holdout, written blind" if x == "holdout"
+                                          else "after revision, seen" if ledger_name
+                                          else "benign")
+            save()
+            if out[names[x]].get("stopped"):
+                raise RuntimeError(out[names[x]]["stopped"])
+    except Exception as e:
+        save(incomplete=assistant.redact(str(e), key)[:300])
+        print(assistant.redact(f"STOPPED: {type(e).__name__}: {e}; requests used "
+                               f"{ledger.used()}/{ledger.cap}; partial results in {path}", key))
+        raise SystemExit(1) from None
+    say = lambda s: print(assistant.redact(s, key))  # noqa: E731
+    for x in sets:
+        r = out[names[x]]
+        if x in ("adversarial", "adversarial_r1"):
+            say(f"{x}: {r['total']} run; raw answers passing the checker by themselves "
+                f"{r['raw_passed_checker']}; final {r['passed']}/{r['total']} "
+                f"({r['pass_rate']:.0%}); latency p50 {r['latency_ms']['p50']} ms, p95 "
+                f"{r['latency_ms']['p95']} ms")
+        else:
+            say(f"{x} ({r['label']}): {r['total']} run; Assistant, checked "
+                f"{r['served']['assistant']}; fell back {r['served']['template']}; latency "
+                f"p50 {r['latency_ms']['p50']} ms, p95 {r['latency_ms']['p95']} ms")
+    u = out["usage"]
+    say(f"usage: {u['requests']} answered requests, {u['input_tokens']} input and "
+        f"{u['output_tokens']} output tokens; estimated ${out['estimated_cost_usd']} "
+        f"(assumed prices); ledger {out['requests_after']}/{ledger.cap}")
+    say(f"[written] {path}")
+
+
+def _assistant_keyscan(no_dotenv: bool) -> None:
+    """Scan for the key without ever printing it; writes reports/assistant_keyscan.json."""
+    import os
+
+    from . import assistant
+
+    _load_env(no_dotenv)
+    key = os.environ.get("ANTHROPIC_API_KEY")
+    if not key:
+        raise SystemExit("key: not set (ANTHROPIC_API_KEY); nothing to scan for")
+    res = assistant.key_scan(key)
+    (REPORTS / "assistant_keyscan.json").write_text(
+        assistant.redact(json.dumps(res, indent=2), key))
+    print(assistant.redact(json.dumps(res, indent=2), key))
+    if not res["clean"]:
+        raise SystemExit(1)
+
+
+def _assistant_report() -> None:
+    from . import assistant_report
+
+    out = REPORTS / "assistant_eval.md"
+    out.write_text(assistant_report.markdown(REPORTS))
+    print(f"[written] {out}")
 
 
 def _assistant_eval(provider: str, timeout_s: float) -> None:

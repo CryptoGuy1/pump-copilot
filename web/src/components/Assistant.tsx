@@ -60,9 +60,9 @@ export function AssistantPanel({ caseId, actor, canNote, onHighlight }: {
               <button key={ref} className="ref" data-testid={`ref-${ref}`}
                       onClick={() => onHighlight(target(r, ref))}>{ref}</button>))}
           </li>))}</ul>
-        {r.answer.suggested_checks.length > 0 && <>
+        {(r.answer.suggested_checks ?? []).length > 0 && <>
           <p><strong>Read-only checks you could make</strong></p>
-          <ul>{r.answer.suggested_checks.map((c) => <li key={c}>{c}</li>)}</ul></>}
+          <ul>{(r.answer.suggested_checks ?? []).map((c) => <li key={c}>{c}</li>)}</ul></>}
         {draft != null && <div className="draft">
           <p><strong>Draft note</strong> (not saved until you approve it)</p>
           <textarea aria-label="draft note" rows={3} cols={70} value={draft}

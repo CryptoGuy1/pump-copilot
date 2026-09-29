@@ -615,7 +615,7 @@ export interface components {
              * Suggested Checks
              * @description read-only things the engineer could look at
              */
-            suggested_checks: string[];
+            suggested_checks?: string[];
         };
         /** AssistantQuestion */
         AssistantQuestion: {

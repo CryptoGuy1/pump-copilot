@@ -225,8 +225,7 @@
           }
         },
         "required": [
-          "claims",
-          "suggested_checks"
+          "claims"
         ],
         "title": "AssistantAnswer",
         "type": "object"
