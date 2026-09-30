@@ -1,7 +1,8 @@
 """reports/assistant_eval.md: the real-model runs of the assistant, revision by revision.
 
-The history is part of the evidence: the baseline run (checker revision 0), the changelog of
-revision 1, and the revision-1 run. Nothing here is recomputed; it reads the stored results.
+The history is part of the evidence: the revision-2 run (the final checker revision) and its
+changelog, the revision-1 run and its changelog, and the baseline run (checker revision 0).
+Nothing here is recomputed; it reads the stored results.
 """
 
 from __future__ import annotations
@@ -54,16 +55,47 @@ def _usage(run: dict) -> list[str]:
             f"{run['requests_after']}/{run['cap']} ({run.get('ledger', 'Step 6B ledger')}).", ""]
 
 
+def _changelog(docs: Path, revision: int) -> list[str]:
+    path = docs / "ASSISTANT_CHECKER.md"
+    if not path.exists() or f"## Revision {revision}" not in path.read_text():
+        return []
+    text = path.read_text()
+    body = text[text.index(f"## Revision {revision}"):].split("\n", 1)[1].split("\n## ")[0]
+    return [f"## Changelog of revision {revision}", "", body.strip(), ""]
+
+
 def markdown(reports: Path = ROOT / "reports", docs: Path = ROOT / "docs") -> str:
     base = _load(reports / "assistant_eval_baseline.json")
     r1 = _load(reports / "assistant_eval_r1.json")
+    r2 = _load(reports / "assistant_eval_r2.json")
     scan = _load(reports / "assistant_keyscan.json")
     out = ["# Copilot assistant: real-model evaluation", "",
            "Model: `claude-sonnet-5` through tool use. Every answer is checked before it is "
            "shown; otherwise the evidence summary is shown. Contexts: the adversarial set uses "
            "fixed sample contexts; the benign sets use real and synthetic cases in the local "
-           "database. The history of what failed and why is part of the evidence, so both runs "
-           "are kept.", ""]
+           "database. The history of what failed and why is part of the evidence, so every run "
+           "is kept.", ""]
+    if r2:
+        out += ["## Revision 2 (checker revision 2, the final checker revision)", "",
+                "Checker revision 2 is the **final checker revision**: these results are "
+                "reported as they came out, and the checker is not changed after them.", ""]
+        if r2.get("holdout_commit"):
+            f = r2.get("holdout_file") or "data/assistant_benign_holdout2.yaml"
+            out += [f"The second holdout set was committed before this run, in "
+                    f"`{r2['holdout_commit']}` (`{f}`, unchanged since); the run checked this "
+                    "before it started.", ""]
+        if "holdout2" in r2:
+            out += _benign("Second holdout benign set (written blind, committed before any run)",
+                           r2["holdout2"])
+        if "adversarial" in r2:
+            out += ["### Adversarial set (the original 50)", ""] + _adversarial(r2["adversarial"])
+        if "adversarial_r1" in r2:
+            out += ["### Revision-1 adversarial additions (15)", ""] + _adversarial(
+                r2["adversarial_r1"])
+        out += _usage(r2)
+        if r2.get("incomplete"):
+            out += [f"**Incomplete:** {r2['incomplete']}", ""]
+        out += _changelog(docs, 2)
     if r1:
         out += ["## Revision 1 (checker revision 1)", ""]
         if r1.get("holdout_commit"):
@@ -85,11 +117,7 @@ def markdown(reports: Path = ROOT / "reports", docs: Path = ROOT / "docs") -> st
             out += [f"**Incomplete:** {r1['incomplete']}", ""]
     else:
         out += ["## Revision 1", "", "Not run yet.", ""]
-    changelog = docs / "ASSISTANT_CHECKER.md"
-    if changelog.exists():
-        text = changelog.read_text()
-        out += ["## Changelog of revision 1", "",
-                text[text.index("## Revision 1"):].split("\n", 2)[2].strip(), ""]
+    out += _changelog(docs, 1)
     if base:
         out += ["## Baseline (checker revision 0): the first run", "",
                 "The first attempt crashed in the benign set: the evidence-summary fallback "

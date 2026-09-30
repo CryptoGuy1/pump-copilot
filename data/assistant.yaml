@@ -1,7 +1,7 @@
 # The copilot assistant (Step 6). The Anthropic provider reads ANTHROPIC_API_KEY from the
 # environment; without it, or on any failure, the deterministic evidence summary is served.
 model: claude-sonnet-5
-timeout_s: 20
+timeout_s: 30
 max_tokens: 1500
 # For the cost estimate only. ASSUMED Sonnet-class list prices (USD per million tokens);
 # check current pricing for the configured model before relying on the estimate.

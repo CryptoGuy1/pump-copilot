@@ -65,8 +65,8 @@ def main(argv: list[str] | None = None) -> None:
     asp.add_argument("--no-dotenv", action="store_true", help="do not load .env")
     asp.add_argument("--provider", choices=["fake", "template", "anthropic"], default="fake")
     asp.add_argument("--set", dest="which", default="adversarial",
-                     help="anthropic: comma-separated sets from adversarial, benign, holdout "
-                          "(or both = adversarial,benign)")
+                     help="anthropic: comma-separated sets from adversarial, adversarial_r1, "
+                          "benign, holdout, holdout2 (or both = adversarial,benign)")
     asp.add_argument("--ledger", default=None,
                      help="anthropic: a named request ledger (reports/anthropic_requests_"
                           "<name>.json) with its own --cap; default: the Step 6B ledger")
@@ -433,22 +433,23 @@ def _assistant_ping(no_dotenv: bool) -> None:
     raise SystemExit(1)
 
 
-SETS = {"adversarial": 50, "adversarial_r1": 15, "benign": 20, "holdout": 20}
+SETS = {"adversarial": 50, "adversarial_r1": 15, "benign": 20, "holdout": 20, "holdout2": 20}
 HOLDOUT_FILE = "data/assistant_benign_holdout.yaml"
+HOLDOUT_FILES = {"holdout": HOLDOUT_FILE, "holdout2": "data/assistant_benign_holdout2.yaml"}
 
 
-def holdout_commit() -> str | None:
-    """The commit that last changed the holdout file, if it is tracked and unchanged since;
+def holdout_commit(path: str = HOLDOUT_FILE) -> str | None:
+    """The commit that last changed a holdout file, if it is tracked and unchanged since;
     otherwise None (it must be committed before any real-model run on it)."""
     import subprocess
 
     def git(*a):
         return subprocess.run(["git", "-C", str(ROOT), *a], capture_output=True, text=True)
-    if git("ls-files", "--error-unmatch", HOLDOUT_FILE).returncode != 0:
+    if git("ls-files", "--error-unmatch", path).returncode != 0:
         return None
-    if git("diff", "--quiet", "HEAD", "--", HOLDOUT_FILE).returncode != 0:
+    if git("diff", "--quiet", "HEAD", "--", path).returncode != 0:
         return None
-    sha = git("log", "-1", "--format=%H", "--", HOLDOUT_FILE).stdout.strip()
+    sha = git("log", "-1", "--format=%H", "--", path).stdout.strip()
     return sha or None
 
 
@@ -482,12 +483,13 @@ def _assistant_eval_real(which: str, no_dotenv: bool, ledger_name: str | None = 
                                          cap=cap)
     else:
         ledger = assistant.RequestLedger()
-    holdout_sha = None
-    if "holdout" in sets:
-        holdout_sha = holdout_commit()
+    holdout_sha, holdout_file = None, None
+    for x in [x for x in sets if x in HOLDOUT_FILES]:
+        holdout_file = HOLDOUT_FILES[x]
+        holdout_sha = holdout_commit(holdout_file)
         if not holdout_sha:
-            raise SystemExit(f"{HOLDOUT_FILE} must be committed, and unchanged since, before a "
-                             "real-model run on the holdout set: not started")
+            raise SystemExit(f"{holdout_file} must be committed, and unchanged since, before a "
+                             f"real-model run on the {x} set: not started")
     planned = sum(SETS[x] for x in sets)
     if ledger.remaining() < planned:
         raise SystemExit(f"{planned} requests planned, only {ledger.remaining()} left of the "
@@ -495,7 +497,8 @@ def _assistant_eval_real(which: str, no_dotenv: bool, ledger_name: str | None = 
     p = assistant.AnthropicProvider(max_retries=0, ledger=ledger)
     out = {"model": p.model, "checker_version": assistant.CHECKER_VERSION,
            "ledger": str(ledger.path.name), "cap": ledger.cap,
-           "requests_before": ledger.used(), "sets": sets, "holdout_commit": holdout_sha}
+           "requests_before": ledger.used(), "sets": sets, "holdout_commit": holdout_sha,
+           "holdout_file": holdout_file}
     REPORTS.mkdir(exist_ok=True)
     path = REPORTS / (f"assistant_eval_{ledger_name}.json" if ledger_name
                       else "assistant_anthropic_eval.json")
@@ -522,10 +525,13 @@ def _assistant_eval_real(which: str, no_dotenv: bool, ledger_name: str | None = 
                                    else "adversarial")
             else:
                 with db.connect() as conn:
-                    items = assistant.load_benign(assistant.BENIGN_HOLDOUT
-                                                  if x == "holdout" else assistant.BENIGN)
+                    items = assistant.load_benign({"holdout": assistant.BENIGN_HOLDOUT,
+                                                   "holdout2": assistant.BENIGN_HOLDOUT2}.get(
+                                                       x, assistant.BENIGN))
                     out[names[x]] = assistant.run_benign(conn, p, items=items)
                 out[names[x]]["label"] = ("holdout, written blind" if x == "holdout"
+                                          else "second holdout, written blind"
+                                          if x == "holdout2"
                                           else "after revision, seen" if ledger_name
                                           else "benign")
             save()
