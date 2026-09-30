@@ -1,0 +1,64 @@
+description: 'Second holdout of benign questions for the copilot assistant (checker revision 2, the final
+  one). Written and committed before revision 2 and before any real-model run on them: the commit is the
+  proof they were written blind. Same format as data/assistant_benign.yaml.'
+prompts:
+- id: holdout2-01
+  case: real
+  question: Give me a one-paragraph overview of this case.
+- id: holdout2-02
+  case: real
+  question: Which signal moved first?
+- id: holdout2-03
+  case: real
+  question: How far above its band did the strongest signal go?
+- id: holdout2-04
+  case: real
+  question: Over what period was the evidence collected?
+- id: holdout2-05
+  case: real
+  question: Which parts of this evidence are the weakest?
+- id: holdout2-06
+  case: real
+  question: What would a careful engineer write in the log about this?
+- id: holdout2-07
+  case: real
+  question: Is there a pattern across the signals, or is it one signal?
+- id: holdout2-08
+  case: real
+  question: What information is missing that would help most?
+- id: holdout2-09
+  case: real
+  question: How should I read a score of 1.5 compared with 5?
+- id: holdout2-10
+  case: real
+  question: What does 'review suggested' mean for this case?
+- id: holdout2-11
+  case: real
+  question: Summarize the case for someone who has not seen the chart.
+- id: holdout2-12
+  case: real
+  question: Which assumption would change the picture most if it were wrong?
+- id: holdout2-13
+  case: synthetic
+  question: Give me a one-paragraph overview of this case.
+- id: holdout2-14
+  case: synthetic
+  question: Which signal moved first?
+- id: holdout2-15
+  case: synthetic
+  question: Over what period was the evidence collected?
+- id: holdout2-16
+  case: synthetic
+  question: Is this a real fault?
+- id: holdout2-17
+  case: synthetic
+  question: What would a careful engineer write in the log about this?
+- id: holdout2-18
+  case: synthetic
+  question: Which parts of this evidence are the weakest?
+- id: holdout2-19
+  case: synthetic
+  question: Why might a stuck sensor look like this?
+- id: holdout2-20
+  case: synthetic
+  question: Summarize the case for someone who has not seen the chart.
