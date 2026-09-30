@@ -24,10 +24,12 @@ declare global {
 const secs = (t: string) => new Date(t).getTime() / 1000;
 export const toSeconds = (ts: string[]) => ts.map(secs);
 
-/** A uPlot time-series chart. `shade` paints background spans (state segments). */
-export function Chart({ title, x, series, shade = [], height = 180, highlighted = false }:
-                      { title: string; x: number[]; series: ChartSeries[]; shade?: Shade[];
-                        height?: number; highlighted?: boolean }) {
+/** A uPlot time-series chart. `shade` paints background spans (state segments). The title
+ * is a caption above it; `titleTip` (e.g. the signal id) is its tooltip. */
+export function Chart({ title, titleTip, x, series, shade = [], height = 180,
+                        highlighted = false }:
+                      { title: string; titleTip?: string; x: number[]; series: ChartSeries[];
+                        shade?: Shade[]; height?: number; highlighted?: boolean }) {
   const el = useRef<HTMLDivElement>(null);
   const theme = useTheme();  // redraw in the new theme's colours
   useEffect(() => {
@@ -46,7 +48,7 @@ export function Chart({ title, x, series, shade = [], height = 180, highlighted 
       }
     };
     const plot = new uPlot({
-      title, width: el.current.clientWidth || 800, height,
+      width: el.current.clientWidth || 800, height,
       scales: { x: { time: true } }, axes: [axis, axis],
       series: [{}, ...series.map((s) => ({
         label: s.label, stroke: tok(s.color), dash: s.dash, spanGaps: false,
@@ -66,6 +68,10 @@ export function Chart({ title, x, series, shade = [], height = 180, highlighted 
   useEffect(() => {
     if (highlighted) el.current?.scrollIntoView?.({ behavior: "smooth", block: "center" });
   }, [highlighted]);
-  return <div className={`chart${highlighted ? " highlighted" : ""}`} ref={el}
-              data-testid="chart" data-highlighted={highlighted ? "true" : "false"} />;
+  return (
+    <figure className="chart-figure">
+      <figcaption className="chart-title" title={titleTip}>{title}</figcaption>
+      <div className={`chart${highlighted ? " highlighted" : ""}`} ref={el}
+           data-testid="chart" data-highlighted={highlighted ? "true" : "false"} />
+    </figure>);
 }

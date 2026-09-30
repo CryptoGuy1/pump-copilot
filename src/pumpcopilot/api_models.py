@@ -127,6 +127,17 @@ class Fleet(Model):
 
 # --- asset-day ---------------------------------------------------------------------------
 
+class SignalName(Model):
+    display_name: str = Field(description="the name people see")
+    short_name: str = Field(description="for tight spaces")
+    unit: str
+
+
+class SignalNames(Model):
+    signals: dict[str, SignalName] = Field(description="by signal id; derived signals scored "
+                                                       "relative to ambient included")
+
+
 class AssetDayRow(Model):
     asset_id: str
     source_day: dt.date

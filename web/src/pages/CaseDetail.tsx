@@ -5,6 +5,7 @@ import { ApiError, type Schema, call, client } from "../api/client";
 import { Chart, toSeconds } from "../components/Chart";
 import { AssistantPanel, type Highlight } from "../components/Assistant";
 import { A8Notice, Loading, Synthetic, fmtTime, useActor } from "../components/common";
+import { SignalName, useSignalLabel } from "../components/ui";
 import { usePageProvenance } from "../pageProvenance";
 
 const DISPOSITIONS = ["monitor", "known condition, no action", "data quality issue",
@@ -127,6 +128,7 @@ export function CaseDetail() {
   const d = q.data;
   const [actor] = useActor();
   const [hl, setHl] = useState<Highlight | null>(null);
+  const name = useSignalLabel();
   usePageProvenance(d && { synthetic: d.synthetic, model_version: d.model_version,
                            assumptions: d.assumptions });
   return (
@@ -152,14 +154,14 @@ export function CaseDetail() {
           <AssistantPanel caseId={id} actor={actor} canNote={d.actions.includes("note")}
                           onHighlight={setHl} />
           {hl && <p className="muted" data-testid="highlight-note">highlighting {hl.id}
-            {hl.signal ? ` (${hl.signal})` : " (the whole case)"}{" "}
+            {hl.signal ? ` (${name(hl.signal)})` : " (the whole case)"}{" "}
             <button className="link" onClick={() => setHl(null)}>clear</button></p>}
           <h2>Signals against their band</h2>
           <table>
             <thead><tr><th>signal</th><th>windows</th><th>episodes</th><th>first–last</th>
               <th>max score</th><th>band</th></tr></thead>
             <tbody>{Object.entries(d.signals).map(([sig, s]) => (
-              <tr key={sig}><td>{sig}</td><td>{s.summary.windows}</td><td>{s.summary.episodes}</td>
+              <tr key={sig}><td><SignalName id={sig} /></td><td>{s.summary.windows}</td><td>{s.summary.episodes}</td>
                 <td>{fmtTime(s.summary.first_window_start)}–{fmtTime(s.summary.last_window_end)}</td>
                 <td>{s.summary.max_score?.toFixed(2)}</td>
                 <td>{s.band ? `${s.band.low.toPrecision(5)} to ${s.band.high.toPrecision(5)} ` +
@@ -172,7 +174,8 @@ export function CaseDetail() {
               ? [{ from: Date.parse(hl.from) / 1000, to: Date.parse(hl.to) / 1000,
                   color: "--chart-highlight" as const }]
               : [];
-            return <Chart key={sig} title={sig} x={toSeconds(s.chart.t)} highlighted={on}
+            return <Chart key={sig} title={name(sig)} titleTip={sig} x={toSeconds(s.chart.t)}
+              highlighted={on}
               shade={shade} series={[
               { label: "median", values: s.chart.median, color: "--chart-median" },
               { label: "min", values: s.chart.min, color: "--chart-minmax", dash: [2, 3] },

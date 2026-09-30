@@ -7,6 +7,9 @@
 .masthead-accent { position: absolute; left: 0; right: 0; top: 0; height: var(--border-4);
                    background: var(--brand-grad); }
 .masthead h1 { margin: var(--space-1) 0 0; }
+.legend-toggle > summary { cursor: pointer; font-weight: var(--weight-semibold);
+                           color: var(--link); min-height: var(--tap); display: flex;
+                           align-items: center; }
 .masthead .lede { margin: var(--space-2) 0 0; color: var(--muted); max-width: 44rem; }
 .legend { padding: var(--space-3) var(--space-4); }
 .legend ul { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-3);
@@ -15,46 +18,52 @@
 /* --- fleet overview ---------------------------------------------------------------------- */
 .fleet { display: flex; flex-direction: column; gap: var(--space-5); }
 .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); }
-.tile { border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5);
-        display: flex; flex-direction: column; gap: var(--space-1); align-items: flex-start;
-        box-shadow: var(--shadow-1); min-width: 0; }
-.tile-a { background: var(--tile-a); color: var(--tile-a-fg); }
-.tile-b { background: var(--tile-b); color: var(--tile-b-fg); }
-.tile-c { background: var(--tile-c); color: var(--tile-c-fg); }
-.tile-d { background: var(--tile-d); color: var(--tile-d-fg); }
-.tile-value { font-size: var(--text-3xl); font-weight: var(--weight-bold); line-height: 1; }
-.tile-label { font-size: var(--text-sm); font-weight: var(--weight-semibold);
-              text-transform: var(--caps); letter-spacing: var(--head-track); }
-.fleet-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
-              gap: var(--space-5); align-items: start; }
+/* one tile style; only the review tile takes the review colour and icon, the synthetic
+ * tile its stripe */
+.tile { position: relative; overflow: hidden; border-radius: var(--radius-md);
+        padding: var(--space-3) var(--space-5); display: flex; align-items: center;
+        gap: var(--space-4); background: var(--tile); color: var(--tile-fg);
+        border: var(--border-1) solid var(--tile-border); box-shadow: var(--shadow-1);
+        min-width: 0; }
+.tile-value { font-family: var(--font-mono); font-size: var(--text-2xl);
+              font-weight: var(--weight-bold); line-height: 1; }
+.tile-label { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.tile-review { background: var(--st-review); color: var(--st-review-fg);
+               border-color: var(--st-review-edge); --icon-cut: var(--st-review); }
+.tile-review .state-icon { width: var(--space-6); height: var(--space-6); margin: 0; }
+.tile-synthetic { padding-left: calc(var(--space-5) + var(--badge-pattern)); }
+.tile-stripe { position: absolute; left: 0; top: 0; bottom: 0;
+                          width: var(--badge-pattern);
+                          background: repeating-linear-gradient(-45deg, var(--syn-dark) 0 3px,
+                                                                var(--syn) 3px 6px); }
+.fleet-body { display: flex; flex-direction: column; gap: var(--space-6); }
+.cards-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .fleet-main { display: flex; flex-direction: column; gap: var(--space-6); min-width: 0; }
 .section-head { display: flex; flex-wrap: wrap; align-items: baseline;
                 gap: var(--space-1) var(--space-4); padding: var(--space-3) var(--space-5);
                 margin-bottom: var(--space-4); }
 .section-head-synthetic { border-left: var(--border-4) solid var(--syn); }
-.section-title { margin: 0; font-size: var(--text-lg); text-transform: var(--caps);
-                 letter-spacing: var(--head-track); }
+.section-title { margin: 0; font-size: var(--text-lg); }
 .section-lede { margin: 0; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--card-min), 1fr));
          gap: var(--space-5); }
 .facts { margin: 0; display: grid; gap: var(--space-2); font-size: var(--text-sm); }
 .facts > div { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: var(--space-3); }
 .facts dt { color: var(--muted); font-size: var(--text-xs); font-weight: var(--weight-semibold);
-            text-transform: uppercase; letter-spacing: var(--track-caps);
             padding-top: var(--space-1); }
 .facts dd { margin: 0; min-width: 0; }
 .days { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-.live-cases { position: sticky; top: var(--space-5); padding: var(--space-5);
-              display: flex; flex-direction: column; gap: var(--space-3); }
-.live-cases h2 { margin: 0; }
-.case-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
-             gap: var(--space-3); }
-.case-item { display: flex; flex-direction: column; gap: var(--space-2);
-             padding: var(--space-3) var(--space-4); background: var(--inset);
+/* open cases: a compact list, one row per case */
+.case-list { list-style: none; margin: 0; padding: 0; background: var(--surface);
              border: var(--border-1) solid var(--border); border-radius: var(--radius-md); }
+.case-item { display: grid; grid-template-columns: 8rem minmax(0, 2fr) minmax(0, 1.4fr) 9rem;
+             gap: var(--space-2) var(--space-4); align-items: center;
+             padding: var(--space-3) var(--space-5); border-bottom: var(--border-1) solid
+             var(--border); font-size: var(--text-sm); }
+.case-item:last-child { border-bottom: 0; }
 .case-item a { font-weight: var(--weight-semibold); }
-.case-item .row { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3);
-                  align-items: center; }
+.case-item .case-id { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.section-link { margin-left: auto; font-size: var(--text-sm); }
 
 /* --- component gallery --------------------------------------------------------------------- */
 .gallery { display: flex; flex-direction: column; gap: var(--space-5); }
@@ -81,15 +90,15 @@
 .register summary { display: flex; gap: var(--space-3); align-items: center; }
 .register dl { display: grid; gap: var(--space-3); margin: var(--space-3) 0; }
 .register dt { font-size: var(--text-xs); font-weight: var(--weight-semibold);
-               text-transform: uppercase; letter-spacing: var(--track-caps); color: var(--muted); }
+               color: var(--muted); }
 .register dd { margin: 0; white-space: pre-wrap; }
 
-@media (max-width: 1100px) { .fleet-body { grid-template-columns: minmax(0, 1fr); }
-                             .live-cases { position: static; } }
+@media (max-width: 1180px) { .cards-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 720px) {
   .masthead { padding: var(--space-5); }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .cards { grid-template-columns: minmax(0, 1fr); }
+  .cards, .cards-3 { grid-template-columns: minmax(0, 1fr); }
+  .case-item { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
   .facts > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .card { padding: var(--space-4) var(--space-5) var(--space-3); }
   .card-foot { margin: auto calc(-1 * var(--space-5)) calc(-1 * var(--space-3));

@@ -3,11 +3,11 @@ import { expect, type Page, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-// Step 5b stage 1: the component gallery (/design) and the fleet overview in all three
+// Step 5b stage 1b: the component gallery (/design) and the fleet overview in all three
 // themes, desktop and mobile, on the real dev database (no mock data): screenshots, axe
 // (WCAG 2.x A/AA), and the shell's promises (focus, current page, remembered theme,
 // responsive layout, reduced motion).
-const OUT = resolve(import.meta.dirname, "../../reports/design/stage1");
+const OUT = resolve(import.meta.dirname, "../../reports/design/stage1b");
 const THEMES = ["industrial", "aurora", "daylight"];
 const VIEWPORTS = { desktop: { width: 1440, height: 1000 }, mobile: { width: 390, height: 844 } };
 const PAGES = { fleet: "/", design: "/design" };
@@ -27,6 +27,26 @@ async function ready(page: Page, name: string) {
     await expect(page.getByTestId("real-fleet").getByTestId("synthetic-label")).toHaveCount(0);
     const syn = page.getByTestId("synthetic-scenarios").getByTestId(/^synthetic-session-/).first();
     await expect(syn.getByTestId("synthetic-label").first()).toBeVisible();  // a real one
+    // badge hierarchy: the full state badge once per card, in its header
+    for (const card of await page.locator('[data-testid^="pump-"], [data-testid^="synthetic-session-"]').all()) {
+      await expect(card.locator(".state")).toHaveCount(1);
+      await expect(card.locator(".card-head .state, header .state")).toHaveCount(1);
+      await expect(card.getByTestId("provenance-line")).toHaveCount(1);  // one quiet line
+    }
+    // one tile style: only the review tile takes the review colour, the synthetic its stripe
+    await expect(page.getByTestId("tile-review")).toHaveCount(1);
+    await expect(page.getByTestId("tile-synthetic")).toHaveCount(1);
+    await expect(page.getByTestId("tile-plain")).toHaveCount(2);
+    // signal names, with the technical id in the tooltip
+    const sig = page.locator(".signal-name").first();
+    await expect(sig).toHaveAttribute("title", /^[a-z_]+$/);
+    expect(await sig.textContent()).not.toMatch(/_/);
+    // the legend: a toggle on small screens
+    const legend = page.getByTestId("state-legend");
+    if ((page.viewportSize()?.width ?? 0) <= 720)
+      await expect(legend.locator("summary")).toHaveText("What do these mean?");
+    await expect(page.getByTestId("live-status")).toHaveText("Live");
+    await expect(page.getByTestId("page-provenance")).toContainText("Real CIRA data +");
   } else {
     await expect(page.getByRole("heading", { name: "Components" })).toBeVisible();
   }

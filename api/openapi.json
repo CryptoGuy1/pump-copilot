@@ -3872,6 +3872,50 @@
         "title": "SessionList",
         "type": "object"
       },
+      "SignalName": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "description": "the name people see",
+            "title": "Display Name",
+            "type": "string"
+          },
+          "short_name": {
+            "description": "for tight spaces",
+            "title": "Short Name",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "display_name",
+          "short_name",
+          "unit"
+        ],
+        "title": "SignalName",
+        "type": "object"
+      },
+      "SignalNames": {
+        "additionalProperties": false,
+        "properties": {
+          "signals": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SignalName"
+            },
+            "description": "by signal id; derived signals scored relative to ambient included",
+            "title": "Signals",
+            "type": "object"
+          }
+        },
+        "required": [
+          "signals"
+        ],
+        "title": "SignalNames",
+        "type": "object"
+      },
       "SignalProgress": {
         "additionalProperties": false,
         "properties": {
@@ -6770,6 +6814,58 @@
         "summary": "Start",
         "tags": [
           "replay"
+        ]
+      }
+    },
+    "/api/signal-names": {
+      "get": {
+        "description": "The name to show for each signal id (the id stays the technical name).",
+        "operationId": "signal_names__api_signal_names_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignalNames"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Signal Names ",
+        "tags": [
+          "asset-day"
         ]
       }
     },

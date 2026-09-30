@@ -89,6 +89,20 @@ describe("design tokens", () => {
     expect(bad).toEqual([]);
   });
 
+  it("every token in use is defined", () => {
+    const defined = new Set<string>();
+    for (const f of [join(SRC, TOKENS), ...css])
+      for (const m of readFileSync(f, "utf8").matchAll(/(--[a-z0-9-]+)\s*:/g)) defined.add(m[1]);
+    const missing: string[] = [];
+    for (const f of [...css, ...code])
+      for (const m of readFileSync(f, "utf8").matchAll(/var\((--[a-z0-9-]+)/g))
+        if (!defined.has(m[1])) missing.push(`${rel(f)}: ${m[1]}`);
+    for (const f of code)  // chart colours are token names too
+      for (const m of readFileSync(f, "utf8").matchAll(/["'`](--(?:chart|st|sig|syn)[a-z0-9-]*)["'`]/g))
+        if (!defined.has(m[1])) missing.push(`${rel(f)}: ${m[1]}`);
+    expect(missing).toEqual([]);
+  });
+
   it("the check itself catches raw values", () => {
     const sample = "a { color: #fff; } b { padding: 4px; } c { color: var(--text); gap: var(--space-2); }";
     const d = declarations(sample);

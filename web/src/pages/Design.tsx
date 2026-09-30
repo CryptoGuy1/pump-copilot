@@ -3,9 +3,10 @@ import { type ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import { call, client } from "../api/client";
 import { fmtTime } from "../components/common";
-import { AssumptionChip, Button, Card, EmptyState, ErrorPanel, Loading, ProvenanceStrip, STATES,
-         SelectField, Skeleton, StateBadge, Synthetic, Table, Tabs, TextAreaField, TextField,
-         ValueReadout, useAssumptions } from "../components/ui";
+import { AssumptionChip, Button, Card, EmptyState, ErrorPanel, Loading, ProvenanceLine,
+         ProvenanceStrip, STATES, SelectField, SignalName, Skeleton, StateBadge, StateMark,
+         Synthetic, Table, Tabs, TextAreaField, TextField, ValueReadout, useAssumptions,
+         useSignalNames } from "../components/ui";
 import { usePageProvenance } from "../pageProvenance";
 import { THEMES } from "../theme";
 
@@ -26,8 +27,7 @@ function Specimen({ title, note, children }: { title: string; note?: ReactNode;
 }
 
 const SWATCHES: [string, string[]][] = [
-  ["Expressive", ["--brand", "--tile-a", "--tile-b", "--tile-c", "--tile-d", "--sig-1",
-                  "--sig-2", "--sig-3"]],
+  ["Expressive", ["--brand", "--tile", "--sig-1", "--sig-2", "--sig-3", "--live-on"]],
   ["Meaning (states only)", ["--st-review", "--st-insuf", "--st-unav", "--syn"]],
   ["Surfaces and text", ["--bg", "--surface", "--surface-2", "--border-strong", "--text",
                          "--muted"]],
@@ -78,8 +78,8 @@ function AllThemes() {
             sub={`as of ${fmtTime(real.state.as_of)} UTC`}
             aside={<StateBadge state={pump.state.state} />}>
             <div className="readouts">
-              <ValueReadout label="open, this replay" value={real.open_cases} />
-              <ValueReadout label="stale readings"
+              <ValueReadout label="Open, this replay" value={real.open_cases} />
+              <ValueReadout label="Stale readings"
                             value={pump.data_quality.flag_counts.stale_suspected} size="sm" />
             </div>
           </Card>}
@@ -94,6 +94,7 @@ function Gallery() {
   const cases = useQuery({ queryKey: ["cases", casesQuery], queryFn: () =>
     call(client.GET("/api/cases", { params: { query: casesQuery } })) });
   const register = useAssumptions();
+  const names = useSignalNames();
   const pump = fleet.data?.pumps.find((p) => p.state_session_id != null);
   const real = pump?.sessions.find((x) => x.session.session_id === pump.state_session_id);
   const syn = fleet.data?.pumps.flatMap((p) => p.sessions).find((x) => x.synthetic);
@@ -106,10 +107,30 @@ function Gallery() {
   return (
     <div className="gallery-grid">
       <Specimen title="State badge" note="Label, shape and pattern; meaning colour is reserved
-        for these. Normal stays quiet.">
-        <div className="specimen-row">{STATES.map((s) => <StateBadge key={s} state={s} />)}</div>
+        for these. The full badge appears once per card, in its header.">
         <div className="specimen-row">{STATES.map((s) =>
           <StateBadge key={s} state={s} size="lg" />)}</div>
+        <div className="specimen-row">{STATES.map((s) => <StateBadge key={s} state={s} />)}</div>
+      </Specimen>
+
+      <Specimen title="Compact state row" note="Per signal inside a card: the state's icon
+        (its shape) and its label.">
+        <ul className="signal-states">
+          {STATES.map((s, i) => <li key={s}><StateMark state={s} />
+            {names.data && <SignalName id={Object.keys(names.data.signals)[i]} />}</li>)}
+        </ul>
+      </Specimen>
+
+      <Specimen title="Signal name" note="The name people see (data/cira_columns.yaml); the
+        technical id is in the tooltip. Short names fit tight spaces.">
+        <Loading q={names} lines={3}>
+          <Table label="Signal names">
+            <thead><tr><th>Display name</th><th>Short name</th><th>Unit</th></tr></thead>
+            <tbody>{Object.entries(names.data?.signals ?? {}).slice(0, 5).map(([id, n]) => (
+              <tr key={id}><td><SignalName id={id} /></td><td><SignalName id={id} short /></td>
+                <td className="mono">{n.unit}</td></tr>))}</tbody>
+          </Table>
+        </Loading>
       </Specimen>
 
       <Specimen title="SYNTHETIC marker" note="Hazard stripes and a diamond, on every synthetic
@@ -119,12 +140,17 @@ function Gallery() {
             #{synCase.case_id}</Link> <Synthetic show /></span>}</div>
       </Specimen>
 
-      <Specimen title="Provenance strip" note="From the API: a real session and a synthetic one.">
+      <Specimen title="Provenance" note="A card's foot: one quiet line that expands to the
+        chips. The page strip says it in plain words. From the API: a real session and a
+        synthetic one.">
         <Loading q={fleet} lines={2}>
-          {real && <ProvenanceStrip p={{ synthetic: false, model_version: real.model_version,
+          {real && <ProvenanceLine p={{ synthetic: false, model_version: real.model_version,
+                                        assumptions: real.assumptions }} />}
+          {syn && <ProvenanceLine p={{ synthetic: true, model_version: syn.model_version,
+                                       assumptions: syn.assumptions }} />}
+          {real && <ProvenanceStrip p={{ synthetic: syn ? "mixed" : false, scenarios: syn ? 1 : 0,
+                                         model_version: real.model_version,
                                          assumptions: real.assumptions }} />}
-          {syn && <ProvenanceStrip p={{ synthetic: true, model_version: syn.model_version,
-                                        assumptions: syn.assumptions }} />}
         </Loading>
       </Specimen>
 
@@ -140,11 +166,11 @@ function Gallery() {
         values from the fleet.">
         <Loading q={fleet} lines={2}>
           {pump && <div className="readouts">
-            <ValueReadout label="pumps" value={fleet.data?.pumps.length} />
-            <ValueReadout label="open cases, real" value={pump.open_cases.real} />
-            <ValueReadout label="stale readings" value={pump.data_quality.flag_counts.stale_suspected}
+            <ValueReadout label="Pumps" value={fleet.data?.pumps.length} />
+            <ValueReadout label="Open cases, real" value={pump.open_cases.real} />
+            <ValueReadout label="Stale readings" value={pump.data_quality.flag_counts.stale_suspected}
                           unit={`on ${pump.data_quality.source_day}`} />
-            <ValueReadout label="replay cursor" value={fmtTime(real?.state.as_of)} unit="UTC"
+            <ValueReadout label="Replay cursor" value={fmtTime(real?.state.as_of)} unit="UTC"
                           size="sm" />
           </div>}
         </Loading>
@@ -156,9 +182,9 @@ function Gallery() {
           {pump && real && <Card title={<span className="mono">{pump.asset_id}</span>}
             sub={`as of ${fmtTime(real.state.as_of)} UTC (replay cursor)`}
             aside={<StateBadge state={pump.state.state} />}
-            foot={<ProvenanceStrip p={{ synthetic: false, model_version: real.model_version,
-                                        assumptions: real.assumptions }} />}>
-            <div className="readouts"><ValueReadout label="open, this replay"
+            foot={<ProvenanceLine p={{ synthetic: false, model_version: real.model_version,
+                                       assumptions: real.assumptions }} />}>
+            <div className="readouts"><ValueReadout label="Open, this replay"
                                                     value={real.open_cases} /></div>
           </Card>}
         </Loading>
@@ -168,8 +194,8 @@ function Gallery() {
         screens; real cases.">
         <Loading q={cases} lines={4}>
           {cases.data && (cases.data.cases.length ? <Table label="Latest cases">
-            <thead><tr><th>case</th><th>data</th><th>asset</th><th>status</th>
-              <th className="num">windows</th></tr></thead>
+            <thead><tr><th>Case</th><th>Data</th><th>Asset</th><th>Status</th>
+              <th className="num">Windows</th></tr></thead>
             <tbody>{cases.data.cases.map((c) => (
               <tr key={c.case_id}><td><Link to={`/cases/${c.case_id}`}>#{c.case_id}</Link></td>
                 <td>{c.synthetic ? <Synthetic show /> : "real"}</td>

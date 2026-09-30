@@ -1043,3 +1043,29 @@ def test_assistant_eval_command(capsys):
     cli.main(["assistant", "eval", "--provider", "template"])
     out = capsys.readouterr().out
     assert "50/50" in out and "100%" in out
+
+
+# --- signal names (Step 5b stage 1b) ---------------------------------------------------------
+
+def test_signal_names_come_from_the_column_map_and_cover_derived_signals():
+    import yaml
+
+    spec = yaml.safe_load((ROOT / "data" / "cira_columns.yaml").read_text())
+    names = api.signal_names(spec)
+    for entry in spec.values():
+        n = names[entry["signal"]]
+        assert n["display_name"] and n["short_name"] and n["unit"] == entry["unit"]
+        assert len(n["short_name"]) <= len(n["display_name"])
+    rel = names["motor_casing_temperature_rel_ambient"]
+    assert rel["display_name"] == "Motor casing temperature above ambient"
+    assert rel["short_name"].startswith("Motor casing temp.")
+    assert "_" not in "".join(n["display_name"] for n in names.values())
+
+
+@pytest.mark.db
+def test_the_signal_names_endpoint(client):
+    body = client.get("/api/signal-names").json()
+    names = body["signals"]
+    assert names["outlet_pressure"] == {"display_name": "Outlet pressure",
+                                        "short_name": "Outlet pressure", "unit": "bar"}
+    assert "pump_accelerometer_contact_temperature_rel_ambient" in names

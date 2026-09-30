@@ -4,9 +4,12 @@
 export const STATES = ["review_suggested", "insufficient_evidence", "data_unavailable",
                        "normal"] as const;
 
-export const stateLabel = (s: string) => String(s).replace(/_/g, " ");
+export const stateLabel = (s: string) => {
+  const t = String(s).replace(/_/g, " ");
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
 
-function StateIcon({ state }: { state: string }) {
+export function StateIcon({ state }: { state: string }) {
   const common = { viewBox: "0 0 16 16", "aria-hidden": true, focusable: false,
                    className: "state-icon" } as const;
   switch (state) {
@@ -36,6 +39,16 @@ export function StateBadge({ state, size }: { state: string; size?: "lg" }) {
       <span className="pattern" aria-hidden="true" />
       <StateIcon state={state} />
       <span className="state-label">{stateLabel(state)}</span>
+    </span>
+  );
+}
+
+/** The compact form, for per-signal rows: the state's icon (its shape) and its label. The
+ * full badge appears once per card, in the header. */
+export function StateMark({ state }: { state: string }) {
+  return (
+    <span className={`state-mark state-mark-${state}`} data-state={state}>
+      <StateIcon state={state} />{stateLabel(state)}
     </span>
   );
 }

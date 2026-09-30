@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { type Schema, call, client } from "../api/client";
 import { Chart, type Shade, toSeconds } from "../components/Chart";
 import { A8Notice, Loading, Synthetic } from "../components/common";
+import { useSignalLabel } from "../components/ui";
 import { usePageProvenance } from "../pageProvenance";
 
 
@@ -42,6 +43,7 @@ export function AssetDay() {
     return by;
   }, [scores.data]);
   const current = info.data?.sessions.find((s) => s.session_id === scores.data?.session_id);
+  const name = useSignalLabel();
   usePageProvenance(scores.data ? { synthetic: scores.data.synthetic,
                                     model_version: scores.data.model_version,
                                     assumptions: scores.data.assumptions }
@@ -68,7 +70,8 @@ export function AssetDay() {
         {Object.entries(scored).map(([sig, rows]) => {
           const band = bands.data?.bands?.runs[0]?.signals[sig]?.band;
           const x = toSeconds(rows.map((r) => r.window_end));
-          return <Chart key={sig} title={`${sig}${band ? ` (${band.unit})` : ""}`} x={x}
+          return <Chart key={sig} title={`${name(sig)}${band ? ` (${band.unit})` : ""}`}
+            titleTip={sig} x={x}
             shade={shade} series={[
               { label: "window median", values: rows.map((r) => r.median), color: "--chart-median" },
               { label: "band low", values: rows.map((r) => r.band_low), color: "--chart-band",
@@ -85,7 +88,7 @@ export function AssetDay() {
             {Object.entries(oneMin.data?.signals ?? {}).map(([sig, points]) => {
               const rows = points as Schema<"MinutePoint">[]; // resolution=1m
               return (
-              <Chart key={sig} title={sig} height={140} shade={shade}
+              <Chart key={sig} title={name(sig)} titleTip={sig} height={140} shade={shade}
                 x={toSeconds(rows.map((r) => r.bucket))}
                 series={[{ label: "1-min mean", values: rows.map((r) => r.mean),
                            color: "--chart-raw" }]} />);

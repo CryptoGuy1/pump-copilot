@@ -60,8 +60,9 @@ describe("the page and the stream", () => {
       (args[0] as { queryKey: unknown[] }).queryKey));
     expect(keys).toEqual(expect.arrayContaining([
       '["fleet"]', '["sessions"]', '["baseline",7]', '["scores"]', '["cases"]', '["case",42]']));
-    // only the event id reaches the page (the live indicator), never its payload
-    expect(container.querySelector('[data-testid="live-status"]')?.textContent).toContain("#13");
+    // only the event id reaches the page (the live indicator's tooltip), never its payload
+    expect(container.querySelector('[data-testid="live-status"]')?.getAttribute("title"))
+      .toBe("last event #13");
   });
 });
 

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { call, client } from "../api/client";
 import { Loading, Synthetic, fmtTime } from "../components/common";
+import { SignalName } from "../components/ui";
 import { useArrivals } from "../hooks/useArrivals";
 import { usePageProvenance } from "../pageProvenance";
 
@@ -57,7 +58,8 @@ export function Cases() {
                   <td>{c.status}{c.disposition && <div className="muted">{c.disposition}</div>}
                   </td>
                   <td>{fmtTime(c.evidence_start)}–{fmtTime(c.evidence_end)}</td>
-                  <td>{c.signals?.join(", ")}</td>
+                  <td>{(c.signals ?? []).map((s, i) => <span key={s}>{i > 0 && ", "}
+                    <SignalName id={s} /></span>)}</td>
                   <td>{c.episodes}</td>
                 </tr>))}
             </tbody>

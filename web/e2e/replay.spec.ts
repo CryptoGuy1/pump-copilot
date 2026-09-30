@@ -20,7 +20,7 @@ test("synthetic stuck-pressure case, live, from replay to export", async ({ page
 
   // the case list is not reloaded: the case arrives through /api/stream
   await page.goto(`/cases?session_id=${sessionId}`);
-  await expect(page.getByTestId("live-status")).toContainText("open");
+  await expect(page.getByTestId("live-status")).toHaveAttribute("data-status", "open");
   const firstCase = page.locator("[data-testid^=case-row-]").first();
   await expect(firstCase).toBeVisible({ timeout: 240_000 });
   await expect(firstCase.getByTestId("synthetic-label")).toBeVisible();

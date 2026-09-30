@@ -20,23 +20,57 @@ export function AssumptionChip({ id }: { id: string }) {
 
 export interface ProvenanceData {
   synthetic: boolean | "mixed";
+  scenarios?: number;  // with "mixed": how many synthetic scenarios the page shows
   model_version: string[];
   assumptions: string[];
 }
 
-/** Where the data on screen comes from: real or SYNTHETIC, the model versions that produced
- * it and the assumptions that apply (each opening the register). */
-export function ProvenanceStrip({ p, label = "Provenance" }:
-                                { p: ProvenanceData; label?: string }) {
+const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+
+/** Where the page's data comes from, in plain words. */
+export function provenanceSentence(p: ProvenanceData): string {
+  const what = p.synthetic === true ? "Synthetic scenario on stored CIRA data"
+    : p.synthetic === "mixed"
+      ? `Real CIRA data + ${plural(p.scenarios ?? 1, "synthetic scenario")}`
+      : "Real CIRA data";
+  return `${what} · read-only`;
+}
+
+/** The chips and model versions behind a provenance line. */
+function Details({ p }: { p: ProvenanceData }) {
   return (
-    <div className="provenance-strip" data-testid="provenance-strip">
-      <span className="label">{label}</span>
-      {p.synthetic === true ? <Synthetic show />
-        : <span>{p.synthetic === "mixed" ? "real and SYNTHETIC (each marked)" : "real data"}</span>}
+    <div className="prov-more">
       <span>model <span className="mono">
         {p.model_version.length ? p.model_version.join(", ") : "none"}</span></span>
       <span className="chips" role="group" aria-label="assumptions">
         {p.assumptions.map((a) => <AssumptionChip key={a} id={a} />)}</span>
     </div>
+  );
+}
+
+/** One quiet line ("Real data · model b400e37 · 6 assumptions") that expands to the chips:
+ * the foot of a card. */
+export function ProvenanceLine({ p }: { p: ProvenanceData }) {
+  const model = p.model_version.length
+    ? p.model_version.map((v) => v.slice(0, 7)).join(", ") : "none";
+  return (
+    <details className="prov-line" data-testid="provenance-line">
+      <summary>{p.synthetic === true ? <Synthetic show /> : <span>Real data</span>}
+        <span aria-hidden="true">·</span><span>model <span className="mono">{model}</span></span>
+        <span aria-hidden="true">·</span><span>{plural(p.assumptions.length, "assumption")}</span>
+      </summary>
+      <Details p={p} />
+    </details>
+  );
+}
+
+/** The page's provenance in plain words, expanding to the details. */
+export function ProvenanceStrip({ p }: { p: ProvenanceData }) {
+  return (
+    <details className="prov-line provenance-strip" data-testid="provenance-strip">
+      <summary>{p.synthetic === true && <Synthetic show />}
+        <span className="prov-sentence">{provenanceSentence(p)}</span></summary>
+      <Details p={p} />
+    </details>
   );
 }

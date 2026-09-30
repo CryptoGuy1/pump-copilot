@@ -1,11 +1,13 @@
 import { useId } from "react";
 import type { Series } from "../fleet";
+import { SignalName, useSignalLabel } from "./ui";
 
 /** A small score-over-time chart: one line per signal, in the signal palette (colour and dash
  * style, so signals stay apart without colour). Expressive colour only; states are shown in
  * the badges next to it. */
 export function Sparkline({ series, label, height = 64 }:
                           { series: Series[]; label: string; height?: number }) {
+  const name = useSignalLabel();
   const id = useId().replace(/:/g, "");
   const w = 320;
   const pts = series.flatMap((s) => s.points);
@@ -19,7 +21,8 @@ export function Sparkline({ series, label, height = 64 }:
   const first = series.find((s) => s.points.length);
   return (
     <svg className="sparkline" viewBox={`0 0 ${w} ${height}`} preserveAspectRatio="none"
-         role="img" aria-label={label}>
+         role="img"
+         aria-label={`${label}: ${series.map((s) => name(s.signal)).join(", ")}`}>
       <defs>
         <linearGradient id={`fill${id}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" style={{ stopColor: "var(--spark-fill)", stopOpacity: 0.55 }} />
@@ -38,15 +41,6 @@ export function Sparkline({ series, label, height = 64 }:
   );
 }
 
-/** A signal name that may break only after its underscores. */
-export function SignalName({ name }: { name: string }) {
-  const parts = name.split("_");
-  return (
-    <span className="mono">{parts.map((p, i) => (
-      <span key={i}>{p}{i < parts.length - 1 && <>_<wbr /></>}</span>))}</span>
-  );
-}
-
 /** The key for a sparkline: each signal's swatch (colour and dash) and name. */
 export function SignalKey({ signals }: { signals: string[] }) {
   return (
@@ -56,7 +50,7 @@ export function SignalKey({ signals }: { signals: string[] }) {
           <svg width="18" height="6" aria-hidden="true" focusable="false">
             <line x1="0" x2="18" y1="3" y2="3" className={`sig sig-${i + 1}`} />
           </svg>
-          <SignalName name={s} />
+          <SignalName id={s} short />
         </li>
       ))}
     </ul>

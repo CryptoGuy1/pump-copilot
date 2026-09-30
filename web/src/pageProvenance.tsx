@@ -2,8 +2,8 @@ import { type ReactNode, createContext, useContext, useEffect, useState } from "
 import { Link } from "react-router-dom";
 import { ProvenanceStrip, type ProvenanceData } from "./components/ui";
 
-/** The provenance strip under the navigation, on every page: a page that shows scored data
- * sets what it comes from; any other page says what the whole app is built on. */
+/** The provenance strip under the navigation, on every page, in plain words: a page that
+ * shows scored data sets what it comes from; any other page says what the app is built on. */
 const Ctx = createContext<(p: ProvenanceData | null) => void>(() => {});
 
 export function PageProvenanceProvider({ children }: { children: (p: ProvenanceData | null)
@@ -26,10 +26,9 @@ export function usePageProvenance(p: ProvenanceData | null | undefined) {
 export function PageProvenanceBar({ p }: { p: ProvenanceData | null }) {
   return (
     <div className="page-provenance" data-testid="page-provenance">
-      {p ? <ProvenanceStrip p={p} label="This page" />
-        : <div className="provenance-strip"><span className="label">Provenance</span>
-            <span>public CIRA pump data (Zenodo), read-only; no control actions</span>
-            <Link to="/assumptions">assumptions register</Link></div>}
+      {p ? <ProvenanceStrip p={p} />
+        : <p className="prov-line prov-plain">Public CIRA pump data (Zenodo) · read-only ·{" "}
+            <Link to="/assumptions">assumptions register</Link></p>}
     </div>
   );
 }

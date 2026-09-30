@@ -508,6 +508,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/signal-names": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Signal Names
+         * @description The name to show for each signal id (the id stays the technical name).
+         */
+        get: operations["signal_names__api_signal_names_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/stream": {
         parameters: {
             query?: never;
@@ -1953,6 +1973,31 @@ export interface components {
         SessionList: {
             /** Sessions */
             sessions: components["schemas"]["Session"][];
+        };
+        /** SignalName */
+        SignalName: {
+            /**
+             * Display Name
+             * @description the name people see
+             */
+            display_name: string;
+            /**
+             * Short Name
+             * @description for tight spaces
+             */
+            short_name: string;
+            /** Unit */
+            unit: string;
+        };
+        /** SignalNames */
+        SignalNames: {
+            /**
+             * Signals
+             * @description by signal id; derived signals scored relative to ambient included
+             */
+            signals: {
+                [key: string]: components["schemas"]["SignalName"];
+            };
         };
         /** SignalProgress */
         SignalProgress: {
@@ -3688,6 +3733,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SessionEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    signal_names__api_signal_names_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignalNames"];
                 };
             };
             /** @description Not Found */

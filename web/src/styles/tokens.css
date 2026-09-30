@@ -72,9 +72,9 @@
  *     safety orange means review suggested and is used for nothing else --------------------- */
 :root:not([data-theme]), [data-theme="industrial"] {
   color-scheme: light;
-  --bg: #e7e0d3;
-  --glow: linear-gradient(180deg, #ded5c5, #e7e0d3 22rem);
-  --surface: #fbf8f2; --surface-2: #f2ece1; --inset: #f4efe6;
+  --bg: #ece6db;
+  --glow: linear-gradient(180deg, #e4dccd, #ece6db 22rem);
+  --surface: #fffdf9; --surface-2: #f6f1e8; --inset: #f9f5ee;
   --border: #c9bda7; --border-strong: #8a7e6b;
   --text: #1d1a16; --muted: #5a5044; --link: #0b4f55; --focus: #0b4f55; --on-brand: #ffffff;
   --brand: #0b4f55; --brand-grad: linear-gradient(90deg, #0b4f55, #137c7a);
@@ -83,15 +83,15 @@
   --shadow-1: 0 1px 0 #c9bda7; --shadow-2: 0 2px 0 #c9bda7;
   --radius-sm: 2px; --radius-md: 3px; --radius-lg: 4px; --radius-pill: 2px;
   --weight-head: 700; --head-case: uppercase; --head-track: .03em; --h1: var(--text-3xl);
-  --caps: uppercase;
-  --tile-a: #0b4f55; --tile-a-fg: #ffffff; --tile-b: #1d1a16; --tile-b-fg: #ffffff;
-  --tile-c: #34574a; --tile-c-fg: #ffffff; --tile-d: #5b4d3c; --tile-d-fg: #ffffff;
+  --caps: none;
+  --tile: #fffdf9; --tile-fg: #1d1a16; --tile-border: #c9bda7;
+  --live-on: #45b86f; --live-off: #8a7e6b;  /* on the dark navigation */
   --btn-primary: #0b4f55; --btn-primary-fg: #ffffff; --btn-primary-hover: #083d42;
-  --btn: #fbf8f2; --btn-fg: #1d1a16; --btn-border: #8a7e6b; --btn-hover: #efe8dc;
+  --btn: #fffdf9; --btn-fg: #1d1a16; --btn-border: #8a7e6b; --btn-hover: #f3ede2;
   --field: #fffdf9; --field-fg: #1d1a16; --field-border: #8a7e6b; --placeholder: #6b6154;
   --spark-fill: #137c7a; --spark-axis: #c9bda7;
-  --sig-1: #1d6fa3; --sig-2: #2e7d4f; --sig-3: #7b3f8c;
-  --chart-bg: #fbf8f2; --chart-axis: #5a5044; --chart-grid: rgba(90, 80, 68, .16);
+  --sig-1: #0072b2; --sig-2: #00896b; --sig-3: #b8338a;
+  --chart-bg: #fffdf9; --chart-axis: #5a5044; --chart-grid: rgba(90, 80, 68, .16);
   --chart-median: #0b4f55; --chart-band: #8a7e6b; --chart-minmax: #7aa6a3;
   --chart-raw: #3b3833; --chart-running: rgba(19, 124, 122, .10);
   --chart-highlight: rgba(11, 79, 85, .16);
@@ -122,8 +122,8 @@
   --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-pill: 999px;
   --weight-head: 600; --head-case: none; --head-track: -.01em; --h1: var(--text-3xl);
   --caps: none;
-  --tile-a: #0f3a45; --tile-a-fg: #dcfffa; --tile-b: #2a1d5e; --tile-b-fg: #efe8ff;
-  --tile-c: #1b2a6b; --tile-c-fg: #e3e9ff; --tile-d: #19224a; --tile-d-fg: #eef1ff;
+  --tile: #19224a; --tile-fg: #eef1ff; --tile-border: #2c3a70;
+  --live-on: #4ade80; --live-off: #7d88b3;
   --btn-primary: #2dd4bf; --btn-primary-fg: #04201c; --btn-primary-hover: #5eead4;
   --btn: #19224a; --btn-fg: #eef1ff; --btn-border: #56628f; --btn-hover: #222d5e;
   --field: #0d1330; --field-fg: #eef1ff; --field-border: #56628f; --placeholder: #8f9ac2;
@@ -159,8 +159,8 @@
   --radius-sm: 8px; --radius-md: 12px; --radius-lg: 18px; --radius-pill: 999px;
   --weight-head: 700; --head-case: none; --head-track: -.02em; --h1: var(--text-3xl);
   --caps: none;
-  --tile-a: #2340d8; --tile-a-fg: #ffffff; --tile-b: #00796b; --tile-b-fg: #ffffff;
-  --tile-c: #6b21d4; --tile-c-fg: #ffffff; --tile-d: #0e7490; --tile-d-fg: #ffffff;
+  --tile: #2340d8; --tile-fg: #ffffff; --tile-border: #1a32b3;
+  --live-on: #15803d; --live-off: #8d95bd;
   --btn-primary: #2340d8; --btn-primary-fg: #ffffff; --btn-primary-hover: #1a32b3;
   --btn: #ffffff; --btn-fg: #0f1330; --btn-border: #8d95bd; --btn-hover: #f4f6ff;
   --field: #ffffff; --field-fg: #0f1330; --field-border: #8d95bd; --placeholder: #5c6386;

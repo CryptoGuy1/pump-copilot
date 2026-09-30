@@ -187,6 +187,21 @@ def aggregate_state(states: list[str]) -> str:
             if "insufficient_evidence" in states else "data_unavailable")
 
 
+def signal_names(column_map: dict) -> dict[str, dict]:
+    """The names people see, per signal id (data/cira_columns.yaml), with the signals scored
+    relative to ambient named by rule: "<display_name> above ambient"."""
+    out = {}
+    for spec in column_map.values():
+        n = {"display_name": spec["display_name"], "short_name": spec["short_name"],
+             "unit": spec["unit"]}
+        out[spec["signal"]] = n
+        if "temperature" in spec["signal"] and not spec["signal"].startswith("ambient"):
+            out[f"{spec['signal']}_rel_ambient"] = {
+                "display_name": f"{n['display_name']} above ambient",
+                "short_name": f"{n['short_name']} vs ambient", "unit": spec["unit"]}
+    return dict(sorted(out.items()))
+
+
 def _versions(conn, session_id: int) -> list[str]:
     return [r["model_version"] for r in _rows(
         conn, "SELECT DISTINCT model_version FROM scores WHERE session_id = %s", [session_id])]
@@ -897,6 +912,14 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 "report": "reports/cira_scoring_eval.md", "zema": zema,
                 "labels": "REAL results are unlabelled review cases, not confirmed faults;"
                           " SYNTHETIC results come from in-memory injections"}
+
+    @app.get("/api/signal-names", tags=["asset-day"], response_model=M.SignalNames)
+    def signal_names_():
+        """The name to show for each signal id (the id stays the technical name)."""
+        import yaml
+
+        return {"signals": signal_names(yaml.safe_load((data / "cira_columns.yaml")
+                                                       .read_text()))}
 
     @app.get("/api/assumptions", tags=["evaluation"], response_model=M.Assumptions)
     def assumptions():

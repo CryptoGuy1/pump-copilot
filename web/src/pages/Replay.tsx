@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ApiError, call, client } from "../api/client";
 import { A8Notice, Loading, Synthetic, fmtTime } from "../components/common";
+import { SignalName } from "../components/ui";
 
 type Speed = 1 | 10 | 60;
 
@@ -25,7 +26,7 @@ function Progress({ id }: { id: number }) {
               <th>baseline window</th><th>band / reason</th></tr></thead>
             <tbody>{Object.entries(run.signals).map(([sig, p]) => (
               <tr key={sig}>
-                <td>{sig}</td>
+                <td><SignalName id={sig} /></td>
                 <td className={`baseline-${p.status}`}>{p.status.replace(/_/g, " ")}</td>
                 <td><progress max={1} value={p.fraction} /> {Math.round(p.fraction * 100)}%</td>
                 <td>{fmtTime(p.settled_at)}</td>

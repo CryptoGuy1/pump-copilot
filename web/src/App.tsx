@@ -38,6 +38,9 @@ const PAGES = [["/", "Fleet"], ["/cases", "Cases"], ["/replay", "Replay"],
                ["/evaluation", "Evaluation"], ["/data-quality", "Data quality"],
                ["/assumptions", "Assumptions"]] as const;
 
+const LIVE = { open: "Live", connecting: "Connecting…", reconnecting: "Reconnecting…",
+               closed: "Offline" } as const;
+
 /** The design direction: ?theme= or the one chosen last in this browser. */
 function ThemeSwitcher({ theme }: { theme: Theme }) {
   const loc = useLocation();
@@ -76,8 +79,10 @@ export function App() {
                   <li key={to}><NavLink to={to} end={to === "/"}>{label}</NavLink></li>))}
               </ul>
               <div className="nav-tools">
-                <span className={`live live-${live.status}`} data-testid="live-status">
-                  live: {live.status}{live.lastEventId != null && ` (#${live.lastEventId})`}
+                <span className="live" data-testid="live-status" data-status={live.status}
+                      title={live.lastEventId != null ? `last event #${live.lastEventId}`
+                                                      : undefined}>
+                  <span className="live-dot" aria-hidden="true" />{LIVE[live.status]}
                 </span>
                 <ThemeSwitcher theme={theme} />
               </div>

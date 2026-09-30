@@ -22,54 +22,78 @@
 # - Table 2 gives outlet pressure in bar without saying gauge or absolute.
 # - Timestamps: README and Table 2 give YYYY-MM-DD hh:mm:ss with no timezone; the files carry a
 #   Z suffix, and section 3.1 says the gateway timestamps in UTC with 1 s resolution.
+#
+# display_name and short_name (Step 5b) are the names people see; the signal id stays the
+# technical name everywhere else. A signal scored relative to ambient (<signal>_rel_ambient)
+# is named by rule: "<display_name> above ambient" (see api.signal_names).
 
 ACR_Mot.PV:
   signal: motor_vibration_velocity
+  display_name: "Motor vibration velocity"
+  short_name: "Motor vibration"
   unit: "m/s"
   unit_verified: true
   description: vibrational velocity measured by the motor accelerometer
 ACR_Mot.SV:
   signal: motor_acceleration_peak
+  display_name: "Motor acceleration peak"
+  short_name: "Motor accel. peak"
   unit: "m/s^2"
   unit_verified: true
   description: peak value measured by the motor accelerometer
 ACR_Mot.TV:
   signal: motor_accelerometer_contact_temperature
+  display_name: "Motor accelerometer temperature"
+  short_name: "Motor sensor temp."
   unit: degC
   unit_verified: true
   description: contact temperature of the motor accelerometer
 ACR_Pmp.PV:
   signal: pump_vibration_velocity
+  display_name: "Pump vibration velocity"
+  short_name: "Pump vibration"
   unit: "m/s"
   unit_verified: true
   description: vibrational velocity measured by the pump accelerometer
 ACR_Pmp.SV:
   signal: pump_acceleration_peak
+  display_name: "Pump acceleration peak"
+  short_name: "Pump accel. peak"
   unit: "m/s^2"
   unit_verified: true
   description: peak value measured by the pump accelerometer
 ACR_Pmp.TV:
   signal: pump_accelerometer_contact_temperature
+  display_name: "Pump accelerometer temperature"
+  short_name: "Pump sensor temp."
   unit: degC
   unit_verified: true
   description: contact temperature of the pump accelerometer
 Pres.PV:
   signal: outlet_pressure
+  display_name: "Outlet pressure"
+  short_name: "Outlet pressure"
   unit: bar
   unit_verified: false  # Table 2 states bar for X_Pres.SV, not for this header
   description: outlet fluid pressure from the pump
 Temp.PV:
   signal: motor_casing_temperature
+  display_name: "Motor casing temperature"
+  short_name: "Motor casing temp."
   unit: degC
   unit_verified: false  # Table 2 states degC for X_Temp.SV, not for this header
   description: motor casing temperature
 Barometer:
   signal: ambient_pressure
+  display_name: "Ambient pressure"
+  short_name: "Ambient pressure"
   unit: mbar
   unit_verified: true
   description: atmospheric pressure
 Temperature:
   signal: ambient_temperature
+  display_name: "Ambient temperature"
+  short_name: "Ambient temp."
   unit: degC
   unit_verified: true
   description: ambient temperature
