@@ -4,6 +4,11 @@ The worker opens cases and adds evidence (3a-3 merge rule, see replay.CaseTracke
 acknowledge, add notes, give a disposition with a reason, and close. The database checks every
 transition (migration 0006); an invalid one raises InvalidTransition here. Nothing is sent
 anywhere: "escalate to reliability engineer (export only)" means the case can be exported.
+
+What people see is as of the replay's cursor (case_state_visible, migration 0010): a case
+appears once the cursor reaches its first evidence window, with the evidence up to the cursor
+and all of its human history. A case the cursor has not reached (after a rewind) cannot be
+read or acted on (NotYetReached); nothing is deleted.
 """
 
 from __future__ import annotations
@@ -19,6 +24,10 @@ HUMAN_FIELDS = ("note", "disposition", "reason", "related_case_id")
 
 class InvalidTransition(RuntimeError):
     pass
+
+
+class NotYetReached(RuntimeError):
+    """The case exists, but the replay's cursor has not reached its first evidence window."""
 
 
 def _case_keys(conn, case_id: int) -> dict:
@@ -55,6 +64,7 @@ def append(conn, case_id: int, event_type: str, actor: str, **fields) -> int:
             raise ValueError("a disposition requires a reason")
     if event_type == "note" and not (fields.get("note") or "").strip():
         raise ValueError("a note needs text")
+    visible_case(conn, case_id)  # people act only on what the replay has reached
     from . import events
 
     for attempt in range(3):
@@ -116,20 +126,42 @@ def get_case(conn, case_id: int) -> dict:
     return c
 
 
-def export(conn, case_id: int) -> dict:
-    """Everything about one case, for handing to a reliability engineer outside this system."""
-    case = get_case(conn, case_id)
+def visible_case(conn, case_id: int) -> dict:
+    """The case as of its session's cursor; NotYetReached if the cursor has not reached it."""
     with conn.cursor(row_factory=dict_row) as cur:
-        events = cur.execute("SELECT * FROM case_events WHERE case_id = %s ORDER BY event_id",
-                             [case_id]).fetchall()
+        c = cur.execute("SELECT * FROM case_state_visible WHERE case_id = %s",
+                        [case_id]).fetchone()
+        if c is not None:
+            return c
+        s = cur.execute("SELECT e.session_id, s.cursor_at FROM case_events e JOIN"
+                        " replay_sessions s USING (session_id) WHERE e.case_id = %s LIMIT 1",
+                        [case_id]).fetchone()
+    if s is None:
+        raise InvalidTransition(f"invalid case transition: case {case_id} does not exist")
+    at = "it has not started" if s["cursor_at"] is None else f"its cursor is at {s['cursor_at']}"
+    raise NotYetReached(f"case {case_id} not yet reached in this replay: session "
+                        f"{s['session_id']} has been rewound and {at}")
+
+
+def export(conn, case_id: int) -> dict:
+    """Everything about one case, for handing to a reliability engineer outside this system,
+    as of the session cursor: `complete` is false while the replay has not finished."""
+    case = visible_case(conn, case_id)
+    with conn.cursor(row_factory=dict_row) as cur:
+        status = cur.execute("SELECT status FROM replay_sessions WHERE session_id = %s",
+                             [case["session_id"]]).fetchone()["status"]
+        events = cur.execute("SELECT * FROM case_events WHERE case_id = %s AND (event_type"
+                             " <> 'evidence_added' OR window_end <= %s) ORDER BY event_id",
+                             [case_id, case["as_of"]]).fetchall()
         evidence = cur.execute(
             "SELECT s.signal_name, s.window_start, s.window_end, s.presentation_state, s.score,"
             " s.median, s.band_low, s.band_high, s.model_id, s.model_version, s.synthetic,"
             " s.scored_evidence FROM case_events e"
             " JOIN scores s USING (session_id, asset_id, signal_name, window_end, model_version)"
-            " WHERE e.case_id = %s AND e.event_type = 'evidence_added' ORDER BY s.window_start,"
-            " s.signal_name", [case_id]).fetchall()
-    return {"case": case, "events": events, "evidence": evidence,
+            " WHERE e.case_id = %s AND e.event_type = 'evidence_added' AND e.window_end <= %s"
+            " ORDER BY s.window_start, s.signal_name", [case_id, case["as_of"]]).fetchall()
+    return {"case": case, "events": events, "evidence": evidence, "as_of": case["as_of"],
+            "replay_status": status, "complete": status == "completed",
             "note": "exported for review; this system sends nothing and controls nothing"}
 
 
@@ -142,6 +174,13 @@ def export_markdown(pack: dict, provenance: dict, assumption_titles: dict | None
     c, titles = pack["case"], assumption_titles or {}
     synthetic = bool(c["synthetic"])
     out = [f"# Evidence pack: case {c['case_id']}", ""]
+    if pack.get("complete", True):
+        out += [f"> As of the session cursor {pack.get('as_of')} (the replay has finished).",
+                ""]
+    else:
+        out += [f"> **As of the session cursor {pack.get('as_of')}** (the replay is "
+                f"{pack.get('replay_status')}): evidence after this time is not shown yet. "
+                "This is not the complete case.", ""]
     if synthetic:
         out += ["> **SYNTHETIC**: this case comes from a replay with an injected fault. It is "
                 "not evidence about the real pump.", ""]

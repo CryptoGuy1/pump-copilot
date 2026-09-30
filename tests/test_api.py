@@ -2,6 +2,7 @@
 import ast
 import datetime as dt
 import json
+import re
 import socket
 from pathlib import Path
 
@@ -315,17 +316,48 @@ def test_fleet_overview(env, client):
     body = client.get("/api/fleet").json()
     pump = {p["asset_id"]: p for p in body["pumps"]}[ASSET]
     assert pump["days"] == [D]
-    assert pump["state"]["state"] in ("normal", "review_suggested", "insufficient_evidence",
-                                      "data_unavailable")
-    latest = pump["latest_session"]
-    assert latest["session_id"] == env["synthetic"] and latest["synthetic"] is True
-    _provenance(pump, synthetic=True)
-    assert pump["open_cases"]["latest_session"] >= 1
-    assert pump["open_cases"]["all_sessions"]["real"] >= 1
-    assert pump["open_cases"]["all_sessions"]["synthetic"] >= 1
+    # every session is reported separately, synthetic ones included, newest first
+    ids = [x["session"]["session_id"] for x in pump["sessions"]]
+    assert env["real"] in ids and env["synthetic"] in ids and ids == sorted(ids, reverse=True)
+    syn = next(x for x in pump["sessions"] if x["session"]["session_id"] == env["synthetic"])
+    _provenance(syn, synthetic=True)
+    assert syn["session"]["synthetic"] is True and syn["open_cases"] >= 1
+    # the pump's own state is its latest real session's, never a synthetic one's
+    real = max(x["session"]["session_id"] for x in pump["sessions"]
+               if not x["session"]["synthetic"])
+    assert pump["state_session_id"] == real and pump["synthetic"] is False
+    assert pump["state"] == next(x["state"] for x in pump["sessions"]
+                                 if x["session"]["session_id"] == real)
+    assert pump["open_cases"]["real"] >= 1 and pump["open_cases"]["synthetic"] >= 1
     dq = pump["data_quality"]
     assert dq["status"] == "issues" and dq["audit_issues"] == 1 and dq["gaps"] == 1
     assert {"stale_suspected", "spike_suspected"} <= set(dq["flag_counts"])
+
+
+def _expected_state(c, sid) -> dict:
+    """The fleet rule, recomputed here from the scores at or before the session cursor."""
+    latest = c.execute(
+        "SELECT DISTINCT ON (signal_name) signal_name, presentation_state FROM scores s WHERE"
+        " session_id = %s AND window_end <= (SELECT cursor_at FROM replay_sessions WHERE"
+        " session_id = s.session_id) ORDER BY signal_name, window_end DESC", [sid]).fetchall()
+    st = {r[1] for r in latest}
+    agg = ("insufficient_evidence" if not st else "review_suggested" if "review_suggested" in st
+           else "normal" if st == {"normal"} else "insufficient_evidence"
+           if "insufficient_evidence" in st else "data_unavailable")
+    return {"state": agg, "signals": {r[0]: r[1] for r in latest}}
+
+
+@pytest.mark.db
+def test_fleet_states_are_computed_on_the_server_per_session(env, client):
+    body = client.get("/api/fleet").json()
+    with db.connect(env["url"]) as c:
+        for pump in body["pumps"]:
+            for x in pump["sessions"]:
+                sid = x["session"]["session_id"]
+                exp = _expected_state(c, sid)
+                assert x["state"]["state"] == exp["state"], sid
+                assert x["state"]["signals"] == exp["signals"], sid
+                assert x["state"]["as_of"] == x["session"]["cursor_at"], sid
 
 
 @pytest.mark.db
@@ -533,6 +565,165 @@ def test_replay_control(env, client):
             replay.pause_session(c, x)
 
 
+# --- reads as of the session cursor -----------------------------------------------------
+
+def _source_times(body, day: dt.date) -> list[dt.datetime]:
+    """Every timestamp on the source day anywhere in a response (JSON or text)."""
+    text = body if isinstance(body, str) else json.dumps(body)
+    out = []
+    for m in re.finditer(r"(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2}(?:\.\d+)?)"
+                         r"(Z|[+-]\d{2}:\d{2})?", text):
+        if m[1] == day.isoformat():
+            out.append(dt.datetime.fromisoformat(f"{m[1]}T{m[2]}+00:00"))
+    return out
+
+
+def _two_cases(env, client):
+    """A session with two cases: the first closed mid-replay (with its human history), the
+    second opened later as a related case. Returns (sid, early, late, first windows)."""
+    sid, (early,) = _fresh_session(env, stop_at=START + pd.Timedelta(hours=2, minutes=20))
+    for step, body in (("acknowledge", {}), ("notes", {"text": "early case looked at"}),
+                       ("disposition", {"disposition": "monitor", "reason": "watching"}),
+                       ("close", {})):
+        assert client.post(f"/api/cases/{early}/{step}", json={"actor": "op", **body}
+                           ).status_code == 200
+    with db.connect(env["url"]) as c:
+        run_to_end(c, sid, env["clock"])
+        first = dict(c.execute(
+            "SELECT case_id, min(window_end) FROM case_events WHERE session_id = %s AND"
+            " event_type = 'evidence_added' GROUP BY 1", [sid]).fetchall())
+    late = max(first, key=first.get)
+    assert late != early and first[late] - first[early] > dt.timedelta(minutes=10)
+    return sid, early, late, first
+
+
+def _counts(url, sid) -> tuple:
+    with db.connect(url) as c:
+        return (c.execute("SELECT count(*) FROM scores WHERE session_id = %s", [sid]).fetchone(),
+                c.execute("SELECT count(*) FROM case_events WHERE session_id = %s", [sid]
+                          ).fetchone())
+
+
+@pytest.mark.db
+def test_after_a_rewind_no_response_contains_anything_later_than_the_cursor(env, client):
+    sid, early, late, first = _two_cases(env, client)
+    # human history on the late case, before the rewind
+    assert client.post(f"/api/cases/{late}/acknowledge", json={"actor": "op"}).status_code == 200
+    assert client.post(f"/api/cases/{late}/notes", json={"actor": "op", "text": "seen before"
+                                                         " the rewind"}).status_code == 200
+    before = _counts(env["url"], sid)
+
+    assert client.post(f"/api/replay/sessions/{sid}/rewind").status_code == 200
+    target = first[late] - dt.timedelta(minutes=5)
+    with db.connect(env["url"]) as c:  # 1 s of wall time per tick: one source minute at 60x
+        run_to_end(c, sid, env["clock"], stop_at=target, wall_s=1.0)
+        replay.pause_session(c, sid)
+        t = replay.get_session(c, sid)["cursor_at"]
+    assert first[early] <= t < first[late]
+    assert _counts(env["url"], sid) == before  # nothing deleted, nothing duplicated
+
+    base = f"/api/assets/{ASSET}/days/{D}"
+    reads = {
+        "fleet": next(x for p in client.get("/api/fleet").json()["pumps"]  # this session
+                      for x in p["sessions"] if x["session"]["session_id"] == sid),
+        "scores": client.get(f"{base}/scores", params={"session_id": sid}).json(),
+        "bands": client.get(f"{base}/bands", params={"session_id": sid}).json(),
+        "baseline": client.get(f"/api/replay/sessions/{sid}/baseline").json(),
+        "cases": client.get("/api/cases", params={"session_id": sid}).json(),
+        "detail": client.get(f"/api/cases/{early}").json(),
+        "evidence": client.get(f"/api/cases/{early}/evidence", params={"limit": 500}).json(),
+        "export": client.get(f"/api/cases/{early}/export").json(),
+        "export.md": client.get(f"/api/cases/{early}/export",
+                                params={"format": "markdown"}).text,
+        "assistant": client.post(f"/api/cases/{early}/assistant", json={
+            "question": "What happened?", "provider": "template"}).json(),
+    }
+    for name, body in reads.items():
+        later = [x for x in _source_times(body, DAY) if x > t]
+        assert not later, (name, later[:3])
+    assert reads["scores"]["scores"] and max(
+        r["window_end"] for r in reads["scores"]["scores"]) <= t.isoformat().replace(
+        "+00:00", "Z")
+    assert [x["case_id"] for x in reads["cases"]["cases"]] == [early]
+    assert reads["detail"]["case"]["as_of"].startswith(t.strftime("%Y-%m-%dT%H:%M"))
+    # the early case keeps its whole human history; the late case is hidden with its own
+    kinds = [e["event_type"] for e in reads["detail"]["timeline"]]
+    assert kinds[:1] == ["opened"] and {"acknowledged", "note", "disposition", "closed"} <= set(
+        kinds)
+    assert reads["detail"]["related"]["related_by"] == []
+
+    msg = "not yet reached in this replay"
+    for method, path, body in (
+            ("get", f"/api/cases/{late}", None), ("get", f"/api/cases/{late}/evidence", None),
+            ("get", f"/api/cases/{late}/export", None),
+            ("post", f"/api/cases/{late}/acknowledge", {"actor": "op"}),
+            ("post", f"/api/cases/{late}/notes", {"actor": "op", "text": "x"}),
+            ("post", f"/api/cases/{late}/disposition", {"actor": "op", "disposition":
+                                                          "monitor", "reason": "r"}),
+            ("post", f"/api/cases/{late}/close", {"actor": "op"}),
+            ("post", f"/api/cases/{late}/assistant", {"question": "q", "provider":
+                                                        "template"})):
+        r = getattr(client, method)(path, **({"json": body} if body else {}))
+        assert msg in _err(r, 409, "not_yet_reached")["message"], path
+    with db.connect(env["url"]) as c, pytest.raises(cases.NotYetReached):
+        cases.note(c, late, "op", "from the CLI")  # the library refuses too
+    assert _counts(env["url"], sid) == before  # the refused actions wrote nothing
+
+    # the replay passes the late case again: it reappears with its full history
+    with db.connect(env["url"]) as c:
+        replay.resume_session(c, sid, now=env["clock"]())
+        run_to_end(c, sid, env["clock"])
+    assert _counts(env["url"], sid) == before
+    d = client.get(f"/api/cases/{late}").json()
+    assert d["case"]["status"] == "acknowledged" and d["case"]["notes"] == 1
+    assert [e["note"] for e in d["timeline"] if e["event_type"] == "note"] == [
+        "seen before the rewind"]
+    assert d["related"]["related_case"]["case_id"] == early
+    listed = client.get("/api/cases", params={"session_id": sid}).json()["cases"]
+    assert sorted(x["case_id"] for x in listed) == sorted([early, late])
+
+
+@pytest.mark.db
+def test_an_export_says_it_is_as_of_the_session_cursor(env, client):
+    sid, early, late, first = _two_cases(env, client)
+    client.post(f"/api/replay/sessions/{sid}/rewind")
+    with db.connect(env["url"]) as c:
+        run_to_end(c, sid, env["clock"], stop_at=first[late] - dt.timedelta(minutes=5),
+                   wall_s=1.0)
+        replay.pause_session(c, sid)
+        t = replay.get_session(c, sid)["cursor_at"]
+    j = client.get(f"/api/cases/{early}/export").json()
+    assert j["as_of"] == t.isoformat().replace("+00:00", "Z") and j["complete"] is False
+    md = client.get(f"/api/cases/{early}/export", params={"format": "markdown"}).text
+    head = md.split("\n## ")[0]
+    assert "As of the session cursor" in head and str(t)[:19] in head
+    assert "not the complete case" in head
+    with db.connect(env["url"]) as c:
+        replay.resume_session(c, sid, now=env["clock"]())
+        run_to_end(c, sid, env["clock"])
+    j = client.get(f"/api/cases/{early}/export").json()
+    assert j["complete"] is True
+    md = client.get(f"/api/cases/{early}/export", params={"format": "markdown"}).text
+    assert "As of the session cursor" in md.split("\n## ")[0]
+    assert "not the complete case" not in md
+
+
+@pytest.mark.db
+def test_a_pending_session_shows_nothing_yet(env, client):
+    sid, _ = _fresh_session(env)
+    client.post(f"/api/replay/sessions/{sid}/rewind")
+    base = f"/api/assets/{ASSET}/days/{D}"
+    assert client.get(f"{base}/scores", params={"session_id": sid}).json()["scores"] == []
+    assert client.get(f"{base}/bands", params={"session_id": sid}).json()["bands"] is None
+    assert client.get("/api/cases", params={"session_id": sid}).json()["cases"] == []
+    x = next(x for p in client.get("/api/fleet").json()["pumps"] for x in p["sessions"]
+             if x["session"]["session_id"] == sid)
+    assert x["state"]["state"] == "insufficient_evidence" and x["state"]["as_of"] is None
+    assert x["open_cases"] == 0
+    with db.connect(env["url"]) as c:
+        replay.pause_session(c, sid)  # leave nothing claimable for other tests
+
+
 @pytest.mark.db
 def test_data_quality(env, client):
     dq = client.get(f"/api/assets/{ASSET}/days/{D}/data-quality").json()
@@ -596,8 +787,9 @@ def test_no_endpoint_writes_telemetry_or_reaches_outside(env, monkeypatch):
     with TestClient(_app(env["url"], env["reports"])) as c:
         routes = [r for r in c.app.routes if getattr(r, "methods", None)
                   and r.path.startswith("/api/")]
+        # the case actions first: a later rewind of the session hides its cases (409)
         routes.sort(key=lambda r: order.index(r.path.rsplit("/", 1)[1])
-                    if r.path.rsplit("/", 1)[1] in order else -1)
+                    if r.path.rsplit("/", 1)[1] in order else len(order))
         for r in routes:
             for method in r.methods - {"HEAD", "OPTIONS"}:
                 path = r.path.format(**params)

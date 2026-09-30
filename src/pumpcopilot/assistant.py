@@ -193,14 +193,15 @@ def sample_context(synthetic: bool = False) -> dict:
 
 
 def build_context(conn, case_id: int) -> dict:
-    """The context for a stored case (reads the case, its evidence and its notes)."""
+    """The context for a stored case (reads the case, its evidence and its notes), as of the
+    session cursor: NotYetReached if the replay has not reached the case."""
     from psycopg.rows import dict_row
 
     from . import api, cases, replay
 
-    case = cases.get_case(conn, case_id)
+    case = cases.visible_case(conn, case_id)
     s = replay.get_session(conn, case["session_id"])
-    run = next((r for r in (s["baseline_progress"] or {}).get("runs", [])
+    run = next((r for r in (api._progress_at(s) or {}).get("runs", [])
                 if r["run"] == case["stretch"]), {"signals": {}})
     with conn.cursor(row_factory=dict_row) as cur:
         rows = cur.execute(
@@ -210,14 +211,15 @@ def build_context(conn, case_id: int) -> dict:
             " max(s.median) AS median_max, min(s.scored_evidence->>"
             "'confidence_calibration_status') AS calibration FROM case_events e JOIN scores s"
             " USING (session_id, asset_id, signal_name, window_end, model_version) WHERE"
-            " e.case_id = %s AND e.event_type = 'evidence_added' GROUP BY 1", [case_id]
-        ).fetchall()
+            " e.case_id = %s AND e.event_type = 'evidence_added' AND e.window_end <= %s"
+            " GROUP BY 1", [case_id, case["as_of"]]).fetchall()
         notes = [r["note"] for r in cur.execute(
             "SELECT note FROM case_events WHERE case_id = %s AND event_type = 'note' ORDER BY"
             " event_id", [case_id]).fetchall()]
         versions = [r["model_version"] for r in cur.execute(
             "SELECT DISTINCT model_version FROM case_events WHERE case_id = %s AND"
-            " event_type = 'evidence_added'", [case_id]).fetchall()]
+            " event_type = 'evidence_added' AND window_end <= %s", [case_id, case["as_of"]]
+        ).fetchall()]
     signals = {}
     for r in rows:
         band = run["signals"].get(r["signal_name"], {}).get("band") or {}

@@ -6,7 +6,8 @@ import { expect, test, type Page } from "@playwright/test";
 async function measure(page: Page, path: string, chart: boolean) {
   await page.goto(path);
   if (chart) await expect(page.getByTestId("chart").first()).toBeVisible({ timeout: 60_000 });
-  else await expect(page.locator("table").first()).toBeVisible({ timeout: 60_000 });
+  // the fleet overview's pump cards (stage 0 replaced its table)
+  else await expect(page.getByTestId(/^pump-/).first()).toBeVisible({ timeout: 60_000 });
   return page.evaluate(() => {
     const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
     return { load_ms: Math.round(nav.loadEventEnd), dom_content_loaded_ms:

@@ -339,7 +339,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Fleet */
+        /**
+         * Fleet
+         * @description Each pump with every replay session reported separately (synthetic ones included),
+         *     each with its state computed here, as of its cursor. The pump's own state is its
+         *     latest real session's: a synthetic session never stands for the pump.
+         */
         get: operations["fleet_api_fleet_get"];
         put?: never;
         post?: never;
@@ -977,11 +982,21 @@ export interface components {
         /** CaseExport */
         CaseExport: {
             /**
+             * As Of
+             * @description the session cursor the export is as of
+             */
+            as_of: string | null;
+            /**
              * Assumptions
              * @description IDs in docs/ASSUMPTIONS.md that apply
              */
             assumptions: string[];
             case: components["schemas"]["CaseState"];
+            /**
+             * Complete
+             * @description false while the replay has not finished: later evidence is not in this export
+             */
+            complete: boolean;
             /** Events */
             events: components["schemas"]["ExportEvent"][];
             /** Evidence */
@@ -993,6 +1008,11 @@ export interface components {
             model_version: string[];
             /** Note */
             note: string;
+            /**
+             * Replay Status
+             * @enum {string}
+             */
+            replay_status: "pending" | "running" | "paused" | "completed" | "failed";
             /**
              * Synthetic
              * @description true if the data comes from a synthetic scenario
@@ -1022,6 +1042,11 @@ export interface components {
         CaseState: {
             /** Acknowledged */
             acknowledged: boolean;
+            /**
+             * As Of
+             * @description the session cursor (source time) the case is shown as of
+             */
+            as_of: string | null;
             /** Asset Id */
             asset_id: string;
             /** Case Id */
@@ -1391,6 +1416,35 @@ export interface components {
             /** Pumps */
             pumps: components["schemas"]["Pump"][];
         };
+        /**
+         * FleetSession
+         * @description One replay session, as of its cursor.
+         */
+        FleetSession: {
+            /**
+             * Assumptions
+             * @description IDs in docs/ASSUMPTIONS.md that apply
+             */
+            assumptions: string[];
+            /**
+             * Model Version
+             * @description the model versions that produced it
+             */
+            model_version: string[];
+            /**
+             * Open Cases
+             * @description cases reached by the cursor and not closed
+             */
+            open_cases: number;
+            session: components["schemas"]["SessionBrief"];
+            /** @description computed on the server from the latest window of each signal at or before the cursor; as_of is the cursor */
+            state: components["schemas"]["PumpState"];
+            /**
+             * Synthetic
+             * @description true if the data comes from a synthetic scenario
+             */
+            synthetic: boolean;
+        };
         /** Gaps */
         Gaps: {
             /** Count */
@@ -1458,12 +1512,6 @@ export interface components {
             /** Text */
             text: string;
         };
-        /** OpenCases */
-        OpenCases: {
-            all_sessions: components["schemas"]["RealSynthetic"];
-            /** Latest Session */
-            latest_session: number;
-        };
         /**
          * PresentationState
          * @description The only four states the UI may show. There is intentionally no 'alarm'.
@@ -1482,14 +1530,25 @@ export interface components {
             data_quality: components["schemas"]["DataQualityBrief"];
             /** Days */
             days: string[];
-            latest_session: components["schemas"]["SessionBrief"] | null;
             /**
              * Model Version
              * @description the model versions that produced it
              */
             model_version: string[];
-            open_cases: components["schemas"]["OpenCases"];
+            /** @description open cases over all sessions, each as of its cursor */
+            open_cases: components["schemas"]["RealSynthetic"];
+            /**
+             * Sessions
+             * @description every session, synthetic ones included, newest first
+             */
+            sessions: components["schemas"]["FleetSession"][];
+            /** @description the pump's state: its latest real session's (a synthetic session never stands for the pump) */
             state: components["schemas"]["PumpState"];
+            /**
+             * State Session Id
+             * @description the session the state is from
+             */
+            state_session_id: number | null;
             /**
              * Synthetic
              * @description true if the data comes from a synthetic scenario

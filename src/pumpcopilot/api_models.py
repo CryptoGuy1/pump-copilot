@@ -92,11 +92,6 @@ class RealSynthetic(Model):
     synthetic: int
 
 
-class OpenCases(Model):
-    latest_session: int
-    all_sessions: RealSynthetic
-
-
 class DataQualityBrief(Model):
     source_day: dt.date
     status: Literal["ok", "issues", "not_audited"]
@@ -105,12 +100,24 @@ class DataQualityBrief(Model):
     flag_counts: dict[str, int]
 
 
+class FleetSession(Provenance):
+    """One replay session, as of its cursor."""
+    session: SessionBrief
+    state: PumpState = Field(description="computed on the server from the latest window of each"
+                                          " signal at or before the cursor; as_of is the cursor")
+    open_cases: int = Field(description="cases reached by the cursor and not closed")
+
+
 class Pump(Provenance):
     asset_id: str
     days: list[dt.date]
-    latest_session: SessionBrief | None
-    state: PumpState
-    open_cases: OpenCases
+    state: PumpState = Field(description="the pump's state: its latest real session's (a "
+                                         "synthetic session never stands for the pump)")
+    state_session_id: int | None = Field(description="the session the state is from")
+    sessions: list[FleetSession] = Field(description="every session, synthetic ones included,"
+                                                     " newest first")
+    open_cases: RealSynthetic = Field(description="open cases over all sessions, each as of "
+                                                  "its cursor")
     data_quality: DataQualityBrief
 
 
@@ -327,6 +334,8 @@ class CaseState(Model):
     status: CaseStatus
     last_event_at: dt.datetime
     related_case_id: int | None
+    as_of: dt.datetime | None = Field(description="the session cursor (source time) the case "
+                                                  "is shown as of")
 
 
 class CaseList(Model):
@@ -457,6 +466,10 @@ class CaseExport(Provenance):
     case: CaseState
     events: list[ExportEvent]
     evidence: list[ExportEvidence]
+    as_of: dt.datetime | None = Field(description="the session cursor the export is as of")
+    replay_status: SessionStatus
+    complete: bool = Field(description="false while the replay has not finished: later "
+                                       "evidence is not in this export")
     note: str
 
 

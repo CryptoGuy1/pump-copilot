@@ -9,6 +9,10 @@
   (asset_id, source_day).
 * Responses that carry scores or cases say whether the data is synthetic, which model
   versions produced it and which assumptions (docs/ASSUMPTIONS.md) apply.
+* Every read scoped to a replay session is as of that session's cursor (source time):
+  scores, states and cases later than the cursor are not returned (after a rewind they
+  reappear as the replay passes them; nothing is deleted). A case the cursor has not reached
+  can be neither read nor acted on (409 not_yet_reached).
 * Errors have one shape: {"error": {"status", "code", "message", "details"}}.
 * /api/stream is server-sent events (replay.progress, score.batch, case.event) from the
   stream_events log, woken by LISTEN/NOTIFY; Last-Event-ID resumes without gaps.
@@ -165,6 +169,24 @@ def _session_out(s: dict) -> dict:
     return {k: s[k] for k in keep}
 
 
+def _progress_at(s: dict) -> dict | None:
+    """The stored baseline progress, if it was computed at or before the session cursor (a
+    rewind leaves the later snapshot in place until the replay passes it again)."""
+    p = s.get("baseline_progress")
+    if not p or s.get("cursor_at") is None or "cursor" not in p:
+        return None
+    return p if _utc(p["cursor"]) <= _utc(s["cursor_at"]) else None
+
+
+def aggregate_state(states: list[str]) -> str:
+    """A session's state from its signals' latest states at the cursor."""
+    if not states:
+        return "insufficient_evidence"
+    return ("review_suggested" if "review_suggested" in states else "normal"
+            if set(states) == {"normal"} else "insufficient_evidence"
+            if "insufficient_evidence" in states else "data_unavailable")
+
+
 def _versions(conn, session_id: int) -> list[str]:
     return [r["model_version"] for r in _rows(
         conn, "SELECT DISTINCT model_version FROM scores WHERE session_id = %s", [session_id])]
@@ -270,6 +292,10 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
             return _error(404, "not_found", msg)
         return _error(409, "invalid_transition", msg)
 
+    @app.exception_handler(cases.NotYetReached)
+    async def _not_yet_reached(_, e: cases.NotYetReached):
+        return _error(409, "not_yet_reached", str(e))
+
     @app.exception_handler(Exception)
     async def _internal(_, e: Exception):
         return _error(500, "internal_error", "internal error", type(e).__name__)
@@ -312,8 +338,38 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
 
     # -- fleet overview --
 
+    def _session_state(c, sess: dict) -> dict:
+        """One session as the fleet shows it: its state, open cases and provenance, all as
+        of its cursor."""
+        sid, cursor = sess["session_id"], sess["cursor_at"]
+        latest = _rows(c, "SELECT DISTINCT ON (signal_name) signal_name,"
+                          " presentation_state AS state, window_end, model_version"
+                          " FROM scores WHERE session_id = %s AND window_end <= %s"
+                          " ORDER BY signal_name, window_end DESC", [sid, cursor])
+        st = [x["state"] for x in latest]
+        if cursor is None:
+            state = {"state": "insufficient_evidence", "reason": "replay not started",
+                     "as_of": None}
+        elif not st:
+            state = {"state": "insufficient_evidence", "reason": "no scores yet",
+                     "as_of": cursor}
+        else:
+            state = {"state": aggregate_state(st), "reason": None, "as_of": cursor}
+        state["signals"] = {x["signal_name"]: x["state"] for x in latest}
+        n_open = _one(c, "SELECT count(*) AS n FROM case_state_visible WHERE session_id = %s"
+                         " AND status <> 'closed'", [sid])["n"]
+        return {"session": {k: sess[k] for k in ("session_id", "source_day", "status",
+                                                  "cursor_at", "speed", "synthetic",
+                                                  "scenario")},
+                "state": state, "open_cases": n_open,
+                **_prov(sess["synthetic"], [x["model_version"] for x in latest],
+                        sess["asset_id"], sess["source_day"], [x["signal_name"] for x in latest])}
+
     @app.get("/api/fleet", tags=["fleet"], response_model=M.Fleet)
     def fleet(request: Request):
+        """Each pump with every replay session reported separately (synthetic ones included),
+        each with its state computed here, as of its cursor. The pump's own state is its
+        latest real session's: a synthetic session never stands for the pump."""
         audit = _audit(reports)
         pumps = []
         with conn_for(request) as c:
@@ -321,32 +377,20 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                               " source_day) AS days FROM state_segments GROUP BY asset_id"
                               " ORDER BY asset_id"):
                 asset, days = a["asset_id"], a["days"]
-                s = _one(c, "SELECT * FROM replay_sessions WHERE asset_id = %s ORDER BY"
-                            " session_id DESC LIMIT 1", [asset])
-                day = s["source_day"] if s else days[-1]
-                latest = _rows(c, "SELECT DISTINCT ON (signal_name) signal_name,"
-                                  " presentation_state AS state, window_end, model_version"
-                                  " FROM scores WHERE session_id = %s AND asset_id = %s"
-                                  " ORDER BY signal_name, window_end DESC",
-                               [s["session_id"] if s else -1, asset])
-                st = [x["state"] for x in latest]
-                if not s:
-                    state = {"state": "data_unavailable", "reason": "no replay session"}
-                elif not st:
-                    state = {"state": "insufficient_evidence", "reason": "no scores yet"}
+                sessions = [_session_state(c, x) for x in _rows(
+                    c, "SELECT * FROM replay_sessions WHERE asset_id = %s ORDER BY"
+                       " session_id DESC", [asset])]
+                real = next((x for x in sessions if not x["session"]["synthetic"]), None)
+                if real:
+                    state, day = real["state"], real["session"]["source_day"]
                 else:
-                    agg = ("review_suggested" if "review_suggested" in st else "normal"
-                           if set(st) == {"normal"} else "insufficient_evidence"
-                           if "insufficient_evidence" in st else "data_unavailable")
-                    state = {"state": agg, "reason": None, "as_of": max(
-                        x["window_end"] for x in latest)}
-                state["signals"] = {x["signal_name"]: x["state"] for x in latest}
-                by_syn = {r["synthetic"]: r["n"] for r in _rows(
-                    c, "SELECT synthetic, count(*) AS n FROM case_state WHERE asset_id = %s AND"
-                       " status <> 'closed' GROUP BY synthetic", [asset])}
-                open_latest = _one(c, "SELECT count(*) AS n FROM case_state WHERE session_id"
-                                      " = %s AND status <> 'closed'",
-                                   [s["session_id"] if s else -1])["n"]
+                    state = {"state": "data_unavailable", "reason": "no real replay session",
+                             "as_of": None, "signals": {}}
+                    day = sessions[0]["session"]["source_day"] if sessions else days[-1]
+                n_open = {"real": sum(x["open_cases"] for x in sessions
+                                      if not x["session"]["synthetic"]),
+                          "synthetic": sum(x["open_cases"] for x in sessions
+                                           if x["session"]["synthetic"])}
                 flags = db.fetch_flag_counts(c, asset, day)
                 totals = {k: sum(v.get(k, 0) for v in flags.values())
                           for k in ("readings", "stale_suspected", "spike_suspected")}
@@ -355,17 +399,16 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 gaps = (af.get("gaps_over_factor") or {}).get("count", 0) if af else None
                 pumps.append({
                     "asset_id": asset, "days": [str(d) for d in days],
-                    "latest_session": {k: s[k] for k in ("session_id", "source_day", "status",
-                                                         "cursor_at", "speed", "synthetic",
-                                                         "scenario")} if s else None,
                     "state": state,
-                    "open_cases": {"latest_session": open_latest, "all_sessions": {
-                        "real": by_syn.get(False, 0), "synthetic": by_syn.get(True, 0)}},
+                    "state_session_id": real["session"]["session_id"] if real else None,
+                    "sessions": sessions, "open_cases": n_open,
                     "data_quality": {"source_day": str(day), "status": "issues" if (
                         issues or gaps) else "ok" if af else "not_audited",
                         "audit_issues": issues, "gaps": gaps, "flag_counts": totals},
-                    **_prov(bool(s and s["synthetic"]), [x["model_version"] for x in latest],
-                            asset, day, [x["signal_name"] for x in latest])})
+                    "synthetic": False,
+                    "model_version": real["model_version"] if real else [],
+                    "assumptions": real["assumptions"] if real else assumptions_for(
+                        asset, day, scored=False)})
         return {"pumps": pumps}
 
     # -- asset-day view --
@@ -464,8 +507,8 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
             q = ("SELECT signal_name, stretch, window_start, window_end, presentation_state AS"
                  " state, score, abstention_reason, median, band_low, band_high, model_id,"
                  " model_version, synthetic FROM scores WHERE session_id = %s AND asset_id = %s"
-                 " AND source_day = %s")
-            args = [s["session_id"], asset_id, source_day]
+                 " AND source_day = %s AND window_end <= %s")  # as of the cursor
+            args = [s["session_id"], asset_id, source_day, s["cursor_at"]]
             if signal:
                 q, args = q + " AND signal_name = ANY(%s)", [*args, signal]
             rows = _rows(c, q + " ORDER BY signal_name, window_start", args)
@@ -483,7 +526,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
             s = _day_session(c, asset_id, source_day, session_id)
             versions = _versions(c, s["session_id"])
         return {"asset_id": asset_id, "source_day": str(source_day),
-                "session_id": s["session_id"], "bands": s["baseline_progress"],
+                "session_id": s["session_id"], "bands": _progress_at(s),
                 **_prov(s["synthetic"], versions, asset_id, source_day,
                         (s["day_constants"] or {}).get("signals", []))}
 
@@ -542,7 +585,8 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 args.append(val)
         where = f" WHERE {' AND '.join(conds)}" if conds else ""
         with conn_for(request) as c:
-            rows = _rows(c, f"SELECT * FROM case_state{where} ORDER BY case_id DESC LIMIT %s",
+            rows = _rows(c, f"SELECT * FROM case_state_visible{where} ORDER BY case_id DESC"
+                            " LIMIT %s",
                          [*args, limit])
             versions = _case_versions(c, [r["case_id"] for r in rows])
         sigs = {s for r in rows for s in (r["signals"] or [])}
@@ -574,7 +618,8 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
         return out
 
     def _case_detail(c, case_id: int, max_points: int) -> dict:
-        case = cases.get_case(c, case_id)
+        case = cases.visible_case(c, case_id)
+        at = case["as_of"]
         timeline = _rows(c, "SELECT event_id, event_type, actor, recorded_at, note,"
                             " disposition, reason, related_case_id FROM case_events WHERE"
                             " case_id = %s AND event_type <> 'evidence_added' ORDER BY"
@@ -583,9 +628,10 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
             c, "SELECT signal_name, count(*) AS windows, count(*) FILTER (WHERE"
                " episode_start) AS episodes, min(window_start) AS first_window_start,"
                " max(window_end) AS last_window_end, max(score) AS max_score FROM case_events"
-               " WHERE case_id = %s AND event_type = 'evidence_added' GROUP BY 1", [case_id])}
+               " WHERE case_id = %s AND event_type = 'evidence_added' AND window_end <= %s"
+               " GROUP BY 1", [case_id, at])}
         s = replay.get_session(c, case["session_id"])
-        run = next((r for r in (s["baseline_progress"] or {}).get("runs", [])
+        run = next((r for r in (_progress_at(s) or {}).get("runs", [])
                     if r["run"] == case["stretch"]), {"signals": {}})
         margin = dt.timedelta(minutes=30)
         signals = {}
@@ -593,19 +639,19 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
             rows = _rows(c, "SELECT window_end, median, presentation_state AS state FROM"
                             " scores WHERE session_id = %s AND asset_id = %s AND signal_name"
                             " = %s AND stretch = %s AND window_end >= %s AND window_start <= %s"
-                            " ORDER BY window_end",
+                            " AND window_end <= %s ORDER BY window_end",
                          [case["session_id"], case["asset_id"], sig, case["stretch"],
-                          case["evidence_start"] - margin, case["evidence_end"] + margin])
+                          case["evidence_start"] - margin, case["evidence_end"] + margin, at])
             signals[sig] = {"summary": {k: v for k, v in summary.get(sig, {}).items()
                                         if k != "signal_name"},
                             "band": run["signals"].get(sig, {}).get("band"),
                             "chart": _chart(rows, max_points)}
         related = None
         if case["related_case_id"] is not None:
-            related = _one(c, "SELECT * FROM case_state WHERE case_id = %s",
+            related = _one(c, "SELECT * FROM case_state_visible WHERE case_id = %s",
                            [case["related_case_id"]])
-        related_by = _rows(c, "SELECT * FROM case_state WHERE related_case_id = %s ORDER BY"
-                              " case_id", [case_id])
+        related_by = _rows(c, "SELECT * FROM case_state_visible WHERE related_case_id = %s"
+                              " ORDER BY case_id", [case_id])
         return {"case": case, "timeline": timeline, "signals": signals,
                 "max_points": max_points, "chart_margin_s": margin.total_seconds(),
                 "evidence_url": f"/api/cases/{case_id}/evidence",
@@ -626,11 +672,11 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                       limit: int = Query(100, ge=1, le=500),
                       signal: str | None = None):
         with conn_for(request) as c:
-            case = cases.get_case(c, case_id)
+            case = cases.visible_case(c, case_id)
             q = (" FROM case_events e JOIN scores s USING (session_id, asset_id, signal_name,"
                  " window_end, model_version) WHERE e.case_id = %s AND e.event_type ="
-                 " 'evidence_added'")
-            args: list = [case_id]
+                 " 'evidence_added' AND e.window_end <= %s")
+            args: list = [case_id, case["as_of"]]
             if signal:
                 q, args = q + " AND s.signal_name = %s", [*args, signal]
             total = _one(c, "SELECT count(*) AS n" + q, args)["n"]
@@ -652,7 +698,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 fn(c)
             except ValueError as e:
                 raise ApiError(422, "validation_error", str(e)) from None
-            case = cases.get_case(c, case_id)
+            case = cases.visible_case(c, case_id)
             versions = _case_versions(c, [case_id])
         return {"case": case, "actions": _actions(case["status"]),
                 **_prov(case["synthetic"], versions, case["asset_id"], case["source_day"],
@@ -801,7 +847,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
             s = _session(c, session_id)
             versions = _versions(c, session_id)
         return {"session_id": session_id, "status": s["status"], "cursor_at": s["cursor_at"],
-                "baseline_progress": s["baseline_progress"],
+                "baseline_progress": _progress_at(s),
                 **_prov(s["synthetic"], versions, s["asset_id"], s["source_day"],
                         (s["day_constants"] or {}).get("signals", []))}
 

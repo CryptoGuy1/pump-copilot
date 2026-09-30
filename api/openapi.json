@@ -1202,6 +1202,19 @@
       "CaseExport": {
         "additionalProperties": false,
         "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "the session cursor the export is as of",
+            "title": "As Of"
+          },
           "assumptions": {
             "description": "IDs in docs/ASSUMPTIONS.md that apply",
             "items": {
@@ -1212,6 +1225,11 @@
           },
           "case": {
             "$ref": "#/components/schemas/CaseState"
+          },
+          "complete": {
+            "description": "false while the replay has not finished: later evidence is not in this export",
+            "title": "Complete",
+            "type": "boolean"
           },
           "events": {
             "items": {
@@ -1239,6 +1257,17 @@
             "title": "Note",
             "type": "string"
           },
+          "replay_status": {
+            "enum": [
+              "pending",
+              "running",
+              "paused",
+              "completed",
+              "failed"
+            ],
+            "title": "Replay Status",
+            "type": "string"
+          },
           "synthetic": {
             "description": "true if the data comes from a synthetic scenario",
             "title": "Synthetic",
@@ -1252,6 +1281,9 @@
           "case",
           "events",
           "evidence",
+          "as_of",
+          "replay_status",
+          "complete",
           "note"
         ],
         "title": "CaseExport",
@@ -1334,6 +1366,19 @@
           "acknowledged": {
             "title": "Acknowledged",
             "type": "boolean"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "the session cursor (source time) the case is shown as of",
+            "title": "As Of"
           },
           "asset_id": {
             "title": "Asset Id",
@@ -1500,7 +1545,8 @@
           "closed",
           "status",
           "last_event_at",
-          "related_case_id"
+          "related_case_id",
+          "as_of"
         ],
         "title": "CaseState",
         "type": "object"
@@ -2432,6 +2478,55 @@
         "title": "Fleet",
         "type": "object"
       },
+      "FleetSession": {
+        "additionalProperties": false,
+        "description": "One replay session, as of its cursor.",
+        "properties": {
+          "assumptions": {
+            "description": "IDs in docs/ASSUMPTIONS.md that apply",
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "model_version": {
+            "description": "the model versions that produced it",
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "open_cases": {
+            "description": "cases reached by the cursor and not closed",
+            "title": "Open Cases",
+            "type": "integer"
+          },
+          "session": {
+            "$ref": "#/components/schemas/SessionBrief"
+          },
+          "state": {
+            "$ref": "#/components/schemas/PumpState",
+            "description": "computed on the server from the latest window of each signal at or before the cursor; as_of is the cursor"
+          },
+          "synthetic": {
+            "description": "true if the data comes from a synthetic scenario",
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "synthetic",
+          "model_version",
+          "assumptions",
+          "session",
+          "state",
+          "open_cases"
+        ],
+        "title": "FleetSession",
+        "type": "object"
+      },
       "Gaps": {
         "additionalProperties": false,
         "properties": {
@@ -2619,24 +2714,6 @@
         "title": "NoteIn",
         "type": "object"
       },
-      "OpenCases": {
-        "additionalProperties": false,
-        "properties": {
-          "all_sessions": {
-            "$ref": "#/components/schemas/RealSynthetic"
-          },
-          "latest_session": {
-            "title": "Latest Session",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "latest_session",
-          "all_sessions"
-        ],
-        "title": "OpenCases",
-        "type": "object"
-      },
       "PresentationState": {
         "description": "The only four states the UI may show. There is intentionally no 'alarm'.",
         "enum": [
@@ -2674,16 +2751,6 @@
             "title": "Days",
             "type": "array"
           },
-          "latest_session": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SessionBrief"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "model_version": {
             "description": "the model versions that produced it",
             "items": {
@@ -2693,10 +2760,32 @@
             "type": "array"
           },
           "open_cases": {
-            "$ref": "#/components/schemas/OpenCases"
+            "$ref": "#/components/schemas/RealSynthetic",
+            "description": "open cases over all sessions, each as of its cursor"
+          },
+          "sessions": {
+            "description": "every session, synthetic ones included, newest first",
+            "items": {
+              "$ref": "#/components/schemas/FleetSession"
+            },
+            "title": "Sessions",
+            "type": "array"
           },
           "state": {
-            "$ref": "#/components/schemas/PumpState"
+            "$ref": "#/components/schemas/PumpState",
+            "description": "the pump's state: its latest real session's (a synthetic session never stands for the pump)"
+          },
+          "state_session_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "the session the state is from",
+            "title": "State Session Id"
           },
           "synthetic": {
             "description": "true if the data comes from a synthetic scenario",
@@ -2710,8 +2799,9 @@
           "assumptions",
           "asset_id",
           "days",
-          "latest_session",
           "state",
+          "state_session_id",
+          "sessions",
           "open_cases",
           "data_quality"
         ],
@@ -6211,6 +6301,7 @@
     },
     "/api/fleet": {
       "get": {
+        "description": "Each pump with every replay session reported separately (synthetic ones included),\neach with its state computed here, as of its cursor. The pump's own state is its\nlatest real session's: a synthetic session never stands for the pump.",
         "operationId": "fleet_api_fleet_get",
         "responses": {
           "200": {

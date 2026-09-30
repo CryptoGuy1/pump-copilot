@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { useLayoutEffect } from "react";
+import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { type StreamEvent, useStream } from "./hooks/useStream";
 import { AssetDay } from "./pages/AssetDay";
 import { CaseDetail } from "./pages/CaseDetail";
@@ -8,6 +9,7 @@ import { DataQuality } from "./pages/DataQuality";
 import { Evaluation } from "./pages/Evaluation";
 import { Fleet } from "./pages/Fleet";
 import { Replay } from "./pages/Replay";
+import { THEMES, applyTheme, readTheme } from "./theme";
 
 /** Live updates: each stream event marks the queries it affects as stale. */
 function useLiveInvalidation() {
@@ -29,18 +31,36 @@ function useLiveInvalidation() {
   });
 }
 
+/** The design direction for this tab: ?theme=aurora|daylight|industrial. */
+function ThemeSwitcher() {
+  const loc = useLocation();
+  const theme = readTheme(loc.search);
+  useLayoutEffect(() => applyTheme(theme), [theme]);
+  return (
+    <div className="theme-switch" role="group" aria-label="Design direction">
+      {THEMES.map((t) => (
+        <Link key={t} to={`${loc.pathname}?theme=${t}`} aria-current={t === theme || undefined}
+              className={t === theme ? "on" : undefined}>{t}</Link>
+      ))}
+    </div>
+  );
+}
+
 export function App() {
   const live = useLiveInvalidation();
   return (
     <>
       <nav>
-        <NavLink to="/">Fleet</NavLink>
+        <Link to="/" className="brand" aria-label="pump-copilot home">
+          <span className="brand-mark" aria-hidden="true" />pump-copilot</Link>
+        <NavLink to="/" end>Fleet</NavLink>
         <NavLink to="/cases">Cases</NavLink>
         <NavLink to="/replay">Replay</NavLink>
         <NavLink to="/evaluation">Evaluation</NavLink>
         <NavLink to="/data-quality">Data quality</NavLink>
         <span className={`live live-${live.status}`} data-testid="live-status">
           live: {live.status}{live.lastEventId != null && ` (#${live.lastEventId})`}</span>
+        <ThemeSwitcher />
       </nav>
       <main>
         <Routes>
