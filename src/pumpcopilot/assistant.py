@@ -633,6 +633,33 @@ def _unit(u: str | None) -> str:
     return (u or "").replace("^2", "²").replace("^3", "³")
 
 
+_NAMES: dict | None = None
+
+
+def display_name(signal: str, start: bool = False) -> str:
+    """The signal's display name (data/cira_columns.yaml), in prose: lower case mid-sentence."""
+    global _NAMES
+    if _NAMES is None:
+        import yaml
+
+        from . import api
+        _NAMES = api.signal_names(yaml.safe_load((ROOT / "data" / "cira_columns.yaml")
+                                                 .read_text()))
+    name = (_NAMES.get(signal) or {}).get("display_name") or signal
+    return name if start else name[0].lower() + name[1:]
+
+
+def sig3(v: float) -> str:
+    """About three significant figures, never turning a decimal into a whole number: the
+    checker reads a whole number as exact, so 22.97 is "23.0", 123.4 is "123.4"."""
+    import math
+
+    if float(v).is_integer():
+        return str(int(v))
+    d = max(1, 2 - math.floor(math.log10(abs(v))))
+    return f"{v:.{d}f}"
+
+
 def _n(count, word: str) -> str:
     return f"{count} {word}" + ("" if count == 1 else "s")
 
@@ -659,22 +686,23 @@ class TemplateProvider(Provider):
                        "evidence_refs": ["E1"], "kind": "observation"})
         for s in sigs:
             sv = s["values"]
-            text = (f"{s['signal_name']} was outside its baseline band in "
+            text = (f"{display_name(s['signal_name'], start=True)} was outside its baseline"
+                    " band in "
                     f"{_n(sv['windows'], 'window')} over {_n(sv['episodes'], 'episode')}")
             if "max_score" in sv:
-                text += f"; the highest score was {sv['max_score']:.2f}"
+                text += f"; the highest score was {sig3(sv['max_score'])}"
             if "band_low" in sv and "band_high" in sv:
-                text += (f" (band {sv['band_low']:.5g} to {sv['band_high']:.5g} "
+                text += (f" (band {sig3(sv['band_low'])} to {sig3(sv['band_high'])} "
                          f"{_unit(s.get('unit'))})").replace(" )", ")")
             claims.append({"text": text + ".", "evidence_refs": [s["id"]],
                            "kind": "observation"})
         top = max(sigs, key=lambda s: s["values"].get("max_score", 0), default=None)
         if top:
-            claims.append({"text": f"The pattern in {top['signal_name']} may be consistent "
+            claims.append({"text": f"The pattern in {display_name(top['signal_name'])} may be "
+                                   "consistent "
                                    "with a sustained shift away from its run baseline.",
                            "evidence_refs": [top["id"]], "kind": "interpretation"})
-            claims.append({"text": "Scores are robust band exceedances "
-                                   f"(calibration: {ctx['calibration_status']}), not "
+            claims.append({"text": "Scores are robust band exceedances, not calibrated "
                                    "probabilities, and CIRA has no fault labels, so the data "
                                    "cannot establish a fault.",
                            "evidence_refs": [top["id"]], "kind": "limitation"})
@@ -683,8 +711,9 @@ class TemplateProvider(Provider):
         checks = []
         if top:
             first = top["times"][0] if top["times"] else "the case start"
-            checks = [f"Look at the raw 1-minute {top['signal_name']} signal around {first}.",
-                      f"Compare {top['signal_name']} with the operating log for this run.",
+            name = display_name(top["signal_name"])
+            checks = [f"Look at the raw 1-minute {name} signal around {first}.",
+                      f"Compare {name} with the operating log for this run.",
                       "Check whether the same shift appears in other runs of this pump."]
         note = (f"Reviewed case {v['case_id']}: {_n(v['windows'], 'evidence window')} in "
                 f"{_n(v['episodes'], 'episode')}. Not a diagnosis; read-only checks listed.")

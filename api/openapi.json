@@ -1190,6 +1190,16 @@
             "title": "Replay Status",
             "type": "string"
           },
+          "run_index": {
+            "description": "the run within the day, from 0 (case.stretch)",
+            "title": "Run Index",
+            "type": "integer"
+          },
+          "run_number": {
+            "description": "the run within the day as people count it, from 1",
+            "title": "Run Number",
+            "type": "integer"
+          },
           "synthetic": {
             "description": "true if the data comes from a synthetic scenario",
             "title": "Synthetic",
@@ -1204,6 +1214,8 @@
           "events",
           "evidence",
           "as_of",
+          "run_index",
+          "run_number",
           "replay_status",
           "complete",
           "note"
@@ -2065,6 +2077,77 @@
           "times"
         ],
         "title": "EvidenceRef",
+        "type": "object"
+      },
+      "EvidenceSummary": {
+        "additionalProperties": false,
+        "description": "The evidence summary of a case: no model, not logged.",
+        "properties": {
+          "answer": {
+            "$ref": "#/components/schemas/AssistantAnswer"
+          },
+          "assumptions": {
+            "description": "IDs in docs/ASSUMPTIONS.md that apply",
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "calibration_status": {
+            "title": "Calibration Status",
+            "type": "string"
+          },
+          "case_id": {
+            "title": "Case Id",
+            "type": "integer"
+          },
+          "check": {
+            "$ref": "#/components/schemas/CheckOut"
+          },
+          "context_hash": {
+            "title": "Context Hash",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceRef"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "label": {
+            "const": "Evidence summary",
+            "title": "Label",
+            "type": "string"
+          },
+          "model_version": {
+            "description": "the model versions that produced it",
+            "items": {
+              "type": "string"
+            },
+            "title": "Model Version",
+            "type": "array"
+          },
+          "synthetic": {
+            "description": "true if the data comes from a synthetic scenario",
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "synthetic",
+          "model_version",
+          "assumptions",
+          "case_id",
+          "label",
+          "answer",
+          "check",
+          "evidence",
+          "calibration_status",
+          "context_hash"
+        ],
+        "title": "EvidenceSummary",
         "type": "object"
       },
       "ExportEvent": {
@@ -5913,6 +5996,69 @@
         "summary": "Case Evidence",
         "tags": [
           "cases"
+        ]
+      }
+    },
+    "/api/cases/{case_id}/evidence-summary": {
+      "get": {
+        "description": "The evidence summary for the case: built from the evidence, no model, not logged\n(it does not depend on the question). The assistant panel shows it at once.",
+        "operationId": "evidence_summary_api_cases__case_id__evidence_summary_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "case_id",
+            "required": true,
+            "schema": {
+              "title": "Case Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Evidence Summary",
+        "tags": [
+          "assistant"
         ]
       }
     },

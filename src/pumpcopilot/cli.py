@@ -864,6 +864,21 @@ def _full_report(doc: dict, results_3a3: dict | None = None, prereg: dict | None
     return text
 
 
+def scoring_report_text() -> str:
+    """reports/cira_scoring_eval.md from stored results only (3a, 3a-2 and, when stored, the
+    3a-3 results and the cases in every mode); nothing is scored."""
+    import yaml
+
+    doc = yaml.safe_load((DATA / "scoring_config.yaml").read_text())
+    res_path = REPORTS / "cira_scoring_eval_3a3.json"
+    cases_path = REPORTS / "cira_cases_all_modes.json"
+    if not res_path.exists():
+        return _full_report(doc)
+    results = json.loads(res_path.read_text())
+    cases = json.loads(cases_path.read_text()) if cases_path.exists() else None
+    return _full_report(doc, results, results.get("preregistration"), cases)
+
+
 def _score_3a3(action: str, prereg_commit: str | None) -> None:
     import datetime as dt
 
@@ -875,7 +890,7 @@ def _score_3a3(action: str, prereg_commit: str | None) -> None:
     doc = yaml.safe_load(cfg_path.read_text())
     md = REPORTS / "cira_scoring_eval.md"
     if action == "report":
-        md.write_text(_full_report(doc))
+        md.write_text(scoring_report_text())
         print(f"[written] {md} (from stored results; nothing scored)")
         return
     limits = _stale_limits()

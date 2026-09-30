@@ -527,6 +527,33 @@ def test_export_returns_json_and_a_markdown_evidence_pack(env, client):
     assert f"# Evidence pack: case {cid}" in text and "SYNTHETIC" in text
     assert "| window" in text and "A8" in text and "sends nothing" in text
     _err(client.get(f"/api/cases/{cid}/export", params={"format": "pdf"}), 422)
+    # runs are numbered from 1 for people; the index stays for machines
+    assert j["run_index"] == j["case"]["stretch"] and j["run_number"] == j["run_index"] + 1
+    assert f"| run | {j['run_number']} |" in text
+
+
+@pytest.mark.db
+def test_the_evidence_summary_is_served_without_a_model_or_a_logged_run(env, client):
+    cid = client.get("/api/cases", params={"session_id": env["real"]}).json(
+        )["cases"][0]["case_id"]
+    with db.connect(env["url"]) as c:
+        before = c.execute("SELECT count(*) FROM assistant_runs").fetchone()[0]
+    s = client.get(f"/api/cases/{cid}/evidence-summary").json()
+    assert s["label"] == "Evidence summary" and s["check"]["passed"] is True
+    assert s["answer"]["claims"] and s["evidence"]
+    with db.connect(env["url"]) as c:  # not an assistant request: nothing logged
+        assert c.execute("SELECT count(*) FROM assistant_runs").fetchone()[0] == before
+
+
+def test_guard_design_and_e2e_runs_never_use_the_real_model():
+    """The browser tests talk to an API that has no key: the design run starts its own API
+    with the key emptied and .env not loaded, and the end-to-end backend unsets it."""
+    design = (ROOT / "web" / "playwright.design.config.ts").read_text()
+    assert "--no-dotenv" in design and 'ANTHROPIC_API_KEY: ""' in design
+    api_server = design[design.index("webServer"):]
+    assert "reuseExistingServer: false" in api_server.split("},")[0]  # never someone else's API
+    backend = (ROOT / "web" / "e2e" / "backend.sh").read_text()
+    assert "unset ANTHROPIC_API_KEY" in backend and "--no-dotenv" in backend
 
 
 @pytest.mark.db
@@ -1057,9 +1084,43 @@ def test_signal_names_come_from_the_column_map_and_cover_derived_signals():
         assert n["display_name"] and n["short_name"] and n["unit"] == entry["unit"]
         assert len(n["short_name"]) <= len(n["display_name"])
     rel = names["motor_casing_temperature_rel_ambient"]
-    assert rel["display_name"] == "Motor casing temperature above ambient"
-    assert rel["short_name"].startswith("Motor casing temp.")
+    assert rel["display_name"] == "Motor casing temperature relative to ambient"
+    assert rel["short_name"] == "Motor casing temp. rel. amb."
     assert "_" not in "".join(n["display_name"] for n in names.values())
+    for sig, n in names.items():
+        assert abbreviates(n["short_name"], n["display_name"]), (sig, n)
+    assert len({n["short_name"] for n in names.values()}) == len(names)  # all distinct
+
+
+STOP = {"to", "of", "the", "and"}
+
+
+def abbreviates(short: str, display: str) -> bool:
+    """Each short word is the next display word or a prefix of it ("accel." for
+    "acceleration"), in order; only small words ("to", "of") may be left out."""
+    words = display.lower().split()
+    i = 0
+    for w in short.lower().split():
+        w = w.rstrip(".")
+        while i < len(words) and not words[i].startswith(w):
+            if words[i] not in STOP:
+                return False
+            i += 1
+        if i == len(words):
+            return False
+        i += 1
+    return all(x in STOP for x in words[i:])
+
+
+@pytest.mark.parametrize("short,display,ok", [
+    ("Motor accel. peak", "Motor acceleration peak", True),
+    ("Motor casing temp. rel. amb.", "Motor casing temperature relative to ambient", True),
+    ("Motor sensor temp.", "Motor accelerometer temperature", False),  # not an abbreviation
+    ("Motor vibration", "Motor vibration velocity", False),           # a word left out
+    ("Pres. outlet", "Outlet pressure", False),                        # out of order
+])
+def test_the_abbreviation_rule(short, display, ok):
+    assert abbreviates(short, display) is ok
 
 
 @pytest.mark.db
@@ -1067,5 +1128,5 @@ def test_the_signal_names_endpoint(client):
     body = client.get("/api/signal-names").json()
     names = body["signals"]
     assert names["outlet_pressure"] == {"display_name": "Outlet pressure",
-                                        "short_name": "Outlet pressure", "unit": "bar"}
+                                        "short_name": "Outlet pres.", "unit": "bar"}
     assert "pump_accelerometer_contact_temperature_rel_ambient" in names

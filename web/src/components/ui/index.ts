@@ -2,7 +2,8 @@
 export { STATES, StateBadge, StateIcon, StateMark, Synthetic, stateLabel } from "./state";
 export { AssumptionChip, ProvenanceLine, ProvenanceStrip, type ProvenanceData,
          provenanceSentence, useAssumptions } from "./provenance";
-export { SignalName, useSignalLabel, useSignalNames } from "./signals";
+export { SignalName, displayUnit, sig3, useSignalFormat, useSignalLabel, useSignalNames }
+  from "./signals";
 export { Card, Table, ValueReadout } from "./data";
 export { Button, SelectField, Tabs, TextAreaField, TextField, type Tab } from "./controls";
 export { EmptyState, ErrorPanel, Loading, Skeleton } from "./feedback";

@@ -34,3 +34,21 @@ describe("theme", () => {
     expect(readTheme("?theme=industrial")).toBe("industrial");  // the URL wins
   });
 });
+
+import { displayUnit, sig3 } from "./components/ui/signals";
+
+describe("display units", () => {
+  it("one form everywhere", () => {
+    expect(displayUnit("m/s", "pump_vibration_velocity")).toEqual({ unit: "mm/s", factor: 1000 });
+    expect(displayUnit("m/s^2", "motor_acceleration_peak").unit).toBe("m/s²");
+    expect(displayUnit("degC", "motor_casing_temperature").unit).toBe("°C");
+    expect(displayUnit("degC", "motor_casing_temperature_rel_ambient").unit).toBe("K");
+    expect(displayUnit("bar", "outlet_pressure")).toEqual({ unit: "bar", factor: 1 });
+  });
+  it("about three significant figures", () => {
+    expect(sig3(42.649)).toBe("42.6");
+    expect(sig3(0.0038460 * 1000)).toBe("3.85");
+    expect(sig3(1234.5)).toBe("1235");
+    expect(sig3(null)).toBe("-");
+  });
+});

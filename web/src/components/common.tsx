@@ -10,13 +10,14 @@ export function Provenance({ model_version, assumptions, synthetic = false }:
   return <ProvenanceStrip p={{ model_version, assumptions, synthetic }} />;
 }
 
-/** The A8 notice on replay screens: what replay takes from the whole stored day. */
+/** The A8 notice on replay screens, one line that expands: what replay takes from the
+ * whole stored day. */
 export function A8Notice() {
   const a8 = useAssumptions().data?.assumptions.find((a) => a.id === "A8");
   return (
-    <aside className="notice" data-testid="a8-notice">
-      <strong>A8: {a8?.title ?? "Replay uses declared per-day constants and stored ingest"
-                                   + " annotations"}</strong>
+    <details className="notice notice-fold" data-testid="a8-notice">
+      <summary><strong>A8:</strong> {a8?.title ?? "Replay uses declared per-day constants and"
+                                                   + " stored ingest annotations"}</summary>
       <p>
         Replay scores only readings at or before its cursor, except for two declared inputs
         taken from the whole stored day: each signal's median reading interval (it sets the
@@ -24,7 +25,7 @@ export function A8Notice() {
         Batch 3a-3 uses the same, so replay equals batch; a live system would not know them
         in advance.
       </p>
-    </aside>
+    </details>
   );
 }
 

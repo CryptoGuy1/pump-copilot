@@ -62,7 +62,17 @@
   --motion-slow: 420ms;
   --ease: cubic-bezier(.2, .7, .2, 1);
   --slide: 12px;
+  --axis-w: 56px;       /* chart y-axis width: the state strip lines up with the plot */
+  --plot-pad-r: 12px;
+  --chart-h: 150px;
+  --chart-h-sm: 120px;
+  --strip-h: 22px;
+  --review-strip: 6px;  /* review windows along the bottom of a chart */
+  --et-label-w: 14rem;  /* the evidence timeline's signal column */
+  --glow-h: 22rem;      /* the decorative glow stays at the top of the page */
 }
+
+@media (max-width: 720px) { :root { --chart-h: 120px; --axis-w: 48px; --plot-pad-r: 8px; } }
 
 @media (prefers-reduced-motion: reduce) {
   :root { --motion-fast: 0ms; --motion-base: 0ms; --motion-slow: 0ms; --slide: 0px; }
@@ -90,7 +100,15 @@
   --btn: #fffdf9; --btn-fg: #1d1a16; --btn-border: #8a7e6b; --btn-hover: #f3ede2;
   --field: #fffdf9; --field-fg: #1d1a16; --field-border: #8a7e6b; --placeholder: #6b6154;
   --spark-fill: #137c7a; --spark-axis: #c9bda7;
-  --sig-1: #0072b2; --sig-2: #00896b; --sig-3: #b8338a;
+  --sig-1: #0072b2; --sig-2: #00896b; --sig-3: #4f6d8f;
+  --sig-4: #5d4ca6; --sig-5: #007a8a; --sig-6: #7a6a00;
+  --chart-band-fill: rgba(19, 124, 122, .16); --chart-review-shade: rgba(255, 107, 26, .16);
+  --chart-review-hatch: rgba(156, 58, 0, .55); --chart-future: rgba(90, 80, 68, .12);
+  --chart-future-line: #a79b88; --chart-cursor: #1d1a16;
+  --op-running: #137c7a; --op-running-fg: #ffffff; --op-off: #e6dfd2; --op-off-fg: #2a241c;
+  --op-transition: #6b6154; --op-transition-fg: #ffffff; --op-pat: rgba(255, 255, 255, .35);
+  --progress: #0b4f55;
+  --chart-forming: rgba(90, 80, 68, .08); --chart-forming-line: rgba(90, 80, 68, .35);
   --chart-bg: #fffdf9; --chart-axis: #5a5044; --chart-grid: rgba(90, 80, 68, .16);
   --chart-median: #0b4f55; --chart-band: #8a7e6b; --chart-minmax: #7aa6a3;
   --chart-raw: #3b3833; --chart-running: rgba(19, 124, 122, .10);
@@ -128,7 +146,15 @@
   --btn: #19224a; --btn-fg: #eef1ff; --btn-border: #56628f; --btn-hover: #222d5e;
   --field: #0d1330; --field-fg: #eef1ff; --field-border: #56628f; --placeholder: #8f9ac2;
   --spark-fill: #2dd4bf; --spark-axis: #2c3a70;
-  --sig-1: #56b4e9; --sig-2: #3ddbb0; --sig-3: #e39ad0;
+  --sig-1: #56b4e9; --sig-2: #3ddbb0; --sig-3: #b3d98c;
+  --sig-4: #a99cff; --sig-5: #7fd4e6; --sig-6: #e5e7eb;
+  --chart-band-fill: rgba(45, 212, 191, .16); --chart-review-shade: rgba(255, 178, 36, .16);
+  --chart-review-hatch: rgba(255, 178, 36, .55); --chart-future: rgba(7, 11, 31, .55);
+  --chart-future-line: #56628f; --chart-cursor: #eef1ff;
+  --op-running: #2dd4bf; --op-running-fg: #04201c; --op-off: #19224a; --op-off-fg: #eef1ff;
+  --op-transition: #7d88b3; --op-transition-fg: #0b1130; --op-pat: rgba(11, 17, 48, .35);
+  --progress: #2dd4bf;
+  --chart-forming: rgba(170, 180, 217, .08); --chart-forming-line: rgba(170, 180, 217, .35);
   --chart-bg: #111836; --chart-axis: #aab4d9; --chart-grid: rgba(170, 180, 217, .14);
   --chart-median: #56b4e9; --chart-band: #7d88b3; --chart-minmax: #3d5a8a;
   --chart-raw: #c9cfe8; --chart-running: rgba(45, 212, 191, .10);
@@ -165,7 +191,15 @@
   --btn: #ffffff; --btn-fg: #0f1330; --btn-border: #8d95bd; --btn-hover: #f4f6ff;
   --field: #ffffff; --field-fg: #0f1330; --field-border: #8d95bd; --placeholder: #5c6386;
   --spark-fill: #2340d8; --spark-axis: #d3daf5;
-  --sig-1: #0072b2; --sig-2: #007f5f; --sig-3: #a3367f;
+  --sig-1: #0072b2; --sig-2: #007f5f; --sig-3: #4f6d8f;
+  --sig-4: #5a48b5; --sig-5: #00788a; --sig-6: #6f6500;
+  --chart-band-fill: rgba(35, 64, 216, .12); --chart-review-shade: rgba(255, 149, 0, .16);
+  --chart-review-hatch: rgba(163, 90, 0, .55); --chart-future: rgba(75, 82, 117, .12);
+  --chart-future-line: #a6accb; --chart-cursor: #0f1330;
+  --op-running: #00796b; --op-running-fg: #ffffff; --op-off: #e4e8f7; --op-off-fg: #1d2350;
+  --op-transition: #6b21d4; --op-transition-fg: #ffffff; --op-pat: rgba(255, 255, 255, .35);
+  --progress: #2340d8;
+  --chart-forming: rgba(75, 82, 117, .07); --chart-forming-line: rgba(75, 82, 117, .32);
   --chart-bg: #ffffff; --chart-axis: #4b5275; --chart-grid: rgba(75, 82, 117, .14);
   --chart-median: #2340d8; --chart-band: #8d95bd; --chart-minmax: #9fb0e8;
   --chart-raw: #3f4460; --chart-running: rgba(0, 163, 150, .10);

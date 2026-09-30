@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import yaml
 
 CONFIG_HEADER = """\
@@ -349,16 +351,15 @@ def revision_markdown(across: dict, within: dict, res: dict,
 # --- 3a-3: pre-registered final revision -------------------------------------------------
 
 PREREG = "3a-3: pre-registered final revision"
-FUTURE_WORK = [
-    "Multi-day baselines per pump (fit on several running days) instead of one day or one run.",
-    "Condition bands on operating point (pressure regime, flow) so load changes are not "
-    "reviews.",
-    "Per-device update-rate metadata (WirelessHART burst periods) instead of inferring them.",
-    "Seasonal ambient handling beyond subtracting ambient temperature.",
-    "Case feedback from operators, to turn unlabelled cases into labelled ones.",
-    "A real labelled centrifugal-pump benchmark (the 4TU / Tata Steel candidate in ADR-0001).",
-    "Online replay of the full pipeline, to measure end-to-end decision delay causally.",
-]
+def load_future_work(path: Path | None = None) -> list[str]:
+    """The detector's future work (data/scoring_future_work.yaml): recorded, not implemented."""
+    import yaml
+
+    p = path or Path(__file__).resolve().parents[2] / "data" / "scoring_future_work.yaml"
+    return list(yaml.safe_load(p.read_text())["future_work"])
+
+
+FUTURE_WORK = load_future_work()
 
 
 ATTEMPT_1 = [

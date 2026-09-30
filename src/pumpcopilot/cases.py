@@ -185,7 +185,7 @@ def export_markdown(pack: dict, provenance: dict, assumption_titles: dict | None
                 "not evidence about the real pump.", ""]
     out += ["| | |", "|---|---|",
             f"| asset | {c['asset_id']} |", f"| day | {c['source_day']} |",
-            f"| run | {c['stretch']} |", f"| status | {c['status']} |",
+            f"| run | {c['stretch'] + 1} |", f"| status | {c['status']} |",
             f"| evidence | {c['evidence_start']} to {c['evidence_end']} |",
             f"| signals | {', '.join(sorted(c['signals'] or []))} |",
             f"| episodes / windows | {c['episodes']} / {c['evidence_windows']} |",

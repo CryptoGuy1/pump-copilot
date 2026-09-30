@@ -19,7 +19,7 @@ function Progress({ id }: { id: number }) {
       {!runs.length && <p className="muted">no run seen yet</p>}
       {runs.map((run) => (
         <div key={run.run}>
-          <h3>run {run.run}: {fmtTime(run.start)}–{fmtTime(run.end)}
+          <h3>run {run.run + 1}: {fmtTime(run.start)}–{fmtTime(run.end)}
             {run.closed ? " (closed)" : " (running)"}</h3>
           <table data-testid={`progress-run-${run.run}`}>
             <thead><tr><th>signal</th><th>status</th><th>progress</th><th>settled</th>

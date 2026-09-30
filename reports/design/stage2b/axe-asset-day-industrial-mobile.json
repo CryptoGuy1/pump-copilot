@@ -1,0 +1,16 @@
+{
+  "page": "asset-day",
+  "theme": "industrial",
+  "viewport": "mobile",
+  "url": "http://127.0.0.1:5175/assets/cira-pump-B/2024-10-30?session=3&theme=industrial",
+  "tags": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa",
+    "wcag22aa"
+  ],
+  "passes": 29,
+  "violations": [],
+  "incomplete": []
+}

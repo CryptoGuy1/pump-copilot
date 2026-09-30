@@ -631,3 +631,4 @@ Two changes were made to `src/pumpcopilot/scoring.py` after the pre-registration
 - Case feedback from operators, to turn unlabelled cases into labelled ones.
 - A real labelled centrifugal-pump benchmark (the 4TU / Tata Steel candidate in ADR-0001).
 - Online replay of the full pipeline, to measure end-to-end decision delay causally.
+- Clip bands at zero for non-negative signals (vibration, acceleration peaks), so a band never suggests a negative reading.

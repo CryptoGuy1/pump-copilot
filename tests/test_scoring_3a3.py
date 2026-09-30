@@ -1,6 +1,7 @@
 """Step 3a-3 (pre-registered final revision): steady-state baseline start, cases."""
 import datetime as dt
 import subprocess
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -69,6 +70,26 @@ TEMP = "motor_casing_temperature_rel_ambient"
 
 
 # --- fixed settling times (A7) -----------------------------------------------------------
+
+def test_score_report_regenerates_the_committed_report_exactly():
+    """`pumpcopilot score report` rebuilds reports/cira_scoring_eval.md from the stored results
+    (3a-3 section included) and the future-work file: equal to the report as committed before
+    stage 2b plus the one future-work line added through that file."""
+
+    from pumpcopilot import cli, scoring_report
+
+    root = Path(__file__).resolve().parents[1]
+    text = cli.scoring_report_text()
+    assert text == (root / "reports" / "cira_scoring_eval.md").read_text()
+    before = subprocess.run(["git", "-C", str(root), "show",
+                             "9405c58:reports/cira_scoring_eval.md"],
+                            capture_output=True, text=True, check=True).stdout
+    added = [line for line in text.splitlines() if line not in before.splitlines()]
+    assert added == ["- Clip bands at zero for non-negative signals (vibration, acceleration "
+                     "peaks), so a band never suggests a negative reading."]
+    assert "## Future work" in text
+    assert scoring_report.load_future_work() == scoring_report.FUTURE_WORK
+
 
 def test_signal_types_map_to_fixed_settling_times():
     assert scoring.signal_type("outlet_pressure") == "pressure"

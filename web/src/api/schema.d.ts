@@ -264,6 +264,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cases/{case_id}/evidence-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Evidence Summary
+         * @description The evidence summary for the case: built from the evidence, no model, not logged
+         *     (it does not depend on the question). The assistant panel shows it at once.
+         */
+        get: operations["evidence_summary_api_cases__case_id__evidence_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cases/{case_id}/export": {
         parameters: {
             query?: never;
@@ -1005,6 +1026,16 @@ export interface components {
              */
             replay_status: "pending" | "running" | "paused" | "completed" | "failed";
             /**
+             * Run Index
+             * @description the run within the day, from 0 (case.stretch)
+             */
+            run_index: number;
+            /**
+             * Run Number
+             * @description the run within the day as people count it, from 1
+             */
+            run_number: number;
+            /**
              * Synthetic
              * @description true if the data comes from a synthetic scenario
              */
@@ -1301,6 +1332,42 @@ export interface components {
             values: {
                 [key: string]: number;
             };
+        };
+        /**
+         * EvidenceSummary
+         * @description The evidence summary of a case: no model, not logged.
+         */
+        EvidenceSummary: {
+            answer: components["schemas"]["AssistantAnswer"];
+            /**
+             * Assumptions
+             * @description IDs in docs/ASSUMPTIONS.md that apply
+             */
+            assumptions: string[];
+            /** Calibration Status */
+            calibration_status: string;
+            /** Case Id */
+            case_id: number;
+            check: components["schemas"]["CheckOut"];
+            /** Context Hash */
+            context_hash: string;
+            /** Evidence */
+            evidence: components["schemas"]["EvidenceRef"][];
+            /**
+             * Label
+             * @constant
+             */
+            label: "Evidence summary";
+            /**
+             * Model Version
+             * @description the model versions that produced it
+             */
+            model_version: string[];
+            /**
+             * Synthetic
+             * @description true if the data comes from a synthetic scenario
+             */
+            synthetic: boolean;
         };
         /** ExportEvent */
         ExportEvent: {
@@ -2997,6 +3064,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EvidencePage"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    evidence_summary_api_cases__case_id__evidence_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvidenceSummary"];
                 };
             };
             /** @description Not Found */

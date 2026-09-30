@@ -1,0 +1,13 @@
+# Future work for the CIRA detector (3a-3 is the last detector revision): recorded, not
+# implemented. `pumpcopilot score report` reads this list into
+# reports/cira_scoring_eval.md; add items here, not in the report.
+future_work:
+- Multi-day baselines per pump (fit on several running days) instead of one day or one run.
+- Condition bands on operating point (pressure regime, flow) so load changes are not reviews.
+- Per-device update-rate metadata (WirelessHART burst periods) instead of inferring them.
+- Seasonal ambient handling beyond subtracting ambient temperature.
+- Case feedback from operators, to turn unlabelled cases into labelled ones.
+- A real labelled centrifugal-pump benchmark (the 4TU / Tata Steel candidate in ADR-0001).
+- Online replay of the full pipeline, to measure end-to-end decision delay causally.
+- Clip bands at zero for non-negative signals (vibration, acceleration peaks), so a band never suggests
+  a negative reading.

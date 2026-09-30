@@ -4,7 +4,7 @@ import { ApiError, call, client, type Schema } from "../api/client";
 import { fmtTime } from "../components/common";
 import { SignalKey, Sparkline } from "../components/Sparkline";
 import { Button, Card, EmptyState, ErrorPanel, ProvenanceLine, STATES, SignalName, Skeleton,
-         StateBadge, StateIcon, StateMark, Synthetic, ValueReadout } from "../components/ui";
+         StateBadge, StateIcon, StateMark, Synthetic, Table, ValueReadout } from "../components/ui";
 import { scoreSeries, signalsToDraw } from "../fleet";
 import { useArrivals } from "../hooks/useArrivals";
 import { useMediaQuery } from "../hooks/useMediaQuery";
@@ -74,7 +74,7 @@ export function Fleet() {
           (pumpcopilot db load cira) to see the fleet.</EmptyState> :
         <div className="fleet-body">
           <section aria-labelledby="real-fleet-title">
-            <div className="section-head panel">
+            <div className="section-head">
               <h2 id="real-fleet-title" className="section-title">Pumps</h2>
               <p className="muted section-lede">Real data: each pump as of its latest real
                 replay.</p>
@@ -87,7 +87,7 @@ export function Fleet() {
           <OpenCases />
           {synthetic.length > 0 && <section aria-labelledby="synthetic-title"
                                             data-testid="synthetic-scenarios">
-            <div className="section-head panel section-head-synthetic">
+            <div className="section-head section-head-synthetic">
               <h2 id="synthetic-title" className="section-title">Synthetic scenarios</h2>
               <p className="muted section-lede">Replays of stored days with an injected fault, to
                 test the detector: they are not real events.</p>
@@ -143,7 +143,7 @@ function OpenCases() {
   const arrived = useArrivals(q.data?.cases.map((c) => c.case_id));
   return (
     <section aria-labelledby="open-cases-title">
-      <div className="section-head panel">
+      <div className="section-head">
         <h2 id="open-cases-title" className="section-title">Open cases</h2>
         <p className="muted section-lede">Newest first, each as of its replay's cursor; new
           ones appear live.</p>
@@ -154,25 +154,28 @@ function OpenCases() {
       {q.data && (q.data.cases.length === 0
         ? <EmptyState title="No open cases">A case opens when a replay reaches evidence worth
             review.</EmptyState>
-        : <ul className="case-list" data-testid="open-cases">
-            {q.data.cases.map((c) => {
-              const [main, ...more] = c.signals ?? [];
-              return (
-                <li key={c.case_id} data-testid={`live-case-${c.case_id}`}
-                    className={`case-item${arrived.has(c.case_id) ? " enter" : ""}`}>
-                  <span className="case-id"><Link to={`/cases/${c.case_id}`}>
-                    Case #{c.case_id}</Link><Synthetic show={c.synthetic} /></span>
-                  <span>{main ? <SignalName id={main} /> : "-"}
-                    {more.length > 0 && <span className="muted"> +{more.length} signal
-                      {more.length === 1 ? "" : "s"}</span>}
-                    <span className="muted"> · <span className="mono">{c.asset_id}</span></span>
-                  </span>
-                  <span className="num">{c.source_day} {fmtTime(c.evidence_start)}–
-                    {fmtTime(c.evidence_end)}</span>
-                  <span>{c.status.charAt(0).toUpperCase() + c.status.slice(1)}</span>
-                </li>);
-            })}
-          </ul>)}
+        : <Table label="Open cases">
+            <thead><tr><th>Case</th><th>Data</th><th>Signals</th><th>Asset</th>
+              <th>Evidence (UTC)</th><th>Status</th></tr></thead>
+            <tbody data-testid="open-cases">
+              {q.data.cases.map((c) => {
+                const [main, ...more] = c.signals ?? [];
+                return (
+                  <tr key={c.case_id} data-testid={`live-case-${c.case_id}`}
+                      className={arrived.has(c.case_id) ? "enter" : undefined}>
+                    <td><Link to={`/cases/${c.case_id}`}>#{c.case_id}</Link></td>
+                    <td>{c.synthetic ? <Synthetic show /> : "Real"}</td>
+                    <td>{main ? <SignalName id={main} /> : "-"}
+                      {more.length > 0 && <span className="muted"> +{more.length}</span>}</td>
+                    <td className="mono">{c.asset_id}</td>
+                    <td className="num">{c.source_day} {fmtTime(c.evidence_start)}–
+                      {fmtTime(c.evidence_end)}</td>
+                    <td><span className="status-pill">{c.status.charAt(0).toUpperCase()
+                      + c.status.slice(1)}</span></td>
+                  </tr>);
+              })}
+            </tbody>
+          </Table>)}
     </section>
   );
 }
@@ -211,6 +214,15 @@ function AsOf({ state }: { state: Pump["state"] }) {
   return state.as_of
     ? <>as of <span className="num">{fmtTime(state.as_of)}</span> UTC (replay cursor)</>
     : <>{state.reason}</>;
+}
+
+/** "ok · 145 stale readings, 0 spikes, 0 gaps" for the day the card is about. */
+function DataQuality({ dq }: { dq: Pump["data_quality"] }) {
+  const n = (k: number | null | undefined, w: string) =>
+    `${k ?? "-"} ${w}${k === 1 ? "" : "s"}`;
+  return <>{dq.status} · <span className="num">{n(dq.flag_counts.stale_suspected,
+    "stale reading")}, {n(dq.flag_counts.spike_suspected, "spike")}, {n(dq.gaps, "gap")}
+    </span> <span className="muted">({dq.source_day})</span></>;
 }
 
 /** One message when a card has nothing to show yet: the reason and what would change it. */
@@ -257,21 +269,19 @@ function PumpCard({ pump: p, session: fs, scores }:
         <Spark scores={scores} states={p.state.signals} what={p.asset_id} />
         <SignalStates states={p.state.signals} />
         <div className="readouts">
-          <ValueReadout label="Open, this replay" value={fs?.open_cases ?? 0} />
-          <ValueReadout label="Open, all real" value={p.open_cases.real} />
-          <ValueReadout label="Stale" value={dq.flag_counts.stale_suspected} size="sm" />
-          <ValueReadout label="Spikes" value={dq.flag_counts.spike_suspected} size="sm" />
-          <ValueReadout label="Gaps" value={dq.gaps ?? "-"} size="sm" />
+          <ValueReadout label="Open cases, this replay" value={fs?.open_cases ?? 0} />
+          <ValueReadout label="Open cases, all real replays" value={p.open_cases.real} />
         </div>
       </> : <NoScores session={fs} />}
       <dl className="facts">
         <div><dt>Replay</dt>
           <dd>{s ? <>#{s.session_id} {s.source_day} · {s.status} at {s.speed}x ·{" "}
             <Link to={`/cases?session_id=${s.session_id}`}>its cases</Link></> : "none"}</dd></div>
-        <div><dt>Data quality</dt><dd>{dq.status} ({dq.source_day})</dd></div>
-        <div><dt>Days</dt>
+        <div><dt>Data quality</dt><dd><DataQuality dq={dq} /></dd></div>
+        <div><dt>Open a day</dt>
           <dd className="days">{p.days.map((d) => (
-            <Link key={d} to={`/assets/${p.asset_id}/${d}`} className="chip">{d}</Link>))}</dd>
+            <Link key={d} to={`/assets/${p.asset_id}/${d}`} className="day-link"
+                  aria-label={`Open ${p.asset_id} on ${d}`}>{d}</Link>))}</dd>
         </div>
       </dl>
     </Card>
@@ -306,8 +316,7 @@ function SyntheticCard({ pump: p, fs, scores }:
         <Spark scores={scores} states={fs.state.signals} what={`${p.asset_id} (synthetic)`} />
         <SignalStates states={fs.state.signals} />
         <div className="readouts">
-          <ValueReadout label="Open, this replay" value={fs.open_cases} />
-          <ValueReadout label="Replay" value={s.status} size="sm" />
+          <ValueReadout label="Open cases, this replay" value={fs.open_cases} />
         </div>
       </> : <NoScores session={fs} />}
       <p><Link to={`/cases?session_id=${s.session_id}`}>This replay's cases</Link></p>

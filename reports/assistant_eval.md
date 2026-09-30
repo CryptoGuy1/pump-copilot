@@ -182,6 +182,7 @@ Usage: 70 answered requests, 178834 input and 68697 output tokens; estimated $1.
 
 Checker revision 2 is the final revision; these are recorded, not implemented.
 
+- Unit-aware number checking: accept a number written in a display unit (vibration in mm/s) when it equals the evidence value converted from its stored unit (m/s). The checker stays frozen at revision 2 until then, so assistant text uses stored units.
 - Numbers quoted from the user's question: an answer that repeats a number the engineer asked about (holdout2-09, "a score of 1.5 compared with 5") is refused, because the checker only accepts numbers from the evidence and assumptions.
 
 ## Key safety

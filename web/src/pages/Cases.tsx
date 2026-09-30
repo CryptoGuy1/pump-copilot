@@ -53,7 +53,7 @@ export function Cases() {
                     className={arrived.has(c.case_id) ? "enter" : undefined}>
                   <td><Link to={`/cases/${c.case_id}`}>#{c.case_id}</Link></td>
                   <td>{c.synthetic ? <Synthetic show /> : "real"}</td>
-                  <td>{c.asset_id} · {c.source_day} · run {c.stretch}<div className="muted">
+                  <td>{c.asset_id} · {c.source_day} · run {c.stretch + 1}<div className="muted">
                     session #{c.session_id}</div></td>
                   <td>{c.status}{c.disposition && <div className="muted">{c.disposition}</div>}
                   </td>

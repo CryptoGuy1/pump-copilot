@@ -25,12 +25,13 @@
 #
 # display_name and short_name (Step 5b) are the names people see; the signal id stays the
 # technical name everywhere else. A signal scored relative to ambient (<signal>_rel_ambient)
-# is named by rule: "<display_name> above ambient" (see api.signal_names).
+# is named by rule: "<display_name> relative to ambient" (see api.signal_names).
+# A short name abbreviates its display name word by word (tests/test_api.py).
 
 ACR_Mot.PV:
   signal: motor_vibration_velocity
   display_name: "Motor vibration velocity"
-  short_name: "Motor vibration"
+  short_name: "Motor vib. vel."
   unit: "m/s"
   unit_verified: true
   description: vibrational velocity measured by the motor accelerometer
@@ -44,14 +45,14 @@ ACR_Mot.SV:
 ACR_Mot.TV:
   signal: motor_accelerometer_contact_temperature
   display_name: "Motor accelerometer temperature"
-  short_name: "Motor sensor temp."
+  short_name: "Motor accel. temp."
   unit: degC
   unit_verified: true
   description: contact temperature of the motor accelerometer
 ACR_Pmp.PV:
   signal: pump_vibration_velocity
   display_name: "Pump vibration velocity"
-  short_name: "Pump vibration"
+  short_name: "Pump vib. vel."
   unit: "m/s"
   unit_verified: true
   description: vibrational velocity measured by the pump accelerometer
@@ -65,14 +66,14 @@ ACR_Pmp.SV:
 ACR_Pmp.TV:
   signal: pump_accelerometer_contact_temperature
   display_name: "Pump accelerometer temperature"
-  short_name: "Pump sensor temp."
+  short_name: "Pump accel. temp."
   unit: degC
   unit_verified: true
   description: contact temperature of the pump accelerometer
 Pres.PV:
   signal: outlet_pressure
   display_name: "Outlet pressure"
-  short_name: "Outlet pressure"
+  short_name: "Outlet pres."
   unit: bar
   unit_verified: false  # Table 2 states bar for X_Pres.SV, not for this header
   description: outlet fluid pressure from the pump
@@ -86,14 +87,14 @@ Temp.PV:
 Barometer:
   signal: ambient_pressure
   display_name: "Ambient pressure"
-  short_name: "Ambient pressure"
+  short_name: "Amb. pres."
   unit: mbar
   unit_verified: true
   description: atmospheric pressure
 Temperature:
   signal: ambient_temperature
   display_name: "Ambient temperature"
-  short_name: "Ambient temp."
+  short_name: "Amb. temp."
   unit: degC
   unit_verified: true
   description: ambient temperature

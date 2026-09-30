@@ -6,9 +6,12 @@ body {
   font-family: var(--font-sans); font-size: var(--text-base); line-height: var(--leading);
   font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased;
 }
-.backdrop {  /* decorative glow, behind solid panels only */
-  position: fixed; inset: 0; z-index: -1; background: var(--glow); pointer-events: none;
+.backdrop {  /* decorative glow, painted at the top of the page only; the element spans the
+               whole page so its edge never cuts through text (axe could not measure it) */
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: var(--glow); background-repeat: no-repeat; background-size: 100% var(--glow-h);
 }
+body { position: relative; }
 .mono, code, pre, kbd { font-family: var(--font-mono); }
 .num { font-variant-numeric: tabular-nums; }
 a { color: var(--link); text-underline-offset: .15em; }
@@ -84,7 +87,7 @@ p { margin: var(--space-3) 0; }
 .shell-footer :focus-visible { outline-color: var(--nav-focus); }
 
 /* pages that are not redesigned yet sit on one surface */
-.shell-main > section:not(.fleet):not(.gallery) {
+.shell-main > section:not(.fleet):not(.gallery):not(.asset-day):not(.case-detail) {
   background: var(--surface); border: var(--border-1) solid var(--border);
   border-radius: var(--radius-lg); padding: var(--space-5) var(--space-7);
 }
@@ -128,7 +131,7 @@ pre { white-space: pre-wrap; background: var(--inset); padding: var(--space-3);
   .nav-links { flex-direction: column; gap: 0; }
   .nav-tools { margin-left: 0; }
   .shell-main { padding: var(--space-4); }
-  .shell-main > section:not(.fleet):not(.gallery) { padding: var(--space-4); }
+  .shell-main > section:not(.fleet):not(.gallery):not(.asset-day):not(.case-detail) { padding: var(--space-4); }
   .page-provenance { padding: var(--space-2) var(--space-5); }
 }
 @media (min-width: 721px) { .nav-collapsible { display: contents; } }

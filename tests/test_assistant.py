@@ -988,3 +988,12 @@ def test_the_report_gives_both_scores_and_future_work(tmp_path):
     md = assistant_report.markdown(tmp_path)
     assert "47/50 as registered" in md and "50/50 under corrected expectations" in md
     assert "## Future work" in md and "numbers quoted from the user's question" in md.lower()
+
+
+
+@pytest.mark.parametrize("v,text", [(22.97, "23.0"), (123.4, "123.4"), (0.003846, "0.00385"),
+                                    (-10.824, "-10.8"), (5.234, "5.23"), (917.0, "917"),
+                                    (33.91, "33.9"), (42.649, "42.6")])
+def test_the_summary_writes_about_three_significant_figures(v, text):
+    assert a.sig3(v) == text
+    assert a._matches(text, [v])  # and the frozen checker accepts it as the same value

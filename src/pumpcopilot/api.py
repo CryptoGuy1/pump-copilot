@@ -189,7 +189,7 @@ def aggregate_state(states: list[str]) -> str:
 
 def signal_names(column_map: dict) -> dict[str, dict]:
     """The names people see, per signal id (data/cira_columns.yaml), with the signals scored
-    relative to ambient named by rule: "<display_name> above ambient"."""
+    relative to ambient named by rule: "<display_name> relative to ambient"."""
     out = {}
     for spec in column_map.values():
         n = {"display_name": spec["display_name"], "short_name": spec["short_name"],
@@ -197,8 +197,9 @@ def signal_names(column_map: dict) -> dict[str, dict]:
         out[spec["signal"]] = n
         if "temperature" in spec["signal"] and not spec["signal"].startswith("ambient"):
             out[f"{spec['signal']}_rel_ambient"] = {
-                "display_name": f"{n['display_name']} above ambient",
-                "short_name": f"{n['short_name']} vs ambient", "unit": spec["unit"]}
+                "display_name": f"{n['display_name']} relative to ambient",
+                "short_name": f"{n['short_name']} rel. amb.",
+                "unit": "K"}  # a temperature difference: one form, K, everywhere
     return dict(sorted(out.items()))
 
 
@@ -743,6 +744,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
         with conn_for(request) as c:
             pack = cases.export(c, case_id)
         case = pack["case"]
+        pack["run_index"], pack["run_number"] = case["stretch"], case["stretch"] + 1
         prov = _prov(case["synthetic"], {e["model_version"] for e in pack["evidence"]},
                      case["asset_id"], case["source_day"], case["signals"] or [])
         if format == "markdown":
@@ -782,6 +784,24 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 "calibration_status": ctx["calibration_status"],
                 "context_hash": result.context_hash, "latency_ms": result.latency_ms,
                 "synthetic": ctx["synthetic"], "model_version": ctx["model_version"],
+                "assumptions": [x["id"] for x in ctx["assumptions"]]}
+
+    @app.get("/api/cases/{case_id}/evidence-summary", tags=["assistant"],
+             response_model=M.EvidenceSummary)
+    def evidence_summary(request: Request, case_id: int):
+        """The evidence summary for the case: built from the evidence, no model, not logged
+        (it does not depend on the question). The assistant panel shows it at once."""
+        with conn_for(request) as c:
+            ctx = assistant.build_context(c, case_id)
+        result = assistant.answer(ctx, "", assistant.TemplateProvider())
+        return {"case_id": case_id, "label": result.label, "answer": result.answer,
+                "check": {"passed": result.check.passed, "reasons": result.check.reasons},
+                "evidence": [{k: e.get(k) for k in ("id", "kind", "signal_name", "first_window",
+                                                     "last_window", "values", "unit", "times")}
+                             for e in ctx["evidence"]],
+                "calibration_status": ctx["calibration_status"],
+                "context_hash": result.context_hash, "synthetic": ctx["synthetic"],
+                "model_version": ctx["model_version"],
                 "assumptions": [x["id"] for x in ctx["assumptions"]]}
 
     # -- replay control --

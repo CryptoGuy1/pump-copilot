@@ -23,3 +23,31 @@ export function useSignalLabel() {
     return n ? (short ? n.short_name : n.display_name) : id;
   };
 }
+
+/** Display units, one form everywhere: vibration velocity in mm/s (stored in m/s),
+ * acceleration in m/s², temperatures in °C and temperature differences in K. */
+export function displayUnit(unit: string | undefined, signal = ""): { unit: string;
+                                                                     factor: number } {
+  if (signal.endsWith("_rel_ambient")) return { unit: "K", factor: 1 };
+  switch (unit) {
+    case "m/s": return { unit: "mm/s", factor: 1000 };
+    case "m/s^2": return { unit: "m/s²", factor: 1 };
+    case "degC": return { unit: "°C", factor: 1 };
+    default: return { unit: unit ?? "", factor: 1 };
+  }
+}
+
+/** About three significant figures, the way values are read (tabular in the UI). */
+export const sig3 = (v: number | null | undefined) =>
+  v == null ? "-" : Math.abs(v) >= 1000 ? v.toFixed(0) : Number(v.toPrecision(3)).toString();
+
+/** A signal's display unit and a converter for its values. */
+export function useSignalFormat() {
+  const names = useSignalNames().data?.signals;
+  return (signal: string) => {
+    const d = displayUnit(names?.[signal]?.unit, signal);
+    const one = (v: number | null | undefined) => (v == null ? null : v * d.factor);
+    return { unit: d.unit, one, all: (vs: (number | null)[]) => vs.map(one),
+             text: (v: number | null | undefined) => (v == null ? "-" : sig3(v * d.factor)) };
+  };
+}

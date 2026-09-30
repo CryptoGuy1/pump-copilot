@@ -478,6 +478,8 @@ class CaseExport(Provenance):
     events: list[ExportEvent]
     evidence: list[ExportEvidence]
     as_of: dt.datetime | None = Field(description="the session cursor the export is as of")
+    run_index: int = Field(description="the run within the day, from 0 (case.stretch)")
+    run_number: int = Field(description="the run within the day as people count it, from 1")
     replay_status: SessionStatus
     complete: bool = Field(description="false while the replay has not finished: later "
                                        "evidence is not in this export")
@@ -683,6 +685,17 @@ class EvidenceRef(Model):
     values: dict[str, float]
     unit: str | None = None
     times: list[str]
+
+
+class EvidenceSummary(Provenance):
+    """The evidence summary of a case: no model, not logged."""
+    case_id: int
+    label: Literal["Evidence summary"]
+    answer: AssistantAnswer
+    check: CheckOut
+    evidence: list[EvidenceRef]
+    calibration_status: str
+    context_hash: str
 
 
 class AssistantResponse(Provenance):
