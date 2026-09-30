@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Schema } from "./api/client";
 import { scoreSeries, signalsToDraw } from "./fleet";
-import { readTheme } from "./theme";
+import { applyTheme, readTheme } from "./theme";
 
 type State = Schema<"ScoreRow">["state"];
 const row = (signal_name: string, window_end: string, state: State,
@@ -23,10 +23,14 @@ describe("fleet helpers", () => {
 });
 
 describe("theme", () => {
-  it("reads ?theme= and ignores unknown values", () => {
+  it("reads ?theme=, ignores unknown values and remembers the choice", () => {
+    localStorage.clear();
+    expect(readTheme("")).toBe("industrial");  // the lead direction
     expect(readTheme("?theme=daylight")).toBe("daylight");
-    expect(readTheme("?theme=industrial")).toBe("industrial");
-    sessionStorage.clear();
     expect(readTheme("?theme=neon")).toBe("industrial");
+    applyTheme("aurora");
+    expect(document.documentElement.dataset.theme).toBe("aurora");
+    expect(readTheme("")).toBe("aurora");  // remembered without the parameter
+    expect(readTheme("?theme=industrial")).toBe("industrial");  // the URL wins
   });
 });

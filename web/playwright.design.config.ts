@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Step 5b stage 0: screenshots and axe checks of the three design directions, on the real
+// Step 5b design checks (stage 1: design/stage1.spec.ts): screenshots and axe on the real
 // dev database through the API on 127.0.0.1:8000 (no mock data). `npx playwright test -c
 // playwright.design.config.ts`
 const web = "http://127.0.0.1:5175";

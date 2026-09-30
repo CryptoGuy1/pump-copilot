@@ -4,8 +4,8 @@ import { Link, useParams } from "react-router-dom";
 import { ApiError, type Schema, call, client } from "../api/client";
 import { Chart, toSeconds } from "../components/Chart";
 import { AssistantPanel, type Highlight } from "../components/Assistant";
-import { A8Notice, Loading, Provenance, Synthetic, fmtTime, useActor }
-  from "../components/common";
+import { A8Notice, Loading, Synthetic, fmtTime, useActor } from "../components/common";
+import { usePageProvenance } from "../pageProvenance";
 
 const DISPOSITIONS = ["monitor", "known condition, no action", "data quality issue",
                       "escalate to reliability engineer (export only)"] as const;
@@ -127,7 +127,8 @@ export function CaseDetail() {
   const d = q.data;
   const [actor] = useActor();
   const [hl, setHl] = useState<Highlight | null>(null);
-  const HL = "rgba(255, 190, 0, 0.28)";
+  usePageProvenance(d && { synthetic: d.synthetic, model_version: d.model_version,
+                           assumptions: d.assumptions });
   return (
     <section>
       <Loading q={q}>
@@ -141,7 +142,6 @@ export function CaseDetail() {
             {d.case.evidence_windows} windows</p>
           {d.case.disposition && <p>disposition: <strong>{d.case.disposition}</strong> —{" "}
             {d.case.disposition_reason}</p>}
-          <Provenance model_version={d.model_version} assumptions={d.assumptions} />
           <A8Notice />
           {(d.related.related_case || d.related.related_by.length > 0) && <p>
             related: {d.related.related_case && <>opened after closed case{" "}
@@ -169,18 +169,19 @@ export function CaseDetail() {
             const n = s.chart.t.length;
             const on = !!hl && (hl.signal === sig || hl.signal === null);
             const shade = on && hl.from && hl.to
-              ? [{ from: Date.parse(hl.from) / 1000, to: Date.parse(hl.to) / 1000, color: HL }]
+              ? [{ from: Date.parse(hl.from) / 1000, to: Date.parse(hl.to) / 1000,
+                  color: "--chart-highlight" as const }]
               : [];
             return <Chart key={sig} title={sig} x={toSeconds(s.chart.t)} highlighted={on}
               shade={shade} series={[
-              { label: "median", values: s.chart.median, color: "#2060c0" },
-              { label: "min", values: s.chart.min, color: "#9ab", dash: [2, 3] },
-              { label: "max", values: s.chart.max, color: "#9ab", dash: [2, 3] },
-              { label: "band low", values: Array(n).fill(s.band?.low ?? null), color: "#999",
-                dash: [4, 4] },
-              { label: "band high", values: Array(n).fill(s.band?.high ?? null), color: "#999",
-                dash: [4, 4] },
-              { label: "reviewed", points: true, color: "#c02020",
+              { label: "median", values: s.chart.median, color: "--chart-median" },
+              { label: "min", values: s.chart.min, color: "--chart-minmax", dash: [2, 3] },
+              { label: "max", values: s.chart.max, color: "--chart-minmax", dash: [2, 3] },
+              { label: "band low", values: Array(n).fill(s.band?.low ?? null),
+                color: "--chart-band", dash: [4, 4] },
+              { label: "band high", values: Array(n).fill(s.band?.high ?? null),
+                color: "--chart-band", dash: [4, 4] },
+              { label: "reviewed", points: true, color: "--st-review",
                 values: s.chart.review.map((r, i) => (r ? s.chart.median[i] : null)) },
             ]} />;
           })}

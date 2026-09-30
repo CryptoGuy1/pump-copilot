@@ -3,9 +3,9 @@ import { useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { type Schema, call, client } from "../api/client";
 import { Chart, type Shade, toSeconds } from "../components/Chart";
-import { A8Notice, Loading, Provenance, Synthetic } from "../components/common";
+import { A8Notice, Loading, Synthetic } from "../components/common";
+import { usePageProvenance } from "../pageProvenance";
 
-const RUNNING = "rgba(60, 140, 60, 0.08)";
 
 export function AssetDay() {
   const { asset = "", day = "" } = useParams();
@@ -34,7 +34,7 @@ export function AssetDay() {
   const shade: Shade[] = useMemo(() => (segs.data?.segments ?? [])
     .filter((s) => s.state === "running")
     .map((s) => ({ from: Date.parse(s.start_at) / 1000, to: Date.parse(s.end_at) / 1000,
-                   color: RUNNING })), [segs.data]);
+                   color: "--chart-running" as const })), [segs.data]);
 
   const scored = useMemo(() => {
     const by: Record<string, Schema<"ScoreRow">[]> = {};
@@ -42,6 +42,10 @@ export function AssetDay() {
     return by;
   }, [scores.data]);
   const current = info.data?.sessions.find((s) => s.session_id === scores.data?.session_id);
+  usePageProvenance(scores.data ? { synthetic: scores.data.synthetic,
+                                    model_version: scores.data.model_version,
+                                    assumptions: scores.data.assumptions }
+    : info.data && { synthetic: false, model_version: [], assumptions: info.data.assumptions });
 
   return (
     <section>
@@ -59,21 +63,19 @@ export function AssetDay() {
           {!hasSessions && " none yet: start one on the Replay page"}
         </p>
         {hasSessions && <A8Notice />}
-        {scores.data && <Provenance model_version={scores.data.model_version}
-                                    assumptions={scores.data.assumptions} />}
-        <p className="muted">Green background: running segments. Scored signals show the window
-          median against its 3a-3 baseline band; red points are review_suggested windows.</p>
+        <p className="muted">Shaded background: running segments. Scored signals show the
+          window median against its 3a-3 baseline band; dots mark review_suggested windows.</p>
         {Object.entries(scored).map(([sig, rows]) => {
           const band = bands.data?.bands?.runs[0]?.signals[sig]?.band;
           const x = toSeconds(rows.map((r) => r.window_end));
           return <Chart key={sig} title={`${sig}${band ? ` (${band.unit})` : ""}`} x={x}
             shade={shade} series={[
-              { label: "window median", values: rows.map((r) => r.median), color: "#2060c0" },
-              { label: "band low", values: rows.map((r) => r.band_low), color: "#999",
+              { label: "window median", values: rows.map((r) => r.median), color: "--chart-median" },
+              { label: "band low", values: rows.map((r) => r.band_low), color: "--chart-band",
                 dash: [4, 4] },
-              { label: "band high", values: rows.map((r) => r.band_high), color: "#999",
+              { label: "band high", values: rows.map((r) => r.band_high), color: "--chart-band",
                 dash: [4, 4] },
-              { label: "review", points: true, color: "#c02020", values: rows.map((r) =>
+              { label: "review", points: true, color: "--st-review", values: rows.map((r) =>
                 r.state === "review_suggested" ? r.median : null) },
             ]} />;
         })}
@@ -86,7 +88,7 @@ export function AssetDay() {
               <Chart key={sig} title={sig} height={140} shade={shade}
                 x={toSeconds(rows.map((r) => r.bucket))}
                 series={[{ label: "1-min mean", values: rows.map((r) => r.mean),
-                           color: "#555" }]} />);
+                           color: "--chart-raw" }]} />);
             })}
           </Loading>
         </details>

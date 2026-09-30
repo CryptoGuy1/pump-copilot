@@ -2,9 +2,7 @@ import type { Schema } from "./api/client";
 
 type ScoreRow = Schema<"ScoreRow">;
 
-/** The presentation states, in the order they matter. Meaning colour is reserved for them. */
-export const STATES = ["review_suggested", "insufficient_evidence", "data_unavailable",
-                       "normal"] as const;
+import { STATES } from "./components/ui/state";
 
 export interface Series { signal: string; points: [number, number][] }
 

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { type Schema, call, client } from "../api/client";
 import { Loading } from "../components/common";
 
@@ -90,8 +91,6 @@ function Zema({ z }: { z: Schema<"ZemaBenchmark"> }) {
 export function Evaluation() {
   const ev = useQuery({ queryKey: ["evaluation"],
                         queryFn: () => call(client.GET("/api/evaluation")) });
-  const as = useQuery({ queryKey: ["assumptions"], queryFn: () =>
-    call(client.GET("/api/assumptions")) });
   return (
     <section>
       <h1>Evaluation</h1>
@@ -116,11 +115,8 @@ export function Evaluation() {
       </Loading>
       {ev.data && <Zema z={ev.data.zema} />}
       <h2>Assumptions register</h2>
-      <Loading q={as}>
-        {as.data?.assumptions.map((a) => (
-          <details key={a.id}><summary><strong>{a.id}</strong>: {a.title}</summary>
-            <pre className="assumption">{a.assumption}</pre></details>))}
-      </Loading>
+      <p>The assumptions behind every score and case: <Link to="/assumptions">open the
+        register</Link>.</p>
     </section>
   );
 }

@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { call, client } from "../api/client";
-import { Loading, Provenance, Synthetic, fmtTime } from "../components/common";
+import { Loading, Synthetic, fmtTime } from "../components/common";
+import { useArrivals } from "../hooks/useArrivals";
+import { usePageProvenance } from "../pageProvenance";
 
 type Status = "open" | "acknowledged" | "dispositioned" | "closed";
 
@@ -20,6 +22,10 @@ export function Cases() {
     if (v) next.set(k, v); else next.delete(k);
     setParams(next);
   };
+  const arrived = useArrivals(q.data?.cases.map((c) => c.case_id));
+  usePageProvenance(q.data && {
+    synthetic: q.data.synthetic_count && q.data.real_count ? "mixed" : q.data.synthetic_count > 0,
+    model_version: q.data.model_version, assumptions: q.data.assumptions });
   return (
     <section>
       <h1>Cases</h1>
@@ -37,13 +43,13 @@ export function Cases() {
       <Loading q={q}>
         {q.data && <>
           <p>{q.data.real_count} real · {q.data.synthetic_count} synthetic</p>
-          <Provenance model_version={q.data.model_version} assumptions={q.data.assumptions} />
           <table>
             <thead><tr><th>case</th><th>data</th><th>asset · day · run</th><th>status</th>
               <th>evidence</th><th>signals</th><th>episodes</th></tr></thead>
             <tbody>
               {q.data.cases.map((c) => (
-                <tr key={c.case_id} data-testid={`case-row-${c.case_id}`}>
+                <tr key={c.case_id} data-testid={`case-row-${c.case_id}`}
+                    className={arrived.has(c.case_id) ? "enter" : undefined}>
                   <td><Link to={`/cases/${c.case_id}`}>#{c.case_id}</Link></td>
                   <td>{c.synthetic ? <Synthetic show /> : "real"}</td>
                   <td>{c.asset_id} · {c.source_day} · run {c.stretch}<div className="muted">

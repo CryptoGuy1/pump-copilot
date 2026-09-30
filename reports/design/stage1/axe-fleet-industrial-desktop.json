@@ -1,0 +1,16 @@
+{
+  "page": "fleet",
+  "theme": "industrial",
+  "viewport": "desktop",
+  "url": "http://127.0.0.1:5175/?theme=industrial",
+  "tags": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa",
+    "wcag22aa"
+  ],
+  "passes": 26,
+  "violations": [],
+  "incomplete": []
+}
