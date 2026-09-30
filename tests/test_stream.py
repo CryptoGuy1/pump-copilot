@@ -107,22 +107,66 @@ def test_worker_and_case_actions_emit_events(conn, tmp_path):
     types = {e["event_type"] for e in evs}
     assert {"replay.progress", "score.batch", "case.event"} <= types
     batches = [e["payload"] for e in evs if e["event_type"] == "score.batch"]
-    assert sum(b["count"] for b in batches) == conn.execute(
-        "SELECT count(*) FROM scores WHERE session_id = %s", [sid]).fetchone()[0]
-    assert all(b["synthetic"] is False and b["model_version"] for b in batches)
-    progress = [e["payload"] for e in evs if e["event_type"] == "replay.progress"]
-    assert progress[0]["status"] == "pending" and progress[-1]["status"] == "completed"
-    assert progress[-1]["baseline"]["formed"] >= 1
+    assert batches and all(b == {"session_id": sid, "asset_id": ASSET, "source_day": str(DAY),
+                                 "synthetic": False} for b in batches)
+    progress = [e for e in evs if e["event_type"] == "replay.progress"]
+    assert len(progress) >= 2
     cid = cases.list_cases(conn, session_id=sid)[0]["case_id"]
     last = evs[-1]["event_id"]
     cases.acknowledge(conn, cid, actor="op")
     new = events.after(conn, last)
     assert [(e["event_type"], e["payload"]["case_id"], e["payload"]["event_type"])
             for e in new] == [("case.event", cid, "acknowledged")]
-    replay.pause_session(conn, replay.create_session(conn, ASSET, DAY, speed=60,
-                                                     stale_limits=limits))
-    assert [e["payload"]["status"] for e in events.after(conn, new[-1]["event_id"])] == [
-        "pending", "paused"]
+    other = replay.create_session(conn, ASSET, DAY, speed=60, stale_limits=limits)
+    replay.pause_session(conn, other)
+    assert [(e["event_type"], e["payload"]["session_id"]) for e in events.after(
+        conn, new[-1]["event_id"])] == [("replay.progress", other)] * 2
+
+
+def test_event_payloads_are_signals_only(conn, tmp_path):
+    """Stream events say what changed, never the data: identifiers and types only, so a page
+    can only refetch, and a replayed old event (after a rewind) carries nothing to show."""
+    pause_policy_jobs(conn)
+    limits = load_replay_day(conn, tmp_path)
+    sid = replay.create_session(conn, ASSET, DAY, speed=60, scenario="B_stuck_pressure",
+                                stale_limits=limits)
+    run_to_end(conn, sid, Clock())
+    cid = cases.list_cases(conn, session_id=sid)[0]["case_id"]
+    cases.acknowledge(conn, cid, actor="op")
+    cases.note(conn, cid, actor="op", text="a note that must not travel")
+    replay.rewind_session(conn, sid)
+    base = {"session_id", "asset_id", "source_day", "synthetic"}
+    allowed = {"replay.progress": base, "score.batch": base,
+               "case.event": base | {"case_id", "event_type"}}
+    evs = events.after(conn, 0, limit=100_000)
+    assert {e["event_type"] for e in evs} == set(allowed)
+    for e in evs:
+        assert set(e["payload"]) == allowed[e["event_type"]], e
+        assert e["payload"]["synthetic"] is True
+    assert "must not travel" not in json.dumps([e["payload"] for e in evs])
+    # emit() itself strips anything else a caller passes
+    eid = events.emit(conn, "score.batch", {"session_id": sid, "asset_id": ASSET,
+                                            "source_day": str(DAY), "synthetic": True,
+                                            "count": 5, "states": {"normal": 5}})
+    assert events.after(conn, eid - 1)[0]["payload"] == {
+        "session_id": sid, "asset_id": ASSET, "source_day": str(DAY), "synthetic": True}
+
+
+def test_the_stream_sends_old_logged_events_as_signals_too(conn, db_url, tmp_path):
+    """Events logged before payloads were reduced still go out with identifiers only."""
+    from psycopg.types.json import Jsonb
+
+    eid = conn.execute(
+        "INSERT INTO stream_events (event_type, payload) VALUES ('score.batch', %s) RETURNING"
+        " event_id", [Jsonb({"session_id": 1, "asset_id": ASSET, "source_day": str(DAY),
+                             "synthetic": False, "count": 9, "window_end_last":
+                             "2024-06-11 09:59:00+00:00", "states": {"review_suggested": 9}})]
+    ).fetchone()[0]
+    with TestClient(api.create_app(database_url=db_url, reports_dir=tmp_path)) as c:
+        r = c.get("/api/stream", params={"last_event_id": eid - 1, "limit": 1})
+    (got,) = _parse(r.text)
+    assert got[0] == eid and set(got[2]) == {"session_id", "asset_id", "source_day",
+                                             "synthetic", "created_at"}
 
 
 def test_real_server_reconnects_with_last_event_id(conn, db_url, tmp_path):

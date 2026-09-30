@@ -914,8 +914,6 @@ export interface components {
         };
         /** CaseEvent */
         CaseEvent: {
-            /** Actor */
-            actor: string;
             /** Asset Id */
             asset_id: string;
             /** Case Id */
@@ -923,28 +921,14 @@ export interface components {
             /**
              * Created At
              * Format: date-time
+             * @description when the event was written (wall time)
              */
             created_at: string;
-            /**
-             * Disposition
-             * @default null
-             */
-            disposition: string | null;
             /**
              * Event Type
              * @enum {string}
              */
             event_type: "opened" | "evidence_added" | "acknowledged" | "note" | "disposition" | "closed";
-            /**
-             * @description worker: events in this step
-             * @default null
-             */
-            events: components["schemas"]["CaseEventCounts"] | null;
-            /**
-             * Related Case Id
-             * @default null
-             */
-            related_case_id: number | null;
             /** Session Id */
             session_id: number;
             /**
@@ -952,21 +936,8 @@ export interface components {
              * Format: date
              */
             source_day: string;
-            /**
-             * Status
-             * @description person's action: status after it
-             * @default null
-             */
-            status: ("open" | "acknowledged" | "dispositioned" | "closed") | null;
             /** Synthetic */
             synthetic: boolean;
-        };
-        /** CaseEventCounts */
-        CaseEventCounts: {
-            /** Evidence Added */
-            evidence_added: number;
-            /** Opened */
-            opened: number;
         };
         /** CaseEventMessage */
         CaseEventMessage: {
@@ -1635,21 +1606,11 @@ export interface components {
             /** Asset Id */
             asset_id: string;
             /**
-             * Baseline
-             * @description signals per baseline status
-             */
-            baseline: {
-                [key: string]: number;
-            };
-            /**
              * Created At
              * Format: date-time
+             * @description when the event was written (wall time)
              */
             created_at: string;
-            /** Cursor At */
-            cursor_at: string | null;
-            /** Scenario */
-            scenario: string | null;
             /** Session Id */
             session_id: number;
             /**
@@ -1657,13 +1618,6 @@ export interface components {
              * Format: date
              */
             source_day: string;
-            /** Speed */
-            speed: number;
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "pending" | "running" | "paused" | "completed" | "failed";
             /** Synthetic */
             synthetic: boolean;
         };
@@ -1728,17 +1682,12 @@ export interface components {
         ScoreBatchEvent: {
             /** Asset Id */
             asset_id: string;
-            /** Count */
-            count: number;
             /**
              * Created At
              * Format: date-time
+             * @description when the event was written (wall time)
              */
             created_at: string;
-            /** Model Version */
-            model_version: string[];
-            /** Scenario */
-            scenario: string | null;
             /** Session Id */
             session_id: number;
             /**
@@ -1746,22 +1695,8 @@ export interface components {
              * Format: date
              */
             source_day: string;
-            /** States */
-            states: {
-                [key: string]: number;
-            };
             /** Synthetic */
             synthetic: boolean;
-            /**
-             * Window End First
-             * Format: date-time
-             */
-            window_end_first: string;
-            /**
-             * Window End Last
-             * Format: date-time
-             */
-            window_end_last: string;
         };
         /** ScoreBatchMessage */
         ScoreBatchMessage: {

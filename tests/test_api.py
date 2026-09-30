@@ -912,13 +912,15 @@ def test_every_get_endpoint_validates_against_its_model_on_real_data(real):
     api_models.Signals.model_validate(raw.json())
     assert client.get(f"/api/cases/{case_ids[0]}/export", params={"format": "markdown"}
                       ).headers["content-type"].startswith("text/markdown")
-    # every stored stream event matches its payload model
+    # every stored stream event, as the stream sends it (reduced to a signal), matches its
+    # payload model; older rows logged with data are reduced too
     with db.connect() as c:
         stored = events.after(c, 0, limit=100_000)
     assert stored
     for e in stored:
         api_models.StreamEvent.model_validate({"id": e["event_id"], "event": e["event_type"],
-                                               "data": {**e["payload"],
+                                               "data": {**events.signal(e["event_type"],
+                                                                        e["payload"]),
                                                         "created_at": e["created_at"]}})
 
 

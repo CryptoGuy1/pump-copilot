@@ -4,6 +4,11 @@ emit() takes a transaction-level advisory lock before it takes an id, so a later
 for an earlier one to commit: ids become visible in increasing order, and a client resuming
 after the highest id it has seen (Last-Event-ID) misses nothing. Call it inside the writer's
 transaction, as late as possible; the lock is held until that transaction ends.
+
+Events are signals, not data: a payload holds only identifiers and types (FIELDS), so a page
+can use an event only as a cue to refetch. An old event replayed after a rewind carries no
+scores, states or case details that could show on screen before the refetch clips them.
+emit() drops any other field it is given.
 """
 
 from __future__ import annotations
@@ -16,12 +21,21 @@ from psycopg.types.json import Jsonb
 CHANNEL = "pumpcopilot_events"
 TYPES = ("replay.progress", "score.batch", "case.event")
 _LOCK = 72_616_003  # advisory lock: one event writer at a time
+_IDS = ("session_id", "asset_id", "source_day", "synthetic")
+FIELDS = {"replay.progress": _IDS, "score.batch": _IDS,
+          "case.event": (*_IDS, "case_id", "event_type")}
+
+
+def signal(event_type: str, payload: dict) -> dict:
+    """The payload reduced to identifiers and the type (also for events logged before the
+    reduction, which the stream still replays)."""
+    return {k: payload[k] for k in FIELDS[event_type] if k in payload}
 
 
 def emit(conn, event_type: str, payload: dict) -> int:
     if event_type not in TYPES:
         raise ValueError(f"unknown event type {event_type!r}")
-    body = json.loads(json.dumps(payload, default=str))
+    body = json.loads(json.dumps(signal(event_type, payload), default=str))
     with conn.transaction():
         conn.execute("SELECT pg_advisory_xact_lock(%s)", [_LOCK])
         event_id = conn.execute("INSERT INTO stream_events (event_type, payload) VALUES"

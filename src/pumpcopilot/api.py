@@ -938,8 +938,8 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                     rows = await events.after_async(aconn, last, 500, wanted, session_id)
                     for r in rows:
                         last = r["event_id"]
-                        data = json.dumps({**r["payload"], "created_at": str(r["created_at"])},
-                                          default=str)
+                        data = json.dumps({**events.signal(r["event_type"], r["payload"]),
+                                           "created_at": str(r["created_at"])}, default=str)
                         yield f"id: {last}\nevent: {r['event_type']}\ndata: {data}\n\n"
                         sent += 1
                         if limit and sent >= limit:

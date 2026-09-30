@@ -530,18 +530,10 @@ def _set_status(conn, session_id: int, sql: str, allowed: tuple, args=()) -> Non
         raise ValueError(f"session {session_id} is {s['status']}; needs one of {allowed}")
 
 
-def progress_payload(s: dict, progress: dict | None = None) -> dict:
-    """The replay.progress event body: where a session is, and its baseline status counts."""
-    progress = progress if progress is not None else (s.get("baseline_progress") or {})
-    counts: dict[str, int] = {}
-    for run in progress.get("runs", []):
-        for v in run["signals"].values():
-            counts[v["status"]] = counts.get(v["status"], 0) + 1
+def progress_payload(s: dict) -> dict:
+    """The replay.progress event body: which session changed (a cue to refetch it)."""
     return {"session_id": s["session_id"], "asset_id": s["asset_id"],
-            "source_day": str(s["source_day"]), "status": s["status"],
-            "cursor_at": None if s["cursor_at"] is None else str(s["cursor_at"]),
-            "speed": s["speed"], "synthetic": s["synthetic"], "scenario": s["scenario"],
-            "baseline": counts}
+            "source_day": str(s["source_day"]), "synthetic": s["synthetic"]}
 
 
 def _emit_progress(conn, session_id: int) -> None:
@@ -597,7 +589,6 @@ class _Cache:
     tracker: CaseTracker
     computed_minute: pd.Timestamp | None = None
     stepped_at: dt.datetime | None = None  # heartbeat this worker wrote on its last step
-    last_progress: dict | None = None
 
 
 SCORE_COLS = ("session_id", "synthetic", "asset_id", "source_day", "signal_name", "stretch",
@@ -721,7 +712,6 @@ class Worker:
         stored, case_evs, progress = [], [], None
         if due and target > cursor or (target >= end and s["status"] != "completed"):
             rows, watermark, progress = step(c.day, c.segments, c.consts, c.cfg, target)
-            c.last_progress = progress
             new = [r for r in rows if row_key(r) not in c.seen]
             out["stored"] = self._store(s, new, target)
             stored = new
@@ -755,35 +745,19 @@ class Worker:
         """Stream events for this step, at its end (the event lock is held until commit)."""
         from . import events
 
+        ids = progress_payload(s)
         if stored:
-            ends = [str(_utc(r["window_end"])) for r in stored]
-            states: dict[str, int] = {}
-            for r in stored:
-                states[r["state"]] = states.get(r["state"], 0) + 1
-            events.emit(self.conn, "score.batch", {
-                "session_id": s["session_id"], "asset_id": s["asset_id"],
-                "source_day": str(s["source_day"]), "synthetic": s["synthetic"],
-                "scenario": s["scenario"], "count": len(stored), "window_end_first": min(ends),
-                "window_end_last": max(ends), "states": states,
-                "model_version": sorted({r["model_version"] for r in stored})})
-        touched: dict[int, dict] = {}
+            events.emit(self.conn, "score.batch", ids)
+        opened: dict[int, bool] = {}
         for ev in case_evs:
             cid = c.tracker.id_of(ev["case"])
-            t = touched.setdefault(cid, {"opened": 0, "evidence_added": 0,
-                                         "related_case_id": None})
-            t[ev["type"]] += 1
-            if ev["type"] == "opened" and ev.get("related_case") is not None:
-                t["related_case_id"] = c.tracker.id_of(ev["related_case"])
-        for cid, t in touched.items():
+            opened[cid] = opened.get(cid, False) or ev["type"] == "opened"
+        for cid, was_opened in opened.items():
             events.emit(self.conn, "case.event", {
-                "case_id": cid, "session_id": s["session_id"], "asset_id": s["asset_id"],
-                "source_day": str(s["source_day"]), "synthetic": s["synthetic"],
-                "actor": "worker", "event_type": "opened" if t["opened"] else "evidence_added",
-                "events": {k: t[k] for k in ("opened", "evidence_added")},
-                "related_case_id": t["related_case_id"]})
+                **ids, "case_id": cid,
+                "event_type": "opened" if was_opened else "evidence_added"})
         if progress is not None or status != was:
-            events.emit(self.conn, "replay.progress", progress_payload(
-                {**s, "status": status, "cursor_at": target}, progress or c.last_progress))
+            events.emit(self.conn, "replay.progress", ids)
 
     def _store(self, s: dict, rows: list[dict], cursor: pd.Timestamp) -> int:
         if not rows:

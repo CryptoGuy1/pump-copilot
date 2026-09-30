@@ -5,7 +5,8 @@ export const EVENT_TYPES = ["replay.progress", "score.batch", "case.event"] as c
 export type EventType = (typeof EVENT_TYPES)[number];
 
 type S = components["schemas"];
-/** The payload of each event type, from the API's StreamEvent models. */
+/** The payload of each event type, from the API's StreamEvent models. Events are signals,
+ * not data: identifiers and types only, used as a cue to refetch, never shown. */
 export interface EventData {
   "replay.progress": S["ReplayProgressEvent"];
   "score.batch": S["ScoreBatchEvent"];
@@ -14,6 +15,16 @@ export interface EventData {
 
 export type StreamEvent = { [K in EventType]: { id: number; type: K; data: EventData[K] } }[
   EventType];
+
+const IDS = ["session_id", "asset_id", "source_day", "synthetic", "created_at"];
+/** The fields an event may carry; anything else a server sends is dropped here too. */
+export const SIGNAL_FIELDS: Record<EventType, string[]> = {
+  "replay.progress": IDS, "score.batch": IDS, "case.event": [...IDS, "case_id", "event_type"],
+};
+
+export function toSignal(type: EventType, raw: Record<string, unknown>) {
+  return Object.fromEntries(SIGNAL_FIELDS[type].filter((k) => k in raw).map((k) => [k, raw[k]]));
+}
 
 export type StreamStatus = "connecting" | "open" | "reconnecting" | "closed";
 
@@ -99,16 +110,16 @@ export class StreamClient {
         const id = Number(e.lastEventId);
         if (this.lastEventId != null && id <= this.lastEventId) return;
         this.lastEventId = id;
-        this.o.onEvent?.({ id, type, data: JSON.parse(e.data) } as StreamEvent);
+        this.o.onEvent?.({ id, type, data: toSignal(type, JSON.parse(e.data)) } as StreamEvent);
       });
     }
   }
 }
 
-/** React wrapper: connection status, the last event id and the most recent events. */
-export function useStream(options: StreamOptions = {}, keep = 50) {
+/** React wrapper: connection status and the last event id. Events go to onEvent only (to
+ * trigger refetches); the hook keeps none of them for display. */
+export function useStream(options: StreamOptions = {}) {
   const [status, setStatus] = useState<StreamStatus>("connecting");
-  const [events, setEvents] = useState<StreamEvent[]>([]);
   const [lastEventId, setLast] = useState<number | null>(null);
   const onEvent = useRef(options.onEvent);
   onEvent.current = options.onEvent;
@@ -120,14 +131,13 @@ export function useStream(options: StreamOptions = {}, keep = 50) {
       url, types, sessionId, EventSourceImpl, retryMs, maxRetryMs, onStatus: setStatus,
       onEvent: (e) => {
         setLast(e.id);
-        setEvents((prev) => [...prev.slice(-(keep - 1)), e]);
         onEvent.current?.(e);
       },
     });
     client.start();
     return () => client.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, typesKey, sessionId, EventSourceImpl, retryMs, maxRetryMs, keep]);
+  }, [url, typesKey, sessionId, EventSourceImpl, retryMs, maxRetryMs]);
 
-  return { status, events, lastEventId };
+  return { status, lastEventId };
 }

@@ -81,11 +81,10 @@ def _append_once(conn, case_id, event_type, actor, events, fields) -> int:
         with conn.transaction():
             event_id = append_raw(conn, case_id, event_type, actor, **fields)
             st = get_case(conn, case_id)
-            events.emit(conn, "case.event", {
+            events.emit(conn, "case.event", {  # identifiers and the type only
                 "case_id": case_id, "session_id": st["session_id"],
                 "asset_id": st["asset_id"], "source_day": str(st["source_day"]),
-                "synthetic": st["synthetic"], "actor": actor, "event_type": event_type,
-                "status": st["status"], "disposition": st["disposition"]})
+                "synthetic": st["synthetic"], "event_type": event_type})
             return event_id
     except psycopg.errors.RaiseException as e:
         msg = str(e).splitlines()[0]

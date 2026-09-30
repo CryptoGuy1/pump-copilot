@@ -1045,10 +1045,6 @@
       "CaseEvent": {
         "additionalProperties": false,
         "properties": {
-          "actor": {
-            "title": "Actor",
-            "type": "string"
-          },
           "asset_id": {
             "title": "Asset Id",
             "type": "string"
@@ -1058,21 +1054,10 @@
             "type": "integer"
           },
           "created_at": {
+            "description": "when the event was written (wall time)",
             "format": "date-time",
             "title": "Created At",
             "type": "string"
-          },
-          "disposition": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Disposition"
           },
           "event_type": {
             "enum": [
@@ -1086,30 +1071,6 @@
             "title": "Event Type",
             "type": "string"
           },
-          "events": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/CaseEventCounts"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "description": "worker: events in this step"
-          },
-          "related_case_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Related Case Id"
-          },
           "session_id": {
             "title": "Session Id",
             "type": "integer"
@@ -1118,25 +1079,6 @@
             "format": "date",
             "title": "Source Day",
             "type": "string"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "enum": [
-                  "open",
-                  "acknowledged",
-                  "dispositioned",
-                  "closed"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "description": "person's action: status after it",
-            "title": "Status"
           },
           "synthetic": {
             "title": "Synthetic",
@@ -1150,29 +1092,9 @@
           "synthetic",
           "created_at",
           "case_id",
-          "actor",
           "event_type"
         ],
         "title": "CaseEvent",
-        "type": "object"
-      },
-      "CaseEventCounts": {
-        "additionalProperties": false,
-        "properties": {
-          "evidence_added": {
-            "title": "Evidence Added",
-            "type": "integer"
-          },
-          "opened": {
-            "title": "Opened",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "opened",
-          "evidence_added"
-        ],
-        "title": "CaseEventCounts",
         "type": "object"
       },
       "CaseEventMessage": {
@@ -3052,41 +2974,11 @@
             "title": "Asset Id",
             "type": "string"
           },
-          "baseline": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "description": "signals per baseline status",
-            "title": "Baseline",
-            "type": "object"
-          },
           "created_at": {
+            "description": "when the event was written (wall time)",
             "format": "date-time",
             "title": "Created At",
             "type": "string"
-          },
-          "cursor_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Cursor At"
-          },
-          "scenario": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Scenario"
           },
           "session_id": {
             "title": "Session Id",
@@ -3095,21 +2987,6 @@
           "source_day": {
             "format": "date",
             "title": "Source Day",
-            "type": "string"
-          },
-          "speed": {
-            "title": "Speed",
-            "type": "integer"
-          },
-          "status": {
-            "enum": [
-              "pending",
-              "running",
-              "paused",
-              "completed",
-              "failed"
-            ],
-            "title": "Status",
             "type": "string"
           },
           "synthetic": {
@@ -3122,12 +2999,7 @@
           "asset_id",
           "source_day",
           "synthetic",
-          "created_at",
-          "status",
-          "cursor_at",
-          "speed",
-          "scenario",
-          "baseline"
+          "created_at"
         ],
         "title": "ReplayProgressEvent",
         "type": "object"
@@ -3270,32 +3142,11 @@
             "title": "Asset Id",
             "type": "string"
           },
-          "count": {
-            "title": "Count",
-            "type": "integer"
-          },
           "created_at": {
+            "description": "when the event was written (wall time)",
             "format": "date-time",
             "title": "Created At",
             "type": "string"
-          },
-          "model_version": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Model Version",
-            "type": "array"
-          },
-          "scenario": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Scenario"
           },
           "session_id": {
             "title": "Session Id",
@@ -3306,26 +3157,9 @@
             "title": "Source Day",
             "type": "string"
           },
-          "states": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "title": "States",
-            "type": "object"
-          },
           "synthetic": {
             "title": "Synthetic",
             "type": "boolean"
-          },
-          "window_end_first": {
-            "format": "date-time",
-            "title": "Window End First",
-            "type": "string"
-          },
-          "window_end_last": {
-            "format": "date-time",
-            "title": "Window End Last",
-            "type": "string"
           }
         },
         "required": [
@@ -3333,13 +3167,7 @@
           "asset_id",
           "source_day",
           "synthetic",
-          "created_at",
-          "scenario",
-          "count",
-          "window_end_first",
-          "window_end_last",
-          "states",
-          "model_version"
+          "created_at"
         ],
         "title": "ScoreBatchEvent",
         "type": "object"

@@ -1,41 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { FakeEventSource } from "../test/FakeEventSource";
 import { StreamClient, streamUrl, useStream, type StreamEvent } from "./useStream";
-
-/** Stands in for the browser's EventSource: records instances, lets a test push events. */
-class FakeEventSource {
-  static instances: FakeEventSource[] = [];
-  static CONNECTING = 0;
-  static OPEN = 1;
-  static CLOSED = 2;
-  readyState = FakeEventSource.CONNECTING;
-  onopen: ((e: Event) => void) | null = null;
-  onerror: ((e: Event) => void) | null = null;
-  private listeners = new Map<string, ((e: MessageEvent) => void)[]>();
-  closed = false;
-  constructor(public url: string) {
-    FakeEventSource.instances.push(this);
-  }
-  addEventListener(type: string, fn: (e: MessageEvent) => void) {
-    this.listeners.set(type, [...(this.listeners.get(type) ?? []), fn]);
-  }
-  close() {
-    this.closed = true;
-    this.readyState = FakeEventSource.CLOSED;
-  }
-  open() {
-    this.readyState = FakeEventSource.OPEN;
-    this.onopen?.(new Event("open"));
-  }
-  emit(type: string, id: number, data: object) {
-    const e = new MessageEvent(type, { data: JSON.stringify(data), lastEventId: String(id) });
-    for (const fn of this.listeners.get(type) ?? []) fn(e);
-  }
-  fail() {
-    this.readyState = FakeEventSource.CLOSED;
-    this.onerror?.(new Event("error"));
-  }
-}
 
 const ES = FakeEventSource as unknown as typeof EventSource;
 const last = () => FakeEventSource.instances[FakeEventSource.instances.length - 1];
@@ -60,10 +26,12 @@ describe("StreamClient", () => {
     const c = new StreamClient({ EventSourceImpl: ES, onEvent: (e) => got.push(e) });
     c.start();
     last().open();
-    last().emit("score.batch", 7, { count: 3, synthetic: true });
-    last().emit("case.event", 8, { case_id: 1 });
+    last().emit("score.batch", 7, { count: 3, states: { normal: 3 }, synthetic: true });
+    last().emit("case.event", 8, { case_id: 1, status: "closed", note: "n" });
     expect(got.map((e) => [e.id, e.type])).toEqual([[7, "score.batch"], [8, "case.event"]]);
-    expect(got[0].data).toEqual({ count: 3, synthetic: true });
+    // only identifiers and types get through, whatever the server sends
+    expect(got[0].data).toEqual({ synthetic: true });
+    expect(got[1].data).toEqual({ case_id: 1 });
     expect(c.lastEventId).toBe(8);
     expect(c.status).toBe("open");
   });
@@ -135,7 +103,7 @@ describe("StreamClient", () => {
 });
 
 describe("useStream", () => {
-  it("exposes status and events, and cleans up on unmount", () => {
+  it("exposes status and the last event id, and cleans up on unmount", () => {
     const onEvent = vi.fn();
     const { result, unmount } = renderHook(() =>
       useStream({ EventSourceImpl: ES, onEvent, retryMs: 100 }));
@@ -144,7 +112,7 @@ describe("useStream", () => {
     expect(result.current.status).toBe("open");
     act(() => last().emit("case.event", 5, { case_id: 2, synthetic: true }));
     expect(result.current.lastEventId).toBe(5);
-    expect(result.current.events.map((e) => e.id)).toEqual([5]);
+    expect(Object.keys(result.current).sort()).toEqual(["lastEventId", "status"]);
     expect(onEvent).toHaveBeenCalledOnce();
     act(() => last().fail());
     expect(result.current.status).toBe("reconnecting");

@@ -596,44 +596,27 @@ class Assumptions(Model):
 # --- the live stream (server-sent events) ------------------------------------------------
 
 class EventBase(Model):
+    """Events are signals, not data: which session (or case) changed, so the page refetches.
+    They carry no scores, states or case details."""
     session_id: int
     asset_id: str
     source_day: dt.date
     synthetic: bool
-    created_at: dt.datetime
+    created_at: dt.datetime = Field(description="when the event was written (wall time)")
 
 
 class ReplayProgressEvent(EventBase):
-    status: SessionStatus
-    cursor_at: dt.datetime | None
-    speed: int
-    scenario: str | None
-    baseline: dict[str, int] = Field(description="signals per baseline status")
+    pass
 
 
 class ScoreBatchEvent(EventBase):
-    scenario: str | None
-    count: int
-    window_end_first: dt.datetime
-    window_end_last: dt.datetime
-    states: dict[str, int]
-    model_version: list[str]
-
-
-class CaseEventCounts(Model):
-    opened: int
-    evidence_added: int
+    pass
 
 
 class CaseEvent(EventBase):
     case_id: int
-    actor: str
     event_type: Literal["opened", "evidence_added", "acknowledged", "note", "disposition",
                         "closed"]
-    events: CaseEventCounts | None = Field(None, description="worker: events in this step")
-    related_case_id: int | None = None
-    status: CaseStatus | None = Field(None, description="person's action: status after it")
-    disposition: str | None = None
 
 
 class ReplayProgressMessage(Model):
