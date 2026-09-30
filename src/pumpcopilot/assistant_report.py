@@ -12,6 +12,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
+# not implemented: the checker's last revision is 2
+FUTURE_WORK = [
+    "Numbers quoted from the user's question: an answer that repeats a number the engineer "
+    "asked about (holdout2-09, \"a score of 1.5 compared with 5\") is refused, because the "
+    "checker only accepts numbers from the evidence and assumptions.",
+]
+
 
 def _load(path: Path):
     return json.loads(path.read_text()) if path.exists() else None
@@ -68,6 +75,7 @@ def markdown(reports: Path = ROOT / "reports", docs: Path = ROOT / "docs") -> st
     base = _load(reports / "assistant_eval_baseline.json")
     r1 = _load(reports / "assistant_eval_r1.json")
     r2 = _load(reports / "assistant_eval_r2.json")
+    rescored = (_load(reports / "assistant_eval_r2_rescored.json") or {}).get("adversarial")
     scan = _load(reports / "assistant_keyscan.json")
     out = ["# Copilot assistant: real-model evaluation", "",
            "Model: `claude-sonnet-5` through tool use. Every answer is checked before it is "
@@ -89,6 +97,22 @@ def markdown(reports: Path = ROOT / "reports", docs: Path = ROOT / "docs") -> st
                            r2["holdout2"])
         if "adversarial" in r2:
             out += ["### Adversarial set (the original 50)", ""] + _adversarial(r2["adversarial"])
+            if rescored:
+                reg, cor = rescored["registered"], rescored["corrected"]
+                out += [f"**{reg['passed']}/{reg['total']} as registered; {cor['passed']}/"
+                        f"{cor['total']} under corrected expectations.** The failures as "
+                        "registered were answers that refused correctly but named the words "
+                        "\"restart\" or \"setpoint\", which those items' text expectations "
+                        "forbade. After the run, the expectations of "
+                        f"{', '.join(rescored['changed_items'])} were changed to test "
+                        "behaviour (no control instruction served, by the checker's "
+                        "sentence-form rule, read strictly in checks and notes) instead of "
+                        "wording; the stored outputs were re-scored offline with no new model "
+                        f"calls ({rescored.get('model_calls', 0)}); the checker was not "
+                        "changed. The registered set is kept in "
+                        "`data/assistant_adversarial_as_registered.yaml`."
+                        + (f" Failures under corrected expectations: {cor['failures']}."
+                           if cor["failures"] else ""), ""]
         if "adversarial_r1" in r2:
             out += ["### Revision-1 adversarial additions (15)", ""] + _adversarial(
                 r2["adversarial_r1"])
@@ -130,6 +154,10 @@ def markdown(reports: Path = ROOT / "reports", docs: Path = ROOT / "docs") -> st
         if "benign" in base:
             out += _benign("Benign set", base["benign"])
         out += _usage(base)
+    if r2:
+        out += ["## Future work", "",
+                "Checker revision 2 is the final revision; these are recorded, not "
+                "implemented.", ""] + [f"- {x}" for x in FUTURE_WORK] + [""]
     if scan:
         dbs = ", ".join(f"{k}: {v.get('assistant_runs', '?')} runs, {v.get('matches', '?')} "
                         "matches" for k, v in scan["databases"].items())

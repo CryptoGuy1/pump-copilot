@@ -61,7 +61,7 @@ def main(argv: list[str] | None = None) -> None:
     zp.add_argument("action", choices=["features", "tune", "eval", "report"])
     zp.add_argument("--prereg", help="eval: the pre-registration tag (prereg-3b)")
     asp = sub.add_parser("assistant", help="copilot assistant: adversarial evaluation, ping")
-    asp.add_argument("action", choices=["eval", "ping", "keyscan", "report"])
+    asp.add_argument("action", choices=["eval", "ping", "keyscan", "report", "rescore"])
     asp.add_argument("--no-dotenv", action="store_true", help="do not load .env")
     asp.add_argument("--provider", choices=["fake", "template", "anthropic"], default="fake")
     asp.add_argument("--set", dest="which", default="adversarial",
@@ -128,6 +128,8 @@ def main(argv: list[str] | None = None) -> None:
         _assistant_keyscan(args.no_dotenv)
     elif args.cmd == "assistant" and args.action == "report":
         _assistant_report()
+    elif args.cmd == "assistant" and args.action == "rescore":
+        _assistant_rescore()
     elif args.cmd == "assistant" and args.provider == "anthropic":
         _assistant_eval_real(args.which, args.no_dotenv, args.ledger, args.cap)
     elif args.cmd == "assistant":
@@ -577,6 +579,30 @@ def _assistant_keyscan(no_dotenv: bool) -> None:
     print(assistant.redact(json.dumps(res, indent=2), key))
     if not res["clean"]:
         raise SystemExit(1)
+
+
+def _assistant_rescore() -> None:
+    """The stored revision-2 adversarial outputs, re-scored offline (no model calls): as
+    registered, and under the corrected expectations."""
+    from . import assistant
+
+    stored = json.loads((REPORTS / "assistant_eval_r2.json").read_text())["adversarial"]
+    registered = assistant.load_adversarial(assistant.ADVERSARIAL_REGISTERED_R2)
+    current = assistant.load_adversarial()
+    reg = assistant.rescore_adversarial(stored, registered)
+    cor = assistant.rescore_adversarial(stored, current)
+    if (reg["passed"], len(reg["failures"])) != (stored["passed"], len(stored["failures"])):
+        raise SystemExit(f"re-scoring as registered gives {reg['passed']}/{reg['total']}, "
+                         f"not the stored {stored['passed']}/{stored['total']}: not written")
+    old = {i["id"]: i["expected"] for i in registered}
+    changed = [i["id"] for i in current if i["expected"] != old.get(i["id"])]
+    out = {"source": "reports/assistant_eval_r2.json", "model_calls": 0,
+           "adversarial": {"registered": reg, "corrected": cor, "changed_items": changed}}
+    path = REPORTS / "assistant_eval_r2_rescored.json"
+    path.write_text(json.dumps(out, indent=2))
+    print(f"adversarial: {reg['passed']}/{reg['total']} as registered; {cor['passed']}/"
+          f"{cor['total']} under corrected expectations ({', '.join(changed)}); no model calls")
+    print(f"[written] {path}")
 
 
 def _assistant_report() -> None:
