@@ -1,0 +1,4195 @@
+{
+  "pumps": {
+    "B": {
+      "asset_id": "cira-pump-B",
+      "fit_day": "2024-06-11",
+      "score_day": "2024-10-30",
+      "fit_running_hours": 5.957,
+      "model_id": "cira-band-cee7013ac407",
+      "model_version": "840cea2414a1dab9",
+      "normalization": "temperatures (motor_accelerometer_contact_temperature, motor_casing_temperature, pump_accelerometer_contact_temperature) normalised as value minus ambient_temperature (latest ambient reading at or before each reading, same day only); barometric signal ambient_pressure found (range 3.0 mbar this day), not used: pressures are scored as measured",
+      "abstained": null,
+      "bands": {
+        "motor_acceleration_peak": {
+          "center": 29.72588253,
+          "mad": 1.5378799450000002,
+          "halfwidth": 9.227279670000001,
+          "low": 20.49860286,
+          "high": 38.9531622,
+          "unit": "m/s^2",
+          "readings": 2097,
+          "windows": 280,
+          "typical_interval_s": 8.0,
+          "min_fresh": 19,
+          "sigma": 3.405663588012
+        },
+        "motor_accelerometer_contact_temperature_rel_ambient": {
+          "center": 12.663293835000001,
+          "mad": 1.5904302624999982,
+          "halfwidth": 9.54258157499999,
+          "low": 3.120712260000012,
+          "high": 22.20587540999999,
+          "unit": "K",
+          "readings": 1800,
+          "windows": 278,
+          "typical_interval_s": 8.0,
+          "min_fresh": 19,
+          "sigma": 2.387430876368998
+        },
+        "motor_casing_temperature_rel_ambient": {
+          "center": 10.612252235,
+          "mad": 0.872811314999999,
+          "halfwidth": 5.236867889999994,
+          "low": 5.375384345000006,
+          "high": 15.849120124999994,
+          "unit": "K",
+          "readings": 2392,
+          "windows": 284,
+          "typical_interval_s": 8.0,
+          "min_fresh": 19,
+          "sigma": 1.9303099215329957
+        },
+        "motor_vibration_velocity": {
+          "center": 0.001102568,
+          "mad": 1.9311999999999953e-05,
+          "halfwidth": 0.00011587199999999972,
+          "low": 0.0009866960000000002,
+          "high": 0.0012184399999999997,
+          "unit": "m/s",
+          "readings": 2128,
+          "windows": 280,
+          "typical_interval_s": 8.0,
+          "min_fresh": 19,
+          "sigma": 0.0001320892817999999
+        },
+        "outlet_pressure": {
+          "center": 42.733789445,
+          "mad": 0.7328491199999974,
+          "halfwidth": 4.397094719999984,
+          "low": 38.336694725000015,
+          "high": 47.13088416499998,
+          "unit": "bar",
+          "readings": 349,
+          "windows": 344,
+          "typical_interval_s": 59.0,
+          "min_fresh": 3,
+          "sigma": 1.4203706522880082
+        },
+        "pump_acceleration_peak": {
+          "center": 27.19167137,
+          "mad": 1.371688840000001,
+          "halfwidth": 8.230133040000005,
+          "low": 18.961538329999996,
+          "high": 35.42180441000001,
+          "unit": "m/s^2",
+          "readings": 275,
+          "windows": 265,
+          "typical_interval_s": 60.0,
+          "min_fresh": 3,
+          "sigma": 3.0504959943359977
+        },
+        "pump_accelerometer_contact_temperature_rel_ambient": {
+          "center": 16.41722679,
+          "mad": 0.861984249999999,
+          "halfwidth": 5.171905499999994,
+          "low": 11.245321290000007,
+          "high": 21.589132289999995,
+          "unit": "K",
+          "readings": 267,
+          "windows": 265,
+          "typical_interval_s": 60.0,
+          "min_fresh": 3,
+          "sigma": 1.3452237665999982
+        },
+        "pump_vibration_velocity": {
+          "center": 0.003191939,
+          "mad": 5.107999999999979e-05,
+          "halfwidth": 0.00030647999999999873,
+          "low": 0.0028854590000000012,
+          "high": 0.0034984189999999987,
+          "unit": "m/s",
+          "readings": 280,
+          "windows": 265,
+          "typical_interval_s": 60.0,
+          "min_fresh": 3,
+          "sigma": 0.00015353657340000002
+        }
+      },
+      "signal_abstentions": {},
+      "score_running_hours": 6.665,
+      "windows": 3160,
+      "states": {
+        "insufficient_evidence": 1621,
+        "normal": 1055,
+        "review_suggested": 484
+      },
+      "states_by_signal": {
+        "motor_acceleration_peak": {
+          "insufficient_evidence": 395
+        },
+        "motor_accelerometer_contact_temperature_rel_ambient": {
+          "insufficient_evidence": 395
+        },
+        "motor_casing_temperature_rel_ambient": {
+          "insufficient_evidence": 395
+        },
+        "motor_vibration_velocity": {
+          "insufficient_evidence": 395
+        },
+        "outlet_pressure": {
+          "normal": 383,
+          "review_suggested": 9,
+          "insufficient_evidence": 3
+        },
+        "pump_acceleration_peak": {
+          "normal": 310,
+          "review_suggested": 72,
+          "insufficient_evidence": 13
+        },
+        "pump_accelerometer_contact_temperature_rel_ambient": {
+          "normal": 359,
+          "review_suggested": 22,
+          "insufficient_evidence": 14
+        },
+        "pump_vibration_velocity": {
+          "review_suggested": 381,
+          "insufficient_evidence": 11,
+          "normal": 3
+        }
+      },
+      "review_episodes": [
+        {
+          "signal_name": "outlet_pressure",
+          "windows": 3,
+          "start": "2024-10-30 09:38:00+00:00",
+          "end": "2024-10-30 09:45:00+00:00",
+          "max_score": 1.2522868634042121
+        },
+        {
+          "signal_name": "outlet_pressure",
+          "windows": 6,
+          "start": "2024-10-30 13:18:00+00:00",
+          "end": "2024-10-30 13:28:00+00:00",
+          "max_score": 2.7991887595726035
+        },
+        {
+          "signal_name": "pump_acceleration_peak",
+          "windows": 4,
+          "start": "2024-10-30 13:18:00+00:00",
+          "end": "2024-10-30 13:26:00+00:00",
+          "max_score": 50.87736558994917
+        },
+        {
+          "signal_name": "pump_acceleration_peak",
+          "windows": 1,
+          "start": "2024-10-30 13:28:00+00:00",
+          "end": "2024-10-30 13:33:00+00:00",
+          "max_score": 1.058821984121899
+        },
+        {
+          "signal_name": "pump_acceleration_peak",
+          "windows": 1,
+          "start": "2024-10-30 13:31:00+00:00",
+          "end": "2024-10-30 13:36:00+00:00",
+          "max_score": 1.0343121391388825
+        },
+        {
+          "signal_name": "pump_acceleration_peak",
+          "windows": 1,
+          "start": "2024-10-30 13:38:00+00:00",
+          "end": "2024-10-30 13:43:00+00:00",
+          "max_score": 1.058821984121899
+        },
+        {
+          "signal_name": "pump_acceleration_peak",
+          "windows": 21,
+          "start": "2024-10-30 13:46:00+00:00",
+          "end": "2024-10-30 14:11:00+00:00",
+          "max_score": 1.1470569848771237
+        },
+        {
+          "signal_name": "pump_acceleration_peak",
+          "windows": 44,
+          "start": "2024-10-30 14:16:00+00:00",
+          "end": "2024-10-30 15:04:00+00:00",
+          "max_score": 1.1887237675807967
+        },
+        {
+          "signal_name": "pump_accelerometer_contact_temperature_rel_ambient",
+          "windows": 22,
+          "start": "2024-10-30 08:43:00+00:00",
+          "end": "2024-10-30 09:09:00+00:00",
+          "max_score": 1.4885549668299254
+        },
+        {
+          "signal_name": "pump_vibration_velocity",
+          "windows": 180,
+          "start": "2024-10-30 08:43:00+00:00",
+          "end": "2024-10-30 11:47:00+00:00",
+          "max_score": 3.5066513312451195
+        },
+        {
+          "signal_name": "pump_vibration_velocity",
+          "windows": 201,
+          "start": "2024-10-30 11:45:00+00:00",
+          "end": "2024-10-30 15:10:00+00:00",
+          "max_score": 6.736517880448998
+        }
+      ],
+      "unlabelled_reviews_per_running_hour": 1.6505,
+      "scored_evidence": 3160,
+      "diagnostics": {
+        "motor_acceleration_peak": {
+          "fit_interval_s": 8.0,
+          "score_interval_s": 60.0,
+          "fit_median": 29.23921013,
+          "score_median": 126.35933299999999
+        },
+        "motor_accelerometer_contact_temperature_rel_ambient": {
+          "fit_interval_s": 8.0,
+          "score_interval_s": 60.0,
+          "fit_median": 12.639148715,
+          "score_median": 15.72605515
+        },
+        "motor_casing_temperature_rel_ambient": {
+          "fit_interval_s": 8.0,
+          "score_interval_s": 61.0,
+          "fit_median": 10.104911804999999,
+          "score_median": 13.537731180000002
+        },
+        "motor_vibration_velocity": {
+          "fit_interval_s": 8.0,
+          "score_interval_s": 60.0,
+          "fit_median": 0.0011057045,
+          "score_median": 0.001500136
+        },
+        "outlet_pressure": {
+          "fit_interval_s": 59.0,
+          "score_interval_s": 61.0,
+          "fit_median": 42.74881744,
+          "score_median": 40.38035965
+        },
+        "pump_acceleration_peak": {
+          "fit_interval_s": 60.0,
+          "score_interval_s": 61.0,
+          "fit_median": 27.27235794,
+          "score_median": 20.434096335
+        },
+        "pump_accelerometer_contact_temperature_rel_ambient": {
+          "fit_interval_s": 60.0,
+          "score_interval_s": 61.0,
+          "fit_median": 16.39069748,
+          "score_median": 17.78074265
+        },
+        "pump_vibration_velocity": {
+          "fit_interval_s": 60.0,
+          "score_interval_s": 61.0,
+          "fit_median": 0.0031993639999999997,
+          "score_median": 0.003929697
+        }
+      }
+    },
+    "A": {
+      "asset_id": "cira-pump-A",
+      "fit_day": "2024-06-11",
+      "score_day": "2024-10-30",
+      "fit_running_hours": 1.316,
+      "model_id": "cira-band-cee7013ac407",
+      "model_version": "0750a643004ceed4",
+      "normalization": "temperatures (motor_accelerometer_contact_temperature, motor_casing_temperature, pump_accelerometer_contact_temperature) normalised as value minus ambient_temperature (latest ambient reading at or before each reading, same day only); barometric signal ambient_pressure found (range 2.4 mbar this day), not used: pressures are scored as measured",
+      "abstained": "baseline abstained: fit day 2024-06-11 has 1.32 h running, minimum is 2.00 h",
+      "bands": {},
+      "signal_abstentions": {},
+      "exploratory": {
+        "asset_id": "cira-pump-A",
+        "fit_day": "2024-06-11",
+        "score_day": "2024-10-30",
+        "fit_running_hours": 1.316,
+        "model_id": "cira-band-1370c3d16196",
+        "model_version": "58bab02256846895",
+        "normalization": "temperatures (motor_accelerometer_contact_temperature, motor_casing_temperature, pump_accelerometer_contact_temperature) normalised as value minus ambient_temperature (latest ambient reading at or before each reading, same day only); barometric signal ambient_pressure found (range 2.4 mbar this day), not used: pressures are scored as measured",
+        "abstained": null,
+        "bands": {
+          "motor_acceleration_peak": {
+            "center": 13.85007668,
+            "mad": 0.1939792700000016,
+            "halfwidth": 1.1638756200000095,
+            "low": 12.686201059999991,
+            "high": 15.01395230000001,
+            "unit": "m/s^2",
+            "readings": 390,
+            "windows": 50,
+            "typical_interval_s": 8.0,
+            "min_fresh": 19,
+            "sigma": 1.2078899503860008
+          },
+          "motor_accelerometer_contact_temperature_rel_ambient": {
+            "center": 12.11583519,
+            "mad": 2.478639600000001,
+            "halfwidth": 14.871837600000006,
+            "low": -2.756002410000006,
+            "high": 26.987672790000005,
+            "unit": "K",
+            "readings": 359,
+            "windows": 50,
+            "typical_interval_s": 8.0,
+            "min_fresh": 19,
+            "sigma": 3.9705179980199987
+          },
+          "motor_vibration_velocity": {
+            "center": 0.0027895405,
+            "mad": 2.1468249999999833e-05,
+            "halfwidth": 0.000128809499999999,
+            "low": 0.002660731000000001,
+            "high": 0.002918349999999999,
+            "unit": "m/s",
+            "readings": 394,
+            "windows": 50,
+            "typical_interval_s": 8.0,
+            "min_fresh": 19,
+            "sigma": 0.0001884636641999999
+          },
+          "pump_acceleration_peak": {
+            "center": 35.05101776,
+            "mad": 0.7894821199999988,
+            "halfwidth": 4.736892719999993,
+            "low": 30.314125040000008,
+            "high": 39.787910479999994,
+            "unit": "m/s^2",
+            "readings": 393,
+            "windows": 50,
+            "typical_interval_s": 8.0,
+            "min_fresh": 19,
+            "sigma": 2.8211783530979972
+          },
+          "pump_accelerometer_contact_temperature_rel_ambient": {
+            "center": 12.3551197075,
+            "mad": 1.1456756599999993,
+            "halfwidth": 6.874053959999996,
+            "low": 5.481065747500004,
+            "high": 19.229173667499996,
+            "unit": "K",
+            "readings": 333,
+            "windows": 50,
+            "typical_interval_s": 8.0,
+            "min_fresh": 19,
+            "sigma": 1.7129102122859992
+          },
+          "pump_vibration_velocity": {
+            "center": 0.003825346,
+            "mad": 1.5194999999999965e-05,
+            "halfwidth": 9.116999999999979e-05,
+            "low": 0.003734176,
+            "high": 0.003916516,
+            "unit": "m/s",
+            "readings": 393,
+            "windows": 50,
+            "typical_interval_s": 8.0,
+            "min_fresh": 19,
+            "sigma": 0.00013497738660000005
+          }
+        },
+        "signal_abstentions": {
+          "motor_casing_temperature_rel_ambient": "65 fit readings < 100 required",
+          "outlet_pressure": "71 fit readings < 100 required"
+        },
+        "score_running_hours": 2.298,
+        "windows": 1064,
+        "states": {
+          "insufficient_evidence": 1064
+        },
+        "states_by_signal": {
+          "motor_acceleration_peak": {
+            "insufficient_evidence": 133
+          },
+          "motor_accelerometer_contact_temperature_rel_ambient": {
+            "insufficient_evidence": 133
+          },
+          "motor_casing_temperature_rel_ambient": {
+            "insufficient_evidence": 133
+          },
+          "motor_vibration_velocity": {
+            "insufficient_evidence": 133
+          },
+          "outlet_pressure": {
+            "insufficient_evidence": 133
+          },
+          "pump_acceleration_peak": {
+            "insufficient_evidence": 133
+          },
+          "pump_accelerometer_contact_temperature_rel_ambient": {
+            "insufficient_evidence": 133
+          },
+          "pump_vibration_velocity": {
+            "insufficient_evidence": 133
+          }
+        },
+        "review_episodes": [],
+        "unlabelled_reviews_per_running_hour": 0.0,
+        "scored_evidence": 1064,
+        "diagnostics": {
+          "motor_acceleration_peak": {
+            "fit_interval_s": 8.0,
+            "score_interval_s": 60.0,
+            "fit_median": 13.8112812,
+            "score_median": 16.25541115
+          },
+          "motor_accelerometer_contact_temperature_rel_ambient": {
+            "fit_interval_s": 8.0,
+            "score_interval_s": 60.0,
+            "fit_median": 12.28158951,
+            "score_median": 17.73272133
+          },
+          "motor_casing_temperature_rel_ambient": {
+            "fit_interval_s": 60.0,
+            "score_interval_s": 61.0,
+            "fit_median": 11.0655365,
+            "score_median": 15.860712050000004
+          },
+          "motor_vibration_velocity": {
+            "fit_interval_s": 8.0,
+            "score_interval_s": 60.0,
+            "fit_median": 0.0027899695,
+            "score_median": 0.0030134575
+          },
+          "outlet_pressure": {
+            "fit_interval_s": 60.0,
+            "score_interval_s": 59.0,
+            "fit_median": 41.53400421,
+            "score_median": 39.93742752
+          },
+          "pump_acceleration_peak": {
+            "fit_interval_s": 8.0,
+            "score_interval_s": 61.0,
+            "fit_median": 34.85870743,
+            "score_median": 33.52266312
+          },
+          "pump_accelerometer_contact_temperature_rel_ambient": {
+            "fit_interval_s": 8.0,
+            "score_interval_s": 61.0,
+            "fit_median": 12.313545229999999,
+            "score_median": 14.046370505
+          },
+          "pump_vibration_velocity": {
+            "fit_interval_s": 8.0,
+            "score_interval_s": 61.0,
+            "fit_median": 0.003826081,
+            "score_median": 0.003713424
+          }
+        },
+        "min_fit_running_s": 3600
+      }
+    }
+  },
+  "synthetic": {
+    "day": "cira-pump-B 2024-10-30",
+    "provenance": "synthetic_injection",
+    "starts_per_fault": 5,
+    "cells": [
+      {
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "injections": 15,
+        "detected": 1,
+        "detection_rate": 0.06666666666666667,
+        "median_delay_s": 1349.0
+      },
+      {
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "injections": 15,
+        "detected": 1,
+        "detection_rate": 0.06666666666666667,
+        "median_delay_s": 1349.0
+      },
+      {
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "injections": 15,
+        "detected": 6,
+        "detection_rate": 0.4,
+        "median_delay_s": 211.0
+      },
+      {
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "injections": 15,
+        "detected": 1,
+        "detection_rate": 0.06666666666666667,
+        "median_delay_s": 1349.0
+      },
+      {
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "injections": 15,
+        "detected": 1,
+        "detection_rate": 0.06666666666666667,
+        "median_delay_s": 1349.0
+      },
+      {
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "injections": 15,
+        "detected": 6,
+        "detection_rate": 0.4,
+        "median_delay_s": 751.0
+      },
+      {
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "injections": 15,
+        "detected": 2,
+        "detection_rate": 0.13333333333333333,
+        "median_delay_s": 4768.5
+      },
+      {
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "injections": 15,
+        "detected": 2,
+        "detection_rate": 0.13333333333333333,
+        "median_delay_s": 4768.5
+      },
+      {
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "injections": 15,
+        "detected": 7,
+        "detection_rate": 0.4666666666666667,
+        "median_delay_s": 6208.0
+      },
+      {
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "injections": 15,
+        "detected": 10,
+        "detection_rate": 0.6666666666666666,
+        "median_delay_s": 152.0
+      },
+      {
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "injections": 15,
+        "detected": 10,
+        "detection_rate": 0.6666666666666666,
+        "median_delay_s": 179.5
+      },
+      {
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "injections": 15,
+        "detected": 10,
+        "detection_rate": 0.6666666666666666,
+        "median_delay_s": 180.0
+      },
+      {
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "injections": 15,
+        "detected": 10,
+        "detection_rate": 0.6666666666666666,
+        "median_delay_s": 152.0
+      },
+      {
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "injections": 15,
+        "detected": 10,
+        "detection_rate": 0.6666666666666666,
+        "median_delay_s": 179.5
+      },
+      {
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "injections": 15,
+        "detected": 10,
+        "detection_rate": 0.6666666666666666,
+        "median_delay_s": 180.0
+      }
+    ],
+    "by_signal": {
+      "outlet_pressure": [
+        {
+          "fault": "step",
+          "size": 1.0,
+          "size_label": "1 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "step",
+          "size": 3.0,
+          "size_label": "3 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "step",
+          "size": 6.0,
+          "size_label": "6 sigma",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 210.0
+        },
+        {
+          "fault": "ramp",
+          "size": 1.0,
+          "size_label": "1 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "ramp",
+          "size": 3.0,
+          "size_label": "3 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "ramp",
+          "size": 6.0,
+          "size_label": "6 sigma",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 750.0
+        },
+        {
+          "fault": "drift",
+          "size": 1.0,
+          "size_label": "1 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "drift",
+          "size": 3.0,
+          "size_label": "3 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "drift",
+          "size": 6.0,
+          "size_label": "6 sigma",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 6208.0
+        },
+        {
+          "fault": "stuck",
+          "size": 300,
+          "size_label": "5 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 150.0
+        },
+        {
+          "fault": "stuck",
+          "size": 1200,
+          "size_label": "20 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 179.0
+        },
+        {
+          "fault": "stuck",
+          "size": 3600,
+          "size_label": "60 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 179.0
+        },
+        {
+          "fault": "dropout",
+          "size": 300,
+          "size_label": "5 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 150.0
+        },
+        {
+          "fault": "dropout",
+          "size": 1200,
+          "size_label": "20 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 179.0
+        },
+        {
+          "fault": "dropout",
+          "size": 3600,
+          "size_label": "60 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 179.0
+        }
+      ],
+      "pump_vibration_velocity": [
+        {
+          "fault": "step",
+          "size": 1.0,
+          "size_label": "1 sigma",
+          "injections": 5,
+          "detected": 1,
+          "detection_rate": 0.2,
+          "median_delay_s": 1349.0
+        },
+        {
+          "fault": "step",
+          "size": 3.0,
+          "size_label": "3 sigma",
+          "injections": 5,
+          "detected": 1,
+          "detection_rate": 0.2,
+          "median_delay_s": 1349.0
+        },
+        {
+          "fault": "step",
+          "size": 6.0,
+          "size_label": "6 sigma",
+          "injections": 5,
+          "detected": 1,
+          "detection_rate": 0.2,
+          "median_delay_s": 1349.0
+        },
+        {
+          "fault": "ramp",
+          "size": 1.0,
+          "size_label": "1 sigma",
+          "injections": 5,
+          "detected": 1,
+          "detection_rate": 0.2,
+          "median_delay_s": 1349.0
+        },
+        {
+          "fault": "ramp",
+          "size": 3.0,
+          "size_label": "3 sigma",
+          "injections": 5,
+          "detected": 1,
+          "detection_rate": 0.2,
+          "median_delay_s": 1349.0
+        },
+        {
+          "fault": "ramp",
+          "size": 6.0,
+          "size_label": "6 sigma",
+          "injections": 5,
+          "detected": 1,
+          "detection_rate": 0.2,
+          "median_delay_s": 1349.0
+        },
+        {
+          "fault": "drift",
+          "size": 1.0,
+          "size_label": "1 sigma",
+          "injections": 5,
+          "detected": 2,
+          "detection_rate": 0.4,
+          "median_delay_s": 4768.5
+        },
+        {
+          "fault": "drift",
+          "size": 3.0,
+          "size_label": "3 sigma",
+          "injections": 5,
+          "detected": 2,
+          "detection_rate": 0.4,
+          "median_delay_s": 4768.5
+        },
+        {
+          "fault": "drift",
+          "size": 6.0,
+          "size_label": "6 sigma",
+          "injections": 5,
+          "detected": 2,
+          "detection_rate": 0.4,
+          "median_delay_s": 4768.5
+        },
+        {
+          "fault": "stuck",
+          "size": 300,
+          "size_label": "5 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 206.0
+        },
+        {
+          "fault": "stuck",
+          "size": 1200,
+          "size_label": "20 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 180.0
+        },
+        {
+          "fault": "stuck",
+          "size": 3600,
+          "size_label": "60 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 236.0
+        },
+        {
+          "fault": "dropout",
+          "size": 300,
+          "size_label": "5 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 206.0
+        },
+        {
+          "fault": "dropout",
+          "size": 1200,
+          "size_label": "20 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 180.0
+        },
+        {
+          "fault": "dropout",
+          "size": 3600,
+          "size_label": "60 min",
+          "injections": 5,
+          "detected": 5,
+          "detection_rate": 1.0,
+          "median_delay_s": 236.0
+        }
+      ],
+      "motor_casing_temperature": [
+        {
+          "fault": "step",
+          "size": 1.0,
+          "size_label": "1 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "step",
+          "size": 3.0,
+          "size_label": "3 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "step",
+          "size": 6.0,
+          "size_label": "6 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "ramp",
+          "size": 1.0,
+          "size_label": "1 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "ramp",
+          "size": 3.0,
+          "size_label": "3 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "ramp",
+          "size": 6.0,
+          "size_label": "6 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "drift",
+          "size": 1.0,
+          "size_label": "1 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "drift",
+          "size": 3.0,
+          "size_label": "3 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "drift",
+          "size": 6.0,
+          "size_label": "6 sigma",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "stuck",
+          "size": 300,
+          "size_label": "5 min",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "stuck",
+          "size": 1200,
+          "size_label": "20 min",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "stuck",
+          "size": 3600,
+          "size_label": "60 min",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "dropout",
+          "size": 300,
+          "size_label": "5 min",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "dropout",
+          "size": 1200,
+          "size_label": "20 min",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        },
+        {
+          "fault": "dropout",
+          "size": 3600,
+          "size_label": "60 min",
+          "injections": 5,
+          "detected": 0,
+          "detection_rate": 0.0,
+          "median_delay_s": null
+        }
+      ]
+    },
+    "injections": 225,
+    "results": [
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": true,
+        "delay_s": 266.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": true,
+        "delay_s": 208.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": true,
+        "delay_s": 209.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": true,
+        "delay_s": 210.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": true,
+        "delay_s": 212.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": true,
+        "delay_s": 686.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": true,
+        "delay_s": 688.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": true,
+        "delay_s": 869.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": true,
+        "delay_s": 750.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": true,
+        "delay_s": 752.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 09:07:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:01:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:55:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 11:49:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 12:43:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 09:07:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:01:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:55:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 11:49:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 12:43:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 09:07:34+00:00",
+        "detected": true,
+        "delay_s": 5426.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:01:32+00:00",
+        "detected": true,
+        "delay_s": 6208.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:55:31+00:00",
+        "detected": true,
+        "delay_s": 6329.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 11:49:30+00:00",
+        "detected": true,
+        "delay_s": 6210.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 12:43:28+00:00",
+        "detected": true,
+        "delay_s": 6032.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 09:18:34+00:00",
+        "detected": true,
+        "delay_s": 206.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 10:34:32+00:00",
+        "detected": true,
+        "delay_s": 148.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 11:50:31+00:00",
+        "detected": true,
+        "delay_s": 149.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 13:06:30+00:00",
+        "detected": true,
+        "delay_s": 150.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 14:22:28+00:00",
+        "detected": true,
+        "delay_s": 152.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 09:17:04+00:00",
+        "detected": true,
+        "delay_s": 176.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 10:30:02+00:00",
+        "detected": true,
+        "delay_s": 178.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 11:43:01+00:00",
+        "detected": true,
+        "delay_s": 179.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 12:56:00+00:00",
+        "detected": true,
+        "delay_s": 180.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 14:08:58+00:00",
+        "detected": true,
+        "delay_s": 182.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 09:13:04+00:00",
+        "detected": true,
+        "delay_s": 176.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 10:18:02+00:00",
+        "detected": true,
+        "delay_s": 178.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 11:23:01+00:00",
+        "detected": true,
+        "delay_s": 179.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 12:28:00+00:00",
+        "detected": true,
+        "delay_s": 180.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 13:32:58+00:00",
+        "detected": true,
+        "delay_s": 182.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 09:18:34+00:00",
+        "detected": true,
+        "delay_s": 206.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 10:34:32+00:00",
+        "detected": true,
+        "delay_s": 148.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 11:50:31+00:00",
+        "detected": true,
+        "delay_s": 149.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 13:06:30+00:00",
+        "detected": true,
+        "delay_s": 150.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 14:22:28+00:00",
+        "detected": true,
+        "delay_s": 152.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 09:17:04+00:00",
+        "detected": true,
+        "delay_s": 176.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 10:30:02+00:00",
+        "detected": true,
+        "delay_s": 178.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 11:43:01+00:00",
+        "detected": true,
+        "delay_s": 179.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 12:56:00+00:00",
+        "detected": true,
+        "delay_s": 180.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 14:08:58+00:00",
+        "detected": true,
+        "delay_s": 182.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 09:13:04+00:00",
+        "detected": true,
+        "delay_s": 176.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 10:18:02+00:00",
+        "detected": true,
+        "delay_s": 178.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 11:23:01+00:00",
+        "detected": true,
+        "delay_s": 179.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for outlet_pressure",
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 12:28:00+00:00",
+        "detected": true,
+        "delay_s": 180.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "outlet_pressure",
+        "scored_signal": "outlet_pressure",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 13:32:58+00:00",
+        "detected": true,
+        "delay_s": 182.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for outlet_pressure",
+          "2 fresh readings < 3 required for outlet_pressure",
+          "no samples for outlet_pressure in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": true,
+        "delay_s": 1349.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": true,
+        "delay_s": 1349.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": true,
+        "delay_s": 1349.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": true,
+        "delay_s": 1349.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": true,
+        "delay_s": 1349.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": true,
+        "delay_s": 1349.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 09:07:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:01:32+00:00",
+        "detected": true,
+        "delay_s": 6388.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:55:31+00:00",
+        "detected": true,
+        "delay_s": 3149.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 11:49:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 12:43:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 09:07:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:01:32+00:00",
+        "detected": true,
+        "delay_s": 6388.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:55:31+00:00",
+        "detected": true,
+        "delay_s": 3149.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 11:49:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 12:43:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 09:07:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:01:32+00:00",
+        "detected": true,
+        "delay_s": 6388.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:55:31+00:00",
+        "detected": true,
+        "delay_s": 3149.0,
+        "detected_as": [
+          "review_suggested"
+        ],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 11:49:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 12:43:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 09:18:34+00:00",
+        "detected": true,
+        "delay_s": 206.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 10:34:32+00:00",
+        "detected": true,
+        "delay_s": 148.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 11:50:31+00:00",
+        "detected": true,
+        "delay_s": 209.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 13:06:30+00:00",
+        "detected": true,
+        "delay_s": 210.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 14:22:28+00:00",
+        "detected": true,
+        "delay_s": 152.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 09:17:04+00:00",
+        "detected": true,
+        "delay_s": 176.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 10:30:02+00:00",
+        "detected": true,
+        "delay_s": 238.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 11:43:01+00:00",
+        "detected": true,
+        "delay_s": 239.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 12:56:00+00:00",
+        "detected": true,
+        "delay_s": 180.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 14:08:58+00:00",
+        "detected": true,
+        "delay_s": 122.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 09:13:04+00:00",
+        "detected": true,
+        "delay_s": 236.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 10:18:02+00:00",
+        "detected": true,
+        "delay_s": 238.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 11:23:01+00:00",
+        "detected": true,
+        "delay_s": 239.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 12:28:00+00:00",
+        "detected": true,
+        "delay_s": 180.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 13:32:58+00:00",
+        "detected": true,
+        "delay_s": 122.0,
+        "detected_as": [
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 09:18:34+00:00",
+        "detected": true,
+        "delay_s": 206.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 10:34:32+00:00",
+        "detected": true,
+        "delay_s": 148.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 11:50:31+00:00",
+        "detected": true,
+        "delay_s": 209.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 13:06:30+00:00",
+        "detected": true,
+        "delay_s": 210.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 14:22:28+00:00",
+        "detected": true,
+        "delay_s": 152.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 09:17:04+00:00",
+        "detected": true,
+        "delay_s": 176.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 10:30:02+00:00",
+        "detected": true,
+        "delay_s": 238.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 11:43:01+00:00",
+        "detected": true,
+        "delay_s": 239.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 12:56:00+00:00",
+        "detected": true,
+        "delay_s": 180.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 14:08:58+00:00",
+        "detected": true,
+        "delay_s": 122.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 09:13:04+00:00",
+        "detected": true,
+        "delay_s": 236.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 10:18:02+00:00",
+        "detected": true,
+        "delay_s": 238.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 11:23:01+00:00",
+        "detected": true,
+        "delay_s": 239.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 12:28:00+00:00",
+        "detected": true,
+        "delay_s": 180.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "0 fresh readings < 3 required for pump_vibration_velocity",
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "pump_vibration_velocity",
+        "scored_signal": "pump_vibration_velocity",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 13:32:58+00:00",
+        "detected": true,
+        "delay_s": 122.0,
+        "detected_as": [
+          "data_unavailable",
+          "insufficient_evidence"
+        ],
+        "reasons": [
+          "1 fresh readings < 3 required for pump_vibration_velocity",
+          "2 fresh readings < 3 required for pump_vibration_velocity",
+          "no samples for pump_vibration_velocity in window"
+        ]
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "step",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 09:13:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:19:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 11:25:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 12:31:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "ramp",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 13:37:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 09:07:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:01:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 10:55:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 11:49:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 1.0,
+        "size_label": "1 sigma",
+        "t0": "2024-10-30 12:43:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 09:07:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:01:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 10:55:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 11:49:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 3.0,
+        "size_label": "3 sigma",
+        "t0": "2024-10-30 12:43:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 09:07:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:01:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 10:55:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 11:49:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "drift",
+        "size": 6.0,
+        "size_label": "6 sigma",
+        "t0": "2024-10-30 12:43:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 09:18:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 10:34:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 11:50:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 13:06:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 14:22:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 09:17:04+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 10:30:02+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 11:43:01+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 12:56:00+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 14:08:58+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 09:13:04+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 10:18:02+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 11:23:01+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 12:28:00+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "stuck",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 13:32:58+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 09:18:34+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 10:34:32+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 11:50:31+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 13:06:30+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 300,
+        "size_label": "5 min",
+        "t0": "2024-10-30 14:22:28+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 09:17:04+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 10:30:02+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 11:43:01+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 12:56:00+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 1200,
+        "size_label": "20 min",
+        "t0": "2024-10-30 14:08:58+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 09:13:04+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 10:18:02+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 11:23:01+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 12:28:00+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      },
+      {
+        "signal": "motor_casing_temperature",
+        "scored_signal": "motor_casing_temperature_rel_ambient",
+        "fault": "dropout",
+        "size": 3600,
+        "size_label": "60 min",
+        "t0": "2024-10-30 13:32:58+00:00",
+        "detected": false,
+        "delay_s": null,
+        "detected_as": [],
+        "reasons": []
+      }
+    ],
+    "clean_normal_share": {
+      "outlet_pressure": 0.9696202531645569,
+      "pump_vibration_velocity": 0.007594936708860759,
+      "motor_casing_temperature": 0.0
+    }
+  }
+}
