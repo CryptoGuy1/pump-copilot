@@ -15,7 +15,7 @@ pumpcopilot audit zema          # -> reports/zema_audit.json
 pumpcopilot audit cira          # -> reports/cira_audit.json
 pumpcopilot rules cira          # -> data/operating_rules.yaml, reports/cira_operating_rules.md
 pumpcopilot state cira          # -> reports/cira_state.json (state time, changes, stale/spike)
-docker compose up -d db         # Timescale; DATABASE_URL overrides the local default
+docker compose up -d db         # Timescale; password from POSTGRES_PASSWORD (default pump_dev_only)
 pumpcopilot db migrate          # applies migrations/NNNN_*.sql in order
 pumpcopilot db load cira        # idempotent: a second run inserts 0 rows
 pumpcopilot db perf             # -> reports/db_perf.json
@@ -43,11 +43,16 @@ make test-web                   # Vitest (stream hook) and the TypeScript check
 make e2e                        # Playwright end to end, on its own database (pumpcopilot_e2e)
 ```
 
-## Step 1 exit criteria (scope Week 1 stop rule)
+The database password comes from `POSTGRES_PASSWORD` (export it in the shell, so the database,
+the worker and the API all see it; it applies when the database volume is first created), or
+`DATABASE_URL` replaces the whole connection string. Without either, the local development
+default `pump_dev_only` is used.
+
+## Step 1 exit criteria ([scope](docs/SCOPE.md) Week 1 stop rule)
 - ZeMA: every channel is 2,205 x (Hz x 60); five label columns within documented values.
 - ZeMA: `split_preflight` shows whether an ordered split with gaps keeps all leakage classes.
 - CIRA: 8 files, only C / 2024-10-30 absent; cadence, gaps, duplicates and placeholders measured.
-- CIRA: record version and license printed by `acquire` match the scope, or are escalated.
+- CIRA: record version and license printed by `acquire` match the [scope](docs/SCOPE.md), or are escalated.
 - `data/cira_columns.yaml` written from the audit headers and the data descriptor.
 
 ## Layout
@@ -62,8 +67,25 @@ src/pumpcopilot/db.py          migration runner, COPY + ON CONFLICT loader, per-
 src/pumpcopilot/scoring.py     features, robust baseline, ScoredEvidence, injection, protocol
 migrations/                    numbered SQL: telemetry/readings hypertables, segments, runs, 1-min view
 docs/adr/                      decisions that adjust the original scope
+docs/SCOPE.md                  summary of the original project scope
 docs/ASSUMPTIONS.md            assumptions register: evidence, impact if wrong, how to revisit
 ```
+
+## Licence and data credits
+The code is licensed under the [MIT License](LICENSE). It does not cover the datasets.
+
+This project uses two public datasets, both under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Full citations are in
+[NOTICE](NOTICE) and `data/manifest.yaml`.
+- **CIRA Centrifugal Pump Dataset**: Martone and Zazzaro, Zenodo,
+  [doi:10.5281/zenodo.18479728](https://doi.org/10.5281/zenodo.18479728). The data descriptor is
+  Martone et al. (2025), Data 10(6), 91.
+- **ZeMA condition monitoring of hydraulic systems**: Helwig, Pignanelli and Schütze, UCI Machine
+  Learning Repository, [doi:10.24432/C5CW21](https://doi.org/10.24432/C5CW21).
+
+The raw data is not redistributed. It is not in this repository, and `pumpcopilot acquire`
+downloads it from the original sources. The raw data is unchanged; the features, scores, reports
+and figures here are derived from it.
 
 ## Data
 Raw data is never committed. See `data/manifest.yaml` for sources, citations and license status.

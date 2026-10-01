@@ -31,7 +31,7 @@ import hashlib
 import json
 import math
 import os
-import socket
+import secrets
 import time
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -597,6 +597,11 @@ SCORE_COLS = ("session_id", "synthetic", "asset_id", "source_day", "signal_name"
               "cursor_at", "stored_at", "median", "band_low", "band_high")
 
 
+def new_worker_id() -> str:
+    """A short random worker id (worker-3f9a): no host name, so /health never shows it."""
+    return f"worker-{secrets.token_hex(2)}"
+
+
 class Worker:
     """`pumpcopilot worker`: claims sessions with FOR UPDATE SKIP LOCKED and advances them."""
 
@@ -604,7 +609,7 @@ class Worker:
 
     def __init__(self, conn, worker_id: str | None = None, clock=None):
         self.conn = conn
-        self.id = worker_id or f"{socket.gethostname()}:{os.getpid()}"
+        self.id = worker_id or new_worker_id()
         self.clock = clock or _now  # pacing clock (simulated in tests)
         self._cache: dict[int, _Cache] = {}
         self._started = _now()
@@ -616,12 +621,12 @@ class Worker:
         """Record that this worker is alive (real wall time, whatever the pacing clock)."""
         self._beat_at = time.monotonic()
         self.conn.execute(
-            "INSERT INTO worker_heartbeats (worker_id, host, pid, started_at, last_seen, status,"
-            " sessions_stepped, last_session_id) VALUES (%s, %s, %s, %s, clock_timestamp(),"
+            "INSERT INTO worker_heartbeats (worker_id, pid, started_at, last_seen, status,"
+            " sessions_stepped, last_session_id) VALUES (%s, %s, %s, clock_timestamp(),"
             " %s, %s, %s) ON CONFLICT (worker_id) DO UPDATE SET last_seen = clock_timestamp(),"
             " status = EXCLUDED.status, sessions_stepped = EXCLUDED.sessions_stepped,"
             " last_session_id = EXCLUDED.last_session_id",
-            [self.id, socket.gethostname(), os.getpid(), self._started, status, self._stepped,
+            [self.id, os.getpid(), self._started, status, self._stepped,
              self._last_session])
 
     def tick(self) -> dict | None:

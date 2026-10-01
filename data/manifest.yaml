@@ -59,7 +59,7 @@ sources:
     versions:
       - {record_id: "15301820", version_number: 1, version_label: "1.0", published: 2025-05-15, files: 10}
       - {record_id: "18479728", version_number: 2, version_label: null, published: 2026-02-04, files: 9}
-    downloaded: {record_id: "18479728", version_number: 2, of: 2, latest: true}   # the scope's "v2"
+    downloaded: {record_id: "18479728", version_number: 2, of: 2, latest: true}   # the scope's "v2" (docs/SCOPE.md)
     # Version 1 is the one cited by the data descriptor. Its other 9 files have the same md5 as
     # the 9 files in version 2.
     not_used:

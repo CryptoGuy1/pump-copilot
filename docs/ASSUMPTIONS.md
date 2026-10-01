@@ -8,7 +8,8 @@ Sources cited below:
 - **Descriptor**: Martone et al., "Sensor-Based Monitoring Data from an Industrial System of
   Centrifugal Pumps", *Data* 2025, 10(6), 91, DOI 10.3390/data10060091.
 - **Audit**: `reports/cira_audit.json`, produced by `pumpcopilot audit cira`.
-- Dataset authors: a.martone@cira.it, g.zazzaro@cira.it (from the Zenodo README).
+- **Dataset**: Martone, A. and Zazzaro, G. (2026). Centrifugal Pump Dataset (version 2)
+  [dataset]. Zenodo. DOI 10.5281/zenodo.18479728.
 
 ---
 

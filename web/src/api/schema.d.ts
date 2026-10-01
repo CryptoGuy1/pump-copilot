@@ -2526,8 +2526,6 @@ export interface components {
             age_s: number;
             /** Alive */
             alive: boolean;
-            /** Host */
-            host: string;
             /**
              * Last Seen
              * Format: date-time
@@ -2549,7 +2547,10 @@ export interface components {
              * @enum {string}
              */
             status: "running" | "stopped";
-            /** Worker Id */
+            /**
+             * Worker Id
+             * @description a short random id (worker-3f9a), no host name
+             */
             worker_id: string;
         };
         /** ZemaBenchmark */

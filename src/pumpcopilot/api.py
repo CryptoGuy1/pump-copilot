@@ -354,7 +354,7 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                                  if p.name not in applied)
                 out["database"] = {"ok": True, "latency_ms": round(
                     (time.perf_counter() - t0) * 1000, 2), "pending_migrations": pending}
-                workers = _rows(c, "SELECT worker_id, host, pid, status, started_at, last_seen,"
+                workers = _rows(c, "SELECT worker_id, pid, status, started_at, last_seen,"
                                    " sessions_stepped, last_session_id, extract(epoch FROM"
                                    " clock_timestamp() - last_seen) AS age_s FROM"
                                    " worker_heartbeats ORDER BY last_seen DESC")

@@ -1,0 +1,30 @@
+pump-copilot
+Copyright (c) 2026 Benjamin Nweke
+
+The source code in this repository is licensed under the MIT License (see LICENSE).
+The MIT License does not cover the third-party datasets below.
+
+Third-party datasets
+--------------------
+This project uses two public datasets, each licensed under the Creative Commons
+Attribution 4.0 International licence (CC BY 4.0,
+https://creativecommons.org/licenses/by/4.0/). The raw data is not redistributed:
+it is not included in this repository or in any release, and is downloaded
+locally from the original sources (see data/manifest.yaml and `pumpcopilot
+acquire`). Changes: the raw data is unchanged; the features, scores, reports and
+figures in this repository are derived from it.
+
+1. Centrifugal Pump Dataset (CIRA)
+   Martone, A. and Zazzaro, G. (2026). Centrifugal Pump Dataset (version 2)
+   [dataset]. Zenodo. https://doi.org/10.5281/zenodo.18479728
+   Data descriptor: Martone, A., D'Ambrosio, A., Ferrucci, M., Cembalo, A.,
+   Romano, G. and Zazzaro, G. (2025). Sensor-Based Monitoring Data from an
+   Industrial System of Centrifugal Pumps. Data 10(6), 91.
+   https://doi.org/10.3390/data10060091
+   Licence: CC BY 4.0
+
+2. Condition monitoring of hydraulic systems (ZeMA, UCI 447)
+   Helwig, N., Pignanelli, E. and Schütze, A. (2015). Condition monitoring of
+   hydraulic systems [dataset]. UCI Machine Learning Repository.
+   https://doi.org/10.24432/C5CW21
+   Licence: CC BY 4.0

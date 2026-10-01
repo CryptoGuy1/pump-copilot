@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 export PATH="$PWD/.venv/bin:$PATH"
-base="${DATABASE_URL:-postgresql://pump:pump_dev_only@localhost:5432/pumpcopilot}"
+base="${DATABASE_URL:-postgresql://pump:${POSTGRES_PASSWORD:-pump_dev_only}@localhost:5432/pumpcopilot}"
 export DATABASE_URL="${base%/*}/pumpcopilot_e2e"
 unset ANTHROPIC_API_KEY  # the end-to-end test never calls a real model
 

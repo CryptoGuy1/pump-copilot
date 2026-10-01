@@ -7,9 +7,10 @@ Two record shapes, deliberately:
 * ``CycleRecord`` - one row per ZeMA 60 s cycle. The 100 Hz arrays live in Parquet/NPZ keyed
   by ``cycle_id``; exploding ZeMA into narrow rows would be ~96M rows for no benefit.
 
-Scope guardrails are enforced here as validation errors so they cannot be forgotten later:
-a model trained on one dataset cannot score another, abstention requires a reason, and
-anomaly scores can never become a safety alarm (there is no alarm state to choose).
+Scope guardrails (the claim boundaries in docs/SCOPE.md) are enforced here as validation
+errors so they cannot be forgotten later: a model trained on one dataset cannot score another,
+abstention requires a reason, and anomaly scores can never become a safety alarm (there is no
+alarm state to choose).
 """
 
 from __future__ import annotations

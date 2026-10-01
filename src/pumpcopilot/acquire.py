@@ -2,7 +2,7 @@
 
 Nothing here redistributes data. The lock file records URL, size, digest and retrieval time so
 every later report can name the exact bytes it was computed from. If a pinned hash in
-manifest.yaml does not match, acquisition stops (scope Week 1 stop rule).
+manifest.yaml does not match, acquisition stops (scope Week 1 stop rule, docs/SCOPE.md).
 """
 
 from __future__ import annotations

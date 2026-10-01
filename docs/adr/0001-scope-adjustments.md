@@ -1,5 +1,7 @@
 # ADR-0001: Adjustments to the project scope
 
+The scope itself is summarised in [docs/SCOPE.md](../SCOPE.md).
+
 Status: proposed, 24 Sep 2026. Keeps the scope's claim boundaries intact; changes how we get there.
 
 ## 1. Modular monolith, not five services

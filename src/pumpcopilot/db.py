@@ -30,7 +30,7 @@ from .provenance import file_digest
 
 ROOT = Path(__file__).resolve().parents[2]
 MIGRATIONS = ROOT / "migrations"
-DEFAULT_DATABASE_URL = "postgresql://pump:pump_dev_only@localhost:5432/pumpcopilot"
+DEV_PASSWORD = "pump_dev_only"  # the local development default; set POSTGRES_PASSWORD instead
 MIGRATION_NAME = re.compile(r"(\d{4})_[a-z0-9_]+\.sql")
 DAY_MARGIN = dt.timedelta(hours=3)  # the audit's span margin around the filename day
 _LOCK = 72_616_001  # advisory lock id: one migrator at a time
@@ -40,8 +40,18 @@ class MigrationError(RuntimeError):
     pass
 
 
+def default_database_url() -> str:
+    """The local database, with the password from POSTGRES_PASSWORD (the same variable
+    docker-compose.yml gives the database), or the development default."""
+    password = "".join(  # percent-encoded for the URL (no urllib: see the network guardrail)
+        c if c.isascii() and (c.isalnum() or c in "-._~") else
+        "".join(f"%{b:02X}" for b in c.encode())
+        for c in os.environ.get("POSTGRES_PASSWORD") or DEV_PASSWORD)
+    return f"postgresql://pump:{password}@localhost:5432/pumpcopilot"
+
+
 def database_url() -> str:
-    return os.environ.get("DATABASE_URL", DEFAULT_DATABASE_URL)
+    return os.environ.get("DATABASE_URL") or default_database_url()
 
 
 def connect(url: str | None = None) -> psycopg.Connection:

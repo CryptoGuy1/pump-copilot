@@ -312,6 +312,22 @@ def test_health_reports_database_and_worker(env, client):
 
 
 @pytest.mark.db
+def test_a_worker_is_known_by_a_short_random_id_and_no_host_name(env, client):
+    import re
+    import socket
+
+    with db.connect(env["url"]) as c:
+        w = replay.Worker(c)
+        w.heartbeat()
+        cols = {r[0] for r in c.execute("SELECT column_name FROM information_schema.columns"
+                                        " WHERE table_name = 'worker_heartbeats'")}
+    assert re.fullmatch(r"worker-[0-9a-f]{4}", w.id)
+    assert "host" not in cols
+    body = client.get("/api/health").text
+    assert w.id in body and socket.gethostname() not in body
+
+
+@pytest.mark.db
 def test_fleet_overview(env, client):
     body = client.get("/api/fleet").json()
     pump = {p["asset_id"]: p for p in body["pumps"]}[ASSET]

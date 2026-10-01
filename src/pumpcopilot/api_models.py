@@ -44,8 +44,7 @@ class DatabaseHealth(Model):
 
 
 class WorkerHeartbeat(Model):
-    worker_id: str
-    host: str
+    worker_id: str = Field(description="a short random id (worker-3f9a), no host name")
     pid: int
     status: Literal["running", "stopped"]
     started_at: dt.datetime

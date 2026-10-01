@@ -33,9 +33,19 @@ def test_every_query_function_is_scoped_to_one_asset_day():
 
 def test_database_url_comes_from_the_environment(monkeypatch):
     monkeypatch.delenv("DATABASE_URL", raising=False)
-    assert db.database_url() == db.DEFAULT_DATABASE_URL
+    monkeypatch.delenv("POSTGRES_PASSWORD", raising=False)
+    assert db.database_url() == "postgresql://pump:pump_dev_only@localhost:5432/pumpcopilot"
+    monkeypatch.setenv("POSTGRES_PASSWORD", "p@ss/word")  # quoted for the URL
+    assert db.database_url() == "postgresql://pump:p%40ss%2Fword@localhost:5432/pumpcopilot"
     monkeypatch.setenv("DATABASE_URL", "postgresql://x@example/y")
     assert db.database_url() == "postgresql://x@example/y"
+
+
+def test_no_database_password_is_written_out_except_the_development_default():
+    """The compose file and the e2e backend read POSTGRES_PASSWORD, with the same default."""
+    assert "${POSTGRES_PASSWORD:-pump_dev_only}" in (ROOT / "docker-compose.yml").read_text()
+    assert "${POSTGRES_PASSWORD:-pump_dev_only}" in (ROOT / "web/e2e/backend.sh").read_text()
+    assert db.DEV_PASSWORD == "pump_dev_only"
 
 
 # --- database ----------------------------------------------------------------------------

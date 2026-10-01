@@ -5331,10 +5331,6 @@
             "title": "Alive",
             "type": "boolean"
           },
-          "host": {
-            "title": "Host",
-            "type": "string"
-          },
           "last_seen": {
             "format": "date-time",
             "title": "Last Seen",
@@ -5373,13 +5369,13 @@
             "type": "string"
           },
           "worker_id": {
+            "description": "a short random id (worker-3f9a), no host name",
             "title": "Worker Id",
             "type": "string"
           }
         },
         "required": [
           "worker_id",
-          "host",
           "pid",
           "status",
           "started_at",
