@@ -14,12 +14,14 @@ import { Evaluation } from "./pages/Evaluation";
 import { Fleet } from "./pages/Fleet";
 import { NotFound } from "./pages/NotFound";
 import { Replay } from "./pages/Replay";
+import { SNAPSHOT, snapshotDate, useSnapshotManifest } from "./snapshot";
 import { THEMES, type Theme, ThemeContext, applyTheme, readTheme } from "./theme";
 
 /** Live updates: each stream event marks the queries it affects as stale. */
 function useLiveInvalidation() {
   const qc = useQueryClient();
   return useStream({
+    disabled: SNAPSHOT,
     onEvent: (e: StreamEvent) => {
       const inv = (key: unknown[]) => qc.invalidateQueries({ queryKey: key });
       inv(["fleet"]);
@@ -42,6 +44,20 @@ const PAGES = [["/", "Fleet"], ["/cases", "Cases"], ["/replay", "Replay"],
 
 const LIVE = { open: "Live", connecting: "Connecting…", reconnecting: "Reconnecting…",
                closed: "Offline" } as const;
+
+export const RUN_IT_YOURSELF = "https://github.com/CryptoGuy1/pump-copilot#run-it-yourself";
+
+/** The static snapshot's permanent banner: when it was taken, and that nothing is live. */
+function SnapshotBanner() {
+  const m = useSnapshotManifest();
+  return (
+    <div className="snapshot-banner" role="region" aria-label="Static snapshot"
+         data-testid="snapshot-banner">
+      <p>Static snapshot of {m.data ? snapshotDate(m.data.exported_at) : "…"} · read-only ·
+        nothing is live. <a href={RUN_IT_YOURSELF}>Run it yourself</a></p>
+    </div>
+  );
+}
 
 /** The design direction: ?theme= or the one chosen last in this browser. */
 function ThemeSwitcher({ theme }: { theme: Theme }) {
@@ -67,6 +83,7 @@ export function App() {
     <ThemeContext.Provider value={theme}>
       <div className="backdrop" aria-hidden="true" />
       <a className="skip-link" href="#main">Skip to content</a>
+      {SNAPSHOT && <SnapshotBanner />}
       <PageProvenanceProvider>{(p) => <>
         <header>
           <nav className="shell-nav" aria-label="Main">
@@ -81,11 +98,14 @@ export function App() {
                   <li key={to}><NavLink to={to} end={to === "/"}>{label}</NavLink></li>))}
               </ul>
               <div className="nav-tools">
-                <span className="live" data-testid="live-status" data-status={live.status}
-                      title={live.lastEventId != null ? `last event #${live.lastEventId}`
-                                                      : undefined}>
+                {SNAPSHOT ? <span className="live" data-testid="live-status"
+                                  data-status="snapshot">
+                  <span className="live-dot" aria-hidden="true" />Snapshot</span>
+                : <span className="live" data-testid="live-status" data-status={live.status}
+                        title={live.lastEventId != null ? `last event #${live.lastEventId}`
+                                                        : undefined}>
                   <span className="live-dot" aria-hidden="true" />{LIVE[live.status]}
-                </span>
+                </span>}
                 <ThemeSwitcher theme={theme} />
               </div>
             </div>

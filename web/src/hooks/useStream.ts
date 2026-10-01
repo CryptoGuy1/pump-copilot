@@ -37,6 +37,8 @@ export interface StreamOptions {
   EventSourceImpl?: typeof EventSource;
   retryMs?: number;
   maxRetryMs?: number;
+  /** No connection at all (the static snapshot). */
+  disabled?: boolean;
 }
 
 /** /api/stream with filters, resuming after `lastEventId` (EventSource cannot set headers on a
@@ -119,7 +121,8 @@ export class StreamClient {
 /** React wrapper: connection status and the last event id. Events go to onEvent only (to
  * trigger refetches); the hook keeps none of them for display. */
 export function useStream(options: StreamOptions = {}) {
-  const [status, setStatus] = useState<StreamStatus>("connecting");
+  const off = options.disabled === true;  // the static snapshot opens no connection
+  const [status, setStatus] = useState<StreamStatus>(off ? "closed" : "connecting");
   const [lastEventId, setLast] = useState<number | null>(null);
   const onEvent = useRef(options.onEvent);
   onEvent.current = options.onEvent;
@@ -127,6 +130,7 @@ export function useStream(options: StreamOptions = {}) {
   const typesKey = types?.join(",");
 
   useEffect(() => {
+    if (off) return;
     const client = new StreamClient({
       url, types, sessionId, EventSourceImpl, retryMs, maxRetryMs, onStatus: setStatus,
       onEvent: (e) => {
@@ -137,7 +141,7 @@ export function useStream(options: StreamOptions = {}) {
     client.start();
     return () => client.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url, typesKey, sessionId, EventSourceImpl, retryMs, maxRetryMs]);
+  }, [off, url, typesKey, sessionId, EventSourceImpl, retryMs, maxRetryMs]);
 
   return { status, lastEventId };
 }

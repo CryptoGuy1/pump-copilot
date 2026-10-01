@@ -1,9 +1,12 @@
 import createClient from "openapi-fetch";
+import { SNAPSHOT, snapshotFetch } from "../snapshot";
 import type { components, paths } from "./schema";
 
 /** Typed client generated from api/openapi.json: paths, parameters, request bodies and every
- * response model. The dev server proxies /api to the API on 127.0.0.1. */
-export const client = createClient<paths>({ baseUrl: "" });
+ * response model. The dev server proxies /api to the API on 127.0.0.1; the static snapshot
+ * build reads recorded responses instead (src/snapshot.ts). */
+export const client = createClient<paths>(SNAPSHOT ? { baseUrl: "", fetch: snapshotFetch }
+                                                   : { baseUrl: "" });
 
 /** A response model by name, e.g. Schema<"CaseDetail">. */
 export type Schema<K extends keyof components["schemas"]> = components["schemas"][K];

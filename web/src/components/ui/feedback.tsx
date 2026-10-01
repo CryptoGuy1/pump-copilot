@@ -1,5 +1,17 @@
 import type { ReactNode } from "react";
 import { ApiError } from "../../api/client";
+import { NOT_IN_SNAPSHOT } from "../../snapshot";
+
+/** In the static snapshot: this part of the page was not exported. */
+export function NotInSnapshot() {
+  return (
+    <div className="empty not-in-snapshot" data-testid="not-in-snapshot">
+      <p className="empty-title">Not included in this snapshot</p>
+      <p>This static snapshot records a fixed set of screens. Run the project yourself to see
+        everything live.</p>
+    </div>
+  );
+}
 
 /** Nothing to show yet, and why; optionally what to do about it. */
 export function EmptyState({ title, children, action }:
@@ -32,6 +44,7 @@ export function Skeleton({ lines = 3, card = false, label = "loading" }:
 export function ErrorPanel({ title = "Could not load this", error, action }:
                            { title?: string; error: unknown; action?: ReactNode }) {
   const e = error as ApiError | Error;
+  if (e instanceof ApiError && e.code === NOT_IN_SNAPSHOT) return <NotInSnapshot />;
   const code = e instanceof ApiError ? `${e.status} ${e.code}` : null;
   return (
     <div className="error-panel" role="alert" data-testid="error-panel">

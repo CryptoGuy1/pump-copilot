@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { ApiError, type Schema, call, client } from "../api/client";
-import { Button, Card } from "./ui";
+import { SNAPSHOT, snapshotDate, useRecordedAnswers } from "../snapshot";
+import { Actions, Button, Card } from "./ui";
 
 type Response = Schema<"AssistantResponse">;
 type Summary = Schema<"EvidenceSummary">;
@@ -30,6 +31,11 @@ export function AssistantPanel({ caseId, actor, canNote, onHighlight }: {
   const [asked, setAsked] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  // the static snapshot: the quick questions show answers recorded through the same endpoint
+  const recorded = useRecordedAnswers();
+  const recordedFor = (q: string) => recorded.data?.answers.find(
+    (a) => a.case_id === caseId && a.question === q);
+  const [shownRecorded, setShownRecorded] = useState<Response | null>(null);
   const summary = useQuery({ queryKey: ["evidence-summary", caseId], staleTime: 60_000,
     queryFn: () => call(client.GET("/api/cases/{case_id}/evidence-summary",
                                    { params: { path: { case_id: caseId } } })) });
@@ -40,6 +46,13 @@ export function AssistantPanel({ caseId, actor, canNote, onHighlight }: {
   });
   const ask = (q: string) => {
     if (!q.trim()) return;
+    if (SNAPSHOT) {
+      const a = recordedFor(q);
+      if (!a) return;
+      setQuestion(q); setAsked(true); setSaved(false);
+      setShownRecorded(a.response); setDraft(a.response.answer.draft_note ?? null);
+      return;
+    }
     setQuestion(q); setAsked(true); setDraft(null); setSaved(false);
     checked.mutate(q);
   };
@@ -50,7 +63,7 @@ export function AssistantPanel({ caseId, actor, canNote, onHighlight }: {
   });
   const fromSummary = (x: Summary): Shown => ({ ...x, served: "template", provider: "template" });
   // the checked answer once it is there, else the evidence summary
-  const r: Shown | undefined = !asked ? undefined
+  const r: Shown | undefined = !asked ? undefined : SNAPSHOT ? shownRecorded ?? undefined
     : checked.data ?? (summary.data ? fromSummary(summary.data) : undefined);
   const working = checked.isPending;
   useEffect(() => {  // the summary's draft note until the answer arrives
@@ -61,18 +74,30 @@ export function AssistantPanel({ caseId, actor, canNote, onHighlight }: {
   return (
     <Card title="Ask about this case" accent={false} as="section">
       <div className="assistant" data-testid="assistant">
+        <Actions note={SNAPSHOT}>
         <textarea aria-label="question" rows={2} value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   placeholder="What does the evidence show?" />
+        </Actions>
+        {SNAPSHOT && recorded.data && <p className="recorded-summary"
+            data-testid="recorded-summary">{recordedSummary(recorded.data.answers)}</p>}
         <div className="quick" role="group" aria-label="Suggested questions">
-          {QUICK.map((q) => <Button key={q} size="sm" variant="ghost" disabled={working}
+          {QUICK.map((q) => <Button key={q} size="sm" variant="ghost"
+                                    disabled={working || (SNAPSHOT && !recordedFor(q))}
                                     onClick={() => ask(q)}>{q}</Button>)}
         </div>
+        {SNAPSHOT && !QUICK.some(recordedFor) && <p className="muted">No answers were recorded
+          for this case in the snapshot.</p>}
+        <Actions note={false}>
         <div className="btn-row"><Button variant="primary"
           disabled={!question.trim() || working} onClick={() => ask(question)}>
           {working ? "Asking…" : "Ask"}</Button></div>
+        </Actions>
         {err && <p className="error" role="alert">{err.status} {err.code}: {err.message}</p>}
         {r && <div className="answer" data-testid="assistant-answer" aria-live="polite">
+          {SNAPSHOT && recorded.data && <p className="recorded-label"
+              data-testid="recorded-label">Recorded answer, {recorded.data.model},{" "}
+            {snapshotDate(recorded.data.recorded_at)}</p>}
           <p className="answer-head">
             <span className={`badge badge-${r.served}`} data-testid="assistant-badge">
               {r.label}</span>{" "}
@@ -107,12 +132,12 @@ export function AssistantPanel({ caseId, actor, canNote, onHighlight }: {
             <p><strong>Draft note</strong> (not saved until you approve it)</p>
             <textarea aria-label="draft note" rows={3} value={draft}
                       onChange={(e) => setDraft(e.target.value)} />
-            <div className="btn-row"><Button disabled={!canNote || saved || !draft.trim()
-                                                         || save.isPending}
+            <Actions><div className="btn-row"><Button disabled={!canNote || saved
+                                                         || !draft.trim() || save.isPending}
                          onClick={() => save.mutate(draft)}>Approve and save</Button>
               {saved && <span data-testid="draft-saved"> saved as a note by {actor}</span>}
               {!canNote && <span className="muted"> notes cannot be added to a closed case</span>}
-            </div>
+            </div></Actions>
           </div>}
           <p className="muted" data-testid="stored-units">Assistant text uses stored units
             (vibration in m/s; the charts show mm/s).</p>
@@ -122,6 +147,16 @@ export function AssistantPanel({ caseId, actor, canNote, onHighlight }: {
       </div>
     </Card>
   );
+}
+
+/** How the snapshot's recorded answers fared with the checker, from the recorded data. */
+export function recordedSummary(answers: { response: { served: string } }[]): string {
+  const n = answers.length;
+  const passed = answers.filter((a) => a.response.served === "assistant").length;
+  const other = n - passed;
+  if (!other) return `All ${n} recorded answers passed the checker.`;
+  return `${passed} of ${n} recorded answers passed the checker; the other ${other} `
+    + `${other === 1 ? "was" : "were"} replaced by the evidence summary. Reasons shown.`;
 }
 
 /** Why the evidence summary is shown, in plain words. */

@@ -91,6 +91,9 @@ def main(argv: list[str] | None = None) -> None:
          "escalate to reliability engineer (export only)"]))
     cs.add_argument("--reason", help="why (required for a disposition)")
     cs.add_argument("--out", help="export: file to write (default reports/case_<id>.json)")
+    sn = sub.add_parser("snapshot", help="the static snapshot: record answers, export files")
+    sn.add_argument("action", choices=["record", "export"])
+    sn.add_argument("--no-dotenv", action="store_true", help="record: do not load .env")
     args = p.parse_args(argv)
 
     if args.cmd == "acquire":
@@ -120,6 +123,8 @@ def main(argv: list[str] | None = None) -> None:
         _case(args)
     elif args.cmd == "api":
         _api(args.port, args.export_openapi, args.no_dotenv)
+    elif args.cmd == "snapshot":
+        _snapshot(args.action, args.no_dotenv)
     elif args.cmd == "zema":
         _zema(args.action, args.prereg)
     elif args.cmd == "assistant" and args.action == "ping":
@@ -408,6 +413,31 @@ def _zema(action: str, prereg: str | None) -> None:
             f"{m} {results['splits'][split][m]['test']['macro_f1']:.3f}"
             for m in zb.MODEL_NAMES))
     print(f"[written] {ZEMA_RESULTS}, {REPORTS / 'zema_benchmark.md'}")
+
+
+def _snapshot(action: str, no_dotenv: bool) -> None:
+    """The static snapshot, from the database at DATABASE_URL (scripts/snapshot_source.sh
+    prepares it). `record` makes real model requests: 6, within a ledger capped at 6."""
+    from . import db, snapshot
+
+    url = db.database_url()
+    if action == "record":
+        if not no_dotenv and ENV_FILE.exists():
+            from dotenv import load_dotenv
+
+            load_dotenv(ENV_FILE, override=False)
+        rec = snapshot.record_answers(url)
+        for a in rec["answers"]:
+            r = a["response"]
+            why = "" if r["served"] == "assistant" else f" ({r['fallback_reason']})"
+            kind = "synthetic" if a["synthetic"] else "real"
+            print(f"[answer] case {a['case_id']} ({kind}), {a['question']!r}: {r['served']}{why}")
+        print(f"[recorded] {len(rec['answers'])} answers, {rec['requests_used']} of {rec['cap']}"
+              f" requests used, model {rec['model']} -> reports/snapshot_answers.json")
+    else:
+        m = snapshot.export(url)
+        print(f"[exported] {m['files']} files, {m['bytes'] / 1e6:.2f} MB -> web/public/snapshot/"
+              f" (commit {m['commit'][:7]}{', uncommitted changes' if m['commit_dirty'] else ''})")
 
 
 def _assistant_ping(no_dotenv: bool) -> None:

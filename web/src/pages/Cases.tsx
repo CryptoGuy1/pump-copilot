@@ -33,15 +33,16 @@ export function Cases() {
     <section>
       <h1>Cases</h1>
       <p>
-        status <select value={query.status ?? ""} onChange={(e) => set("status", e.target.value)}>
+        <label>status <select value={query.status ?? ""}
+                              onChange={(e) => set("status", e.target.value)}>
           <option value="">any</option>
           {["open", "acknowledged", "dispositioned", "closed"].map((s) =>
             <option key={s}>{s}</option>)}
-        </select>{" "}
-        session <input size={5} value={params.get("session_id") ?? ""}
-                       onChange={(e) => set("session_id", e.target.value)} />{" "}
-        asset <input size={12} value={query.asset_id ?? ""}
-                     onChange={(e) => set("asset_id", e.target.value)} />
+        </select></label>{" "}
+        <label>session <input size={5} value={params.get("session_id") ?? ""}
+                              onChange={(e) => set("session_id", e.target.value)} /></label>{" "}
+        <label>asset <input size={12} value={query.asset_id ?? ""}
+                            onChange={(e) => set("asset_id", e.target.value)} /></label>
       </p>
       <Loading q={q}>
         {q.data && <>

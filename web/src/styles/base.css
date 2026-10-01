@@ -135,3 +135,9 @@ pre { white-space: pre-wrap; background: var(--inset); padding: var(--space-3);
   .page-provenance { padding: var(--space-2) var(--space-5); }
 }
 @media (min-width: 721px) { .nav-collapsible { display: contents; } }
+
+/* --- static snapshot (Step 7b) --------------------------------------------------------------- */
+.snapshot-banner { background: var(--text); color: var(--surface); padding: var(--space-2) var(--space-5);
+                   font-size: var(--text-sm); text-align: center; }
+.snapshot-banner p { margin: 0; }
+.snapshot-banner a { color: var(--surface); font-weight: var(--weight-semibold); }

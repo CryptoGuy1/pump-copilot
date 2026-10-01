@@ -6,10 +6,11 @@ import { AssistantPanel, type Highlight } from "../components/Assistant";
 import { ChartGroup, type Span, TimeChart, signalColor, toSeconds, utc }
   from "../components/charts";
 import { A8Notice, fmtTime, useActor } from "../components/common";
-import { Button, Card, Loading, SignalName, StateBadge, Synthetic, Table, useSignalFormat,
-         useSignalLabel } from "../components/ui";
+import { Actions as Disabled, Button, Card, Loading, SignalName, StateBadge, Synthetic, Table,
+         useSignalFormat, useSignalLabel } from "../components/ui";
 import { usePageTitle } from "../hooks/usePageTitle";
 import { usePageProvenance } from "../pageProvenance";
+import { SNAPSHOT } from "../snapshot";
 
 const DISPOSITIONS = ["monitor", "known condition, no action", "data quality issue",
                       "escalate to reliability engineer (export only)"] as const;
@@ -87,6 +88,7 @@ function Actions({ d }: { d: Detail }) {
   return (
     <Card title="Actions" sub="Nothing here controls equipment; escalation is export-only."
           accent={false} as="section">
+      <Disabled>
       <label className="field"><span className="field-label">Acting as</span>
         <input value={actor} onChange={(e) => setActor(e.target.value)} /></label>
       <div className="action-grid">
@@ -123,6 +125,7 @@ function Actions({ d }: { d: Detail }) {
                   onClick={() => act.mutate("close")}>Close case</Button>
         </div>
       </div>
+      </Disabled>
       {err && <p className="error" role="alert">{err.status} {err.code}: {err.message}</p>}
     </Card>
   );
@@ -188,12 +191,15 @@ function Export({ id }: { id: number }) {
   return (
     <Card title="Export" sub="An evidence pack for a reliability engineer, as of the replay cursor."
           accent={false} as="section">
-      <div className="btn-row">
+      {SNAPSHOT ? <Disabled><div className="btn-row">
+        <Button>JSON</Button><Button>Markdown evidence pack</Button>
+        <Button>Preview evidence pack</Button></div></Disabled>
+      : <div className="btn-row">
         <a href={`/api/cases/${id}/export`} target="_blank" rel="noreferrer">JSON</a>
         <a href={`/api/cases/${id}/export?format=markdown`} target="_blank" rel="noreferrer">
           Markdown evidence pack</a>
         <Button onClick={load}>Preview evidence pack</Button>
-      </div>
+      </div>}
       {md && <pre className="export" data-testid="export-preview">{md}</pre>}
     </Card>
   );

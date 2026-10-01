@@ -7,7 +7,7 @@ on public data; no refinery data, no plant alarms, no control actions.
 
 **Status: Step 2b of the build (CIRA loaded into Timescale).**
 
-## Quick start
+## Run it yourself
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
@@ -49,6 +49,21 @@ The database password comes from `POSTGRES_PASSWORD` (export it in the shell, so
 the worker and the API all see it; it applies when the database volume is first created), or
 `DATABASE_URL` replaces the whole connection string. Without either, the local development
 default `pump_dev_only` is used.
+
+## Static snapshot (GitHub Pages)
+A read-only copy of the screens, for viewing without running anything: the app's static build
+(`cd web && npm run build:snapshot`) reads recorded API responses from `web/public/snapshot/`
+instead of the API. Nothing in it is live, no stream is opened, and every action is disabled.
+To rebuild the snapshot:
+```bash
+./scripts/snapshot_source.sh   # reset the local pumpcopilot_snapshot database, load, replay 3 sessions
+DATABASE_URL=postgresql://pump:pump_dev_only@localhost:5432/pumpcopilot_snapshot \
+  pumpcopilot snapshot record  # once: 6 real model requests, hard cap 6 (reports/snapshot_answers.json)
+DATABASE_URL=postgresql://pump:pump_dev_only@localhost:5432/pumpcopilot_snapshot \
+  pumpcopilot snapshot export  # the files and web/public/snapshot/manifest.json
+```
+`.github/workflows/pages.yml` builds and deploys it when run by hand (it never runs on a push);
+it needs no secrets.
 
 ## Step 1 exit criteria ([scope](docs/SCOPE.md) Week 1 stop rule)
 - ZeMA: every channel is 2,205 x (Hz x 60); five label columns within documented values.

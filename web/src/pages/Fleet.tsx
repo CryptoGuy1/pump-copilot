@@ -4,12 +4,13 @@ import { Link } from "react-router-dom";
 import { ApiError, call, client, type Schema } from "../api/client";
 import { fmtTime } from "../components/common";
 import { SignalKey, Sparkline } from "../components/Sparkline";
-import { Button, Card, EmptyState, ErrorPanel, ProvenanceLine, STATES, SignalName, Skeleton,
+import { Actions, Button, Card, EmptyState, ErrorPanel, ProvenanceLine, STATES, SignalName, Skeleton,
          StateBadge, StateIcon, StateMark, Synthetic, Table, ValueReadout } from "../components/ui";
 import { scoreSeries, signalsToDraw } from "../fleet";
 import { useArrivals } from "../hooks/useArrivals";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { usePageProvenance } from "../pageProvenance";
+import { SNAPSHOT } from "../snapshot";
 
 type Pump = Schema<"Fleet">["pumps"][number];
 type FleetSession = Schema<"FleetSession">;
@@ -147,8 +148,9 @@ function OpenCases() {
     <section aria-labelledby="open-cases-title">
       <div className="section-head">
         <h2 id="open-cases-title" className="section-title">Open cases</h2>
-        <p className="muted section-lede">Newest first, each as of its replay's cursor; new
-          ones appear live.</p>
+        <p className="muted section-lede">Newest first, each as of its replay's cursor;
+          {SNAPSHOT ? " in the live app, new ones appear as the replay runs." : " new ones appear live."}
+        </p>
         <Link to="/cases?status=open" className="section-link">All open cases</Link>
       </div>
       {q.isLoading && <Skeleton lines={4} label="loading cases" />}
@@ -249,9 +251,9 @@ function NoScores({ session: fs }: { session?: FleetSession }) {
   return (
     <EmptyState title={s.cursor_at ? `No scores yet at ${fmtTime(s.cursor_at)} UTC`
                                    : "No scores yet"}
-                action={s.status === "paused" ? <Button size="sm" variant="primary"
+                action={s.status === "paused" ? <Actions><Button size="sm" variant="primary"
                   disabled={resume.isPending} onClick={() => resume.mutate(s.session_id)}>
-                  Resume replay #{s.session_id}</Button> : undefined}>
+                  Resume replay #{s.session_id}</Button></Actions> : undefined}>
       {why}; the first windows are scored once each signal has settled after the run start
       (A7).{err && <> Could not resume: {err.message}</>}
     </EmptyState>);

@@ -1,0 +1,11 @@
+{
+  "comment": "Snapshot file names for GET requests; src/snapshot.ts and pumpcopilot.snapshot.key must agree (both are tested against this file).",
+  "cases": [
+    {"path": "/api/fleet", "query": {}, "key": "api/fleet.json"},
+    {"path": "/api/cases", "query": {"status": "open", "limit": 8}, "key": "api/cases@limit=8~status=open.json"},
+    {"path": "/api/cases", "query": {"session_id": 3, "asset_id": null}, "key": "api/cases@session_id=3.json"},
+    {"path": "/api/cases/12/evidence", "query": {"offset": 0, "limit": 500}, "key": "api/cases/12/evidence@limit=500~offset=0.json"},
+    {"path": "/api/assets/cira-pump-B/days/2024-10-30/signals", "query": {"resolution": "1m"}, "key": "api/assets/cira-pump-B/days/2024-10-30/signals@resolution=1m.json"},
+    {"path": "/api/cases", "query": {"synthetic": true}, "key": "api/cases@synthetic=true.json"}
+  ]
+}

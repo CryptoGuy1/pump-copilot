@@ -3,8 +3,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ApiError, type Schema, call, client } from "../api/client";
 import { A8Notice, fmtTime } from "../components/common";
-import { Button, Card, EmptyState, Loading, SignalName, Synthetic, Table } from "../components/ui";
+import { Actions, Button, Card, EmptyState, Loading, SignalName, Synthetic, Table }
+  from "../components/ui";
 import { usePageTitle } from "../hooks/usePageTitle";
+import { ACTIONS_DISABLED, SNAPSHOT } from "../snapshot";
 
 type Speed = 1 | 10 | 60;
 type Session = Schema<"SessionList">["sessions"][number];
@@ -53,7 +55,7 @@ function Progress({ id }: { id: number }) {
 }
 
 function WorkerHealth() {
-  const q = useQuery({ queryKey: ["health"], refetchInterval: 5000,
+  const q = useQuery({ queryKey: ["health"], refetchInterval: SNAPSHOT ? false : 5000,
                        queryFn: () => call(client.GET("/api/health")) });
   const h = q.data;
   const w = h?.worker.workers[0];
@@ -129,6 +131,7 @@ export function Replay() {
       <A8Notice />
       <div className="replay-top">
         <Card as="section" accent={false} title="New replay">
+          <Actions>
           <div className="fields">
             <label className="field"><span className="field-label">Pump and day</span>
               <select aria-label="asset-day" value={pick} onChange={(e) => setPick(e.target.value)}>
@@ -155,15 +158,19 @@ export function Replay() {
                     disabled={create.isPending}>Start replay</Button>
             <span className="muted">A new session waits until a worker claims it.</span>
           </div>
+          </Actions>
         </Card>
         <WorkerHealth />
       </div>
       {err && <p className="error" role="alert">{err.status} {err.code}: {err.message}</p>}
-      <Card as="section" accent={false} title="Sessions" sub="Newest first; the cursor moves live.">
+      <Card as="section" accent={false} title="Sessions" sub={SNAPSHOT
+        ? "Newest first. In the live app, the cursor moves as the replay runs."
+        : "Newest first; the cursor moves live."}>
         <Loading q={sessions} lines={4}>
           {sessions.data && (sessions.data.sessions.length === 0
             ? <EmptyState title="No replays yet">Start one above.</EmptyState>
-            : <Table label="Replay sessions">
+            : <>{SNAPSHOT && <p className="snapshot-note">{ACTIONS_DISABLED}</p>}
+              <Table label="Replay sessions">
                 <thead><tr><th>Session</th><th>Pump · day</th><th>Data</th><th>Status</th>
                   <th>Cursor (UTC)</th><th>Speed</th><th>Control</th></tr></thead>
                 <tbody>{sessions.data.sessions.map((s) => (
@@ -182,11 +189,12 @@ export function Replay() {
                             aria-valuemax={100} aria-valuenow={Math.round(progressOf(s) * 100)}
                             aria-label={`session ${s.session_id} progress through the day`}>
                         <span style={{ width: `${progressOf(s) * 100}%` }} /></span></td>
-                    <td><select aria-label={`speed-${s.session_id}`} value={s.speed}
-                                onChange={(e) => setRate.mutate({ id: s.session_id,
+                    <td><Actions note={false}><select aria-label={`speed-${s.session_id}`}
+                                value={s.speed} onChange={(e) => setRate.mutate({ id: s.session_id,
                                   s: Number(e.target.value) as Speed })}>
-                      {[1, 10, 60].map((x) => <option key={x} value={x}>{x}x</option>)}</select></td>
-                    <td><div className="btn-row">
+                      {[1, 10, 60].map((x) => <option key={x} value={x}>{x}x</option>)}</select>
+                    </Actions></td>
+                    <td><Actions note={false}><div className="btn-row">
                       <Button size="sm" onClick={() => control.mutate({ id: s.session_id,
                         action: "start" })} disabled={!["paused", "pending"].includes(s.status)}>
                         {s.status === "paused" ? "resume" : "start"}</Button>
@@ -196,9 +204,9 @@ export function Replay() {
                       <Button size="sm" onClick={() => control.mutate({ id: s.session_id,
                         action: "rewind" })}>rewind</Button>
                       <Link to={`/cases?session_id=${s.session_id}`}>cases</Link>
-                    </div></td>
+                    </div></Actions></td>
                   </tr>))}</tbody>
-              </Table>)}
+              </Table></>)}
         </Loading>
       </Card>
       {selected != null && <Progress id={selected} />}
