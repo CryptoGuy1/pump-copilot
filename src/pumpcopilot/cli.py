@@ -91,6 +91,8 @@ def main(argv: list[str] | None = None) -> None:
          "escalate to reliability engineer (export only)"]))
     cs.add_argument("--reason", help="why (required for a disposition)")
     cs.add_argument("--out", help="export: file to write (default reports/case_<id>.json)")
+    rd = sub.add_parser("readme", help="rewrite the README's key results from the stored results")
+    rd.add_argument("--check", action="store_true", help="fail if the README is out of date")
     sn = sub.add_parser("snapshot", help="the static snapshot: record answers, export files")
     sn.add_argument("action", choices=["record", "export"])
     sn.add_argument("--no-dotenv", action="store_true", help="record: do not load .env")
@@ -123,6 +125,17 @@ def main(argv: list[str] | None = None) -> None:
         _case(args)
     elif args.cmd == "api":
         _api(args.port, args.export_openapi, args.no_dotenv)
+    elif args.cmd == "readme":
+        from . import readme
+
+        if args.check:
+            text = readme.README.read_text()
+            if readme.current_block(text) != readme.results_block():
+                raise SystemExit("README key results differ from the stored results: "
+                                 "run `pumpcopilot readme`")
+            print("[ok] README key results match the stored results")
+        else:
+            print("[written]" if readme.update() else "[unchanged]", "README key results")
     elif args.cmd == "snapshot":
         _snapshot(args.action, args.no_dotenv)
     elif args.cmd == "zema":

@@ -140,3 +140,28 @@ test("the sharing preview uses absolute URLs for the Pages site", async ({ page 
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", pages);
   await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", `${pages}og.png`);
 });
+
+// The README's screenshots (copied to docs/images/): the snapshot as the live demo shows it.
+test("screenshots for the README", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const real = manifest.sessions.find((s: { synthetic: boolean }) => !s.synthetic);
+  const checked = answers.answers.find((a: { response: { served: string } }) =>
+    a.response.served === "assistant");
+  const shots: [string, string, (() => Promise<void>)?][] = [
+    ["readme-fleet", ""],
+    ["readme-asset-day", `assets/${real.asset_id}/${real.source_day}?session=${real.session_id}`],
+    ["readme-case-assistant", `cases/${checked.case_id}`, async () => {
+      await page.getByRole("button", { name: checked.question, exact: true }).click();
+      await expect(page.getByTestId("recorded-label")).toBeVisible();
+    }],
+    ["readme-evaluation", "evaluation"],
+  ];
+  for (const [name, route, then] of shots) {
+    await page.goto(route);
+    await ready(page, 0);
+    if (then) await then();
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: resolve(OUT, `${name}-industrial-desktop.png`) });
+  }
+});
