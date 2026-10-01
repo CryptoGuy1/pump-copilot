@@ -1,0 +1,42 @@
+{
+ "exported_at": "2026-10-01T20:14:38Z",
+ "commit": "5cc3a930b94034b4cb3bb33c6c1a6584dcc5a27f",
+ "commit_dirty": false,
+ "sessions": [
+  {
+   "session_id": 1,
+   "asset_id": "cira-pump-B",
+   "source_day": "2024-10-30",
+   "scenario": null,
+   "synthetic": false,
+   "status": "completed"
+  },
+  {
+   "session_id": 2,
+   "asset_id": "cira-pump-A",
+   "source_day": "2024-10-30",
+   "scenario": null,
+   "synthetic": false,
+   "status": "completed"
+  },
+  {
+   "session_id": 3,
+   "asset_id": "cira-pump-B",
+   "source_day": "2024-10-30",
+   "scenario": "B_stuck_pressure",
+   "synthetic": true,
+   "status": "completed"
+  }
+ ],
+ "answers_model": "claude-sonnet-5",
+ "answers_recorded_at": "2026-10-01T19:20:15Z",
+ "answers": 6,
+ "files": 62,
+ "bytes": 5671606,
+ "not_included": [
+  "live stream (/api/stream) and worker health (/api/health)",
+  "raw-resolution signals, and asset-days that were not replayed",
+  "case exports, and any case-list filter beyond one status, session or pump",
+  "every action: case actions, replay controls and new assistant questions"
+ ]
+}

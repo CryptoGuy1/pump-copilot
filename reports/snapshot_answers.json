@@ -1,0 +1,1319 @@
+{
+ "recorded_at": "2026-10-01T19:20:15Z",
+ "provider": "anthropic",
+ "model": "claude-sonnet-5",
+ "cap": 6,
+ "requests_used": 6,
+ "answers": [
+  {
+   "case_id": 1,
+   "synthetic": false,
+   "question": "Summarize this case",
+   "response": {
+    "synthetic": false,
+    "model_version": [
+     "c16d150b5d4fbd0c"
+    ],
+    "assumptions": [
+     "A1",
+     "A2",
+     "A3",
+     "A5",
+     "A6",
+     "A7",
+     "A8"
+    ],
+    "case_id": 1,
+    "run_id": 1,
+    "served": "template",
+    "label": "Evidence summary",
+    "provider": "template",
+    "model": null,
+    "answer": {
+     "claims": [
+      {
+       "text": "The case has 917 evidence windows in 36 episodes, from 09:08 to 15:10.",
+       "evidence_refs": [
+        "E1"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Motor acceleration peak was outside its baseline band in 209 windows over 9 episodes; the highest score was 5.23 (band -10.8 to 63.3 m/s²).",
+       "evidence_refs": [
+        "E2"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Motor accelerometer temperature relative to ambient was outside its baseline band in 142 windows over 8 episodes; the highest score was 1.59 (band -1.95 to 14.6 K).",
+       "evidence_refs": [
+        "E3"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Motor casing temperature relative to ambient was outside its baseline band in 179 windows over 2 episodes; the highest score was 1.53 (band -1.13 to 13.6 K).",
+       "evidence_refs": [
+        "E4"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Outlet pressure was outside its baseline band in 336 windows over 4 episodes; the highest score was 33.9 (band 42.6 to 43.2 bar).",
+       "evidence_refs": [
+        "E5"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Pump acceleration peak was outside its baseline band in 1 window over 1 episode; the highest score was 7.44 (band 12.2 to 33.5 m/s²).",
+       "evidence_refs": [
+        "E6"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Pump vibration velocity was outside its baseline band in 50 windows over 12 episodes; the highest score was 2.17 (band 0.00385 to 0.00446 m/s).",
+       "evidence_refs": [
+        "E7"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "The pattern in outlet pressure may be consistent with a sustained shift away from its run baseline.",
+       "evidence_refs": [
+        "E5"
+       ],
+       "kind": "interpretation"
+      },
+      {
+       "text": "Scores are robust band exceedances, not calibrated probabilities, and CIRA has no fault labels, so the data cannot establish a fault.",
+       "evidence_refs": [
+        "E5"
+       ],
+       "kind": "limitation"
+      },
+      {
+       "text": "Replay scores use declared per-day inputs (A8) and fixed settling times (A7).",
+       "evidence_refs": [],
+       "kind": "limitation"
+      }
+     ],
+     "suggested_checks": [
+      "Look at the raw 1-minute outlet pressure signal around 09:08.",
+      "Compare outlet pressure with the operating log for this run.",
+      "Check whether the same shift appears in other runs of this pump."
+     ],
+     "draft_note": "Reviewed case 1: 917 evidence windows in 36 episodes. Not a diagnosis; read-only checks listed."
+    },
+    "check": {
+     "passed": true,
+     "reasons": []
+    },
+    "rejected": {
+     "provider": "anthropic",
+     "model": "claude-sonnet-5",
+     "reasons": [
+      "malformed answer: 1 validation error for AssistantAnswer"
+     ]
+    },
+    "fallback_reason": "malformed answer",
+    "evidence": [
+     {
+      "id": "E1",
+      "kind": "case",
+      "signal_name": null,
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "case_id": 1.0,
+       "episodes": 36.0,
+       "windows": 917.0,
+       "run": 0.0
+      },
+      "unit": null,
+      "times": [
+       "09:08",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E2",
+      "kind": "signal",
+      "signal_name": "motor_acceleration_peak",
+      "first_window": "2024-10-30T10:17:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "windows": 209.0,
+       "episodes": 9.0,
+       "max_score": 5.227942636652873,
+       "band_low": -10.82355783500001,
+       "band_high": 63.30618760500001,
+       "band_center": 26.241314885,
+       "median_min": 66.22622681,
+       "median_max": 220.0143433
+      },
+      "unit": "m/s^2",
+      "times": [
+       "10:17",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E3",
+      "kind": "signal",
+      "signal_name": "motor_accelerometer_contact_temperature_rel_ambient",
+      "first_window": "2024-10-30T11:15:00Z",
+      "last_window": "2024-10-30T15:00:00Z",
+      "values": {
+       "windows": 142.0,
+       "episodes": 8.0,
+       "max_score": 1.5929269393266272,
+       "band_low": -1.946847899999998,
+       "band_high": 14.613416659999995,
+       "band_center": 6.3332843799999985,
+       "median_min": 14.7299614,
+       "median_max": 19.52293015
+      },
+      "unit": "K",
+      "times": [
+       "11:15",
+       "15:00"
+      ]
+     },
+     {
+      "id": "E4",
+      "kind": "signal",
+      "signal_name": "motor_casing_temperature_rel_ambient",
+      "first_window": "2024-10-30T11:56:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "windows": 179.0,
+       "episodes": 2.0,
+       "max_score": 1.5272998233918256,
+       "band_low": -1.133600289999979,
+       "band_high": 13.636632989999978,
+       "band_center": 6.251516349999999,
+       "median_min": 13.639659889999997,
+       "median_max": 17.53080369
+      },
+      "unit": "K",
+      "times": [
+       "11:56",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E5",
+      "kind": "signal",
+      "signal_name": "outlet_pressure",
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "windows": 336.0,
+       "episodes": 4.0,
+       "max_score": 33.90813212823905,
+       "band_low": 42.64912986500002,
+       "band_high": 43.215139384999986,
+       "band_center": 42.932134625,
+       "median_min": 33.33597183,
+       "median_max": 41.98422623
+      },
+      "unit": "bar",
+      "times": [
+       "09:08",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E6",
+      "kind": "signal",
+      "signal_name": "pump_acceleration_peak",
+      "first_window": "2024-10-30T13:18:00Z",
+      "last_window": "2024-10-30T13:25:00Z",
+      "values": {
+       "windows": 1.0,
+       "episodes": 1.0,
+       "max_score": 7.439405250814865,
+       "band_low": 12.224166870000012,
+       "band_high": 33.52561950999999,
+       "band_center": 22.87489319,
+       "median_min": 102.1099625,
+       "median_max": 102.1099625
+      },
+      "unit": "m/s^2",
+      "times": [
+       "13:18",
+       "13:25"
+      ]
+     },
+     {
+      "id": "E7",
+      "kind": "signal",
+      "signal_name": "pump_vibration_velocity",
+      "first_window": "2024-10-30T09:18:00Z",
+      "last_window": "2024-10-30T13:27:00Z",
+      "values": {
+       "windows": 50.0,
+       "episodes": 12.0,
+       "max_score": 2.1679341185034566,
+       "band_low": 0.0038460159999999938,
+       "band_high": 0.0044614240000000055,
+       "band_center": 0.00415372,
+       "median_min": 0.00348701,
+       "median_max": 0.004820802
+      },
+      "unit": "m/s",
+      "times": [
+       "09:18",
+       "13:27"
+      ]
+     }
+    ],
+    "calibration_status": "not_applicable",
+    "context_hash": "9b257b6713d9919e44ae0764e4f0c3a69b4474f7f4a6af3864515a437b788bc6",
+    "latency_ms": 16582.530500018038
+   }
+  },
+  {
+   "case_id": 1,
+   "synthetic": false,
+   "question": "Which signal drove it?",
+   "response": {
+    "synthetic": false,
+    "model_version": [
+     "c16d150b5d4fbd0c"
+    ],
+    "assumptions": [
+     "A1",
+     "A2",
+     "A3",
+     "A5",
+     "A6",
+     "A7",
+     "A8"
+    ],
+    "case_id": 1,
+    "run_id": 2,
+    "served": "assistant",
+    "label": "Assistant, checked",
+    "provider": "anthropic",
+    "model": "claude-sonnet-5",
+    "answer": {
+     "claims": [
+      {
+       "text": "Across the evidence windows, motor_acceleration_peak shows the highest max_score (5.23) among the multi-window signals, spanning 209 windows and 9 episodes between 10:17 and 15:10.",
+       "evidence_refs": [
+        "E2"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "pump_acceleration_peak has a higher max_score (7.44) than motor_acceleration_peak, but it is based on only 1 window and 1 episode, a very brief event from 13:18 to 13:25.",
+       "evidence_refs": [
+        "E6"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "pump_vibration_velocity accumulated the most episodes (12) of any signal, though with a lower max_score (2.17) over 50 windows between 09:18 and 13:27.",
+       "evidence_refs": [
+        "E7"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Temperature-related signals (motor_accelerometer_contact_temperature_rel_ambient, motor_casing_temperature_rel_ambient) show lower max_scores (1.59 and 1.53 respectively) than the acceleration/vibration signals.",
+       "evidence_refs": [
+        "E3",
+        "E4"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "outlet_pressure spans the full evidence window (336 windows, 4 episodes) with a high max_score (33.91), but this score concerns pressure stability/level rather than vibration or temperature anomalies.",
+       "evidence_refs": [
+        "E5"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "The case could be interpreted as being driven primarily by motor_acceleration_peak given its sustained elevated scoring across many windows and episodes, though the single-window pump_acceleration_peak spike and the outlet_pressure pattern may also be contributing factors.",
+       "evidence_refs": [
+        "E2",
+        "E6",
+        "E5"
+       ],
+       "kind": "interpretation"
+      },
+      {
+       "text": "The case-level data (E1) does not itself identify which signal 'drove' the case; that determination would require scoring/ranking logic not present in this evidence, so any attribution here is inferred only from comparing max_score and window/episode counts across signals.",
+       "evidence_refs": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7"
+       ],
+       "kind": "limitation"
+      },
+      {
+       "text": "pump_acceleration_peak's high max_score is based on a single window/episode, so it cannot be distinguished from a transient artifact versus a sustained driver using this data alone.",
+       "evidence_refs": [
+        "E6"
+       ],
+       "kind": "limitation"
+      },
+      {
+       "text": "outlet_pressure's max_score reflects a different physical quantity (pressure, bar) than the acceleration and vibration signals (m/s^2, m/s), so scores are not directly comparable across signal types without further normalization not available here.",
+       "evidence_refs": [
+        "E5",
+        "E2",
+        "E6",
+        "E7"
+       ],
+       "kind": "limitation"
+      }
+     ],
+     "suggested_checks": [
+      "Review the full time series for pump_acceleration_peak around 13:18-13:25 to see if it coincides with a known transient event (e.g., start/stop) rather than a sustained anomaly.",
+      "Compare episode timing across motor_acceleration_peak, pump_vibration_velocity, and outlet_pressure to see if they co-occur, which could clarify whether one signal leads the others.",
+      "Check the underlying scoring methodology (not included in this evidence) to understand how 'driving' a case is formally defined/ranked."
+     ],
+     "draft_note": "This case (cira-pump-B, 2024-10-30) is drawn from real (non-synthetic) CIRA data per the context. Based solely on the provided evidence summaries, motor_acceleration_peak stands out as a plausible primary driver given its combination of relatively high max_score (5.23) and broad coverage (209 windows, 9 episodes). pump_acceleration_peak has a higher max_score (7.44) but is limited to a single window/episode, making it harder to interpret as a sustained driver versus a brief transient. pump_vibration_velocity had the most episodes (12) but a lower max_score. No causal or diagnostic conclusion is stated as fact; this is an interpretation based on comparing summary statistics, and the data provided does not include an explicit 'driver' determination."
+    },
+    "check": {
+     "passed": true,
+     "reasons": []
+    },
+    "rejected": null,
+    "fallback_reason": null,
+    "evidence": [
+     {
+      "id": "E1",
+      "kind": "case",
+      "signal_name": null,
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "case_id": 1.0,
+       "episodes": 36.0,
+       "windows": 917.0,
+       "run": 0.0
+      },
+      "unit": null,
+      "times": [
+       "09:08",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E2",
+      "kind": "signal",
+      "signal_name": "motor_acceleration_peak",
+      "first_window": "2024-10-30T10:17:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "windows": 209.0,
+       "episodes": 9.0,
+       "max_score": 5.227942636652873,
+       "band_low": -10.82355783500001,
+       "band_high": 63.30618760500001,
+       "band_center": 26.241314885,
+       "median_min": 66.22622681,
+       "median_max": 220.0143433
+      },
+      "unit": "m/s^2",
+      "times": [
+       "10:17",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E3",
+      "kind": "signal",
+      "signal_name": "motor_accelerometer_contact_temperature_rel_ambient",
+      "first_window": "2024-10-30T11:15:00Z",
+      "last_window": "2024-10-30T15:00:00Z",
+      "values": {
+       "windows": 142.0,
+       "episodes": 8.0,
+       "max_score": 1.5929269393266272,
+       "band_low": -1.946847899999998,
+       "band_high": 14.613416659999995,
+       "band_center": 6.3332843799999985,
+       "median_min": 14.7299614,
+       "median_max": 19.52293015
+      },
+      "unit": "K",
+      "times": [
+       "11:15",
+       "15:00"
+      ]
+     },
+     {
+      "id": "E4",
+      "kind": "signal",
+      "signal_name": "motor_casing_temperature_rel_ambient",
+      "first_window": "2024-10-30T11:56:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "windows": 179.0,
+       "episodes": 2.0,
+       "max_score": 1.5272998233918256,
+       "band_low": -1.133600289999979,
+       "band_high": 13.636632989999978,
+       "band_center": 6.251516349999999,
+       "median_min": 13.639659889999997,
+       "median_max": 17.53080369
+      },
+      "unit": "K",
+      "times": [
+       "11:56",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E5",
+      "kind": "signal",
+      "signal_name": "outlet_pressure",
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "windows": 336.0,
+       "episodes": 4.0,
+       "max_score": 33.90813212823905,
+       "band_low": 42.64912986500002,
+       "band_high": 43.215139384999986,
+       "band_center": 42.932134625,
+       "median_min": 33.33597183,
+       "median_max": 41.98422623
+      },
+      "unit": "bar",
+      "times": [
+       "09:08",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E6",
+      "kind": "signal",
+      "signal_name": "pump_acceleration_peak",
+      "first_window": "2024-10-30T13:18:00Z",
+      "last_window": "2024-10-30T13:25:00Z",
+      "values": {
+       "windows": 1.0,
+       "episodes": 1.0,
+       "max_score": 7.439405250814865,
+       "band_low": 12.224166870000012,
+       "band_high": 33.52561950999999,
+       "band_center": 22.87489319,
+       "median_min": 102.1099625,
+       "median_max": 102.1099625
+      },
+      "unit": "m/s^2",
+      "times": [
+       "13:18",
+       "13:25"
+      ]
+     },
+     {
+      "id": "E7",
+      "kind": "signal",
+      "signal_name": "pump_vibration_velocity",
+      "first_window": "2024-10-30T09:18:00Z",
+      "last_window": "2024-10-30T13:27:00Z",
+      "values": {
+       "windows": 50.0,
+       "episodes": 12.0,
+       "max_score": 2.1679341185034566,
+       "band_low": 0.0038460159999999938,
+       "band_high": 0.0044614240000000055,
+       "band_center": 0.00415372,
+       "median_min": 0.00348701,
+       "median_max": 0.004820802
+      },
+      "unit": "m/s",
+      "times": [
+       "09:18",
+       "13:27"
+      ]
+     }
+    ],
+    "calibration_status": "not_applicable",
+    "context_hash": "9b257b6713d9919e44ae0764e4f0c3a69b4474f7f4a6af3864515a437b788bc6",
+    "latency_ms": 13594.847500091419
+   }
+  },
+  {
+   "case_id": 1,
+   "synthetic": false,
+   "question": "What should I check next?",
+   "response": {
+    "synthetic": false,
+    "model_version": [
+     "c16d150b5d4fbd0c"
+    ],
+    "assumptions": [
+     "A1",
+     "A2",
+     "A3",
+     "A5",
+     "A6",
+     "A7",
+     "A8"
+    ],
+    "case_id": 1,
+    "run_id": 3,
+    "served": "template",
+    "label": "Evidence summary",
+    "provider": "template",
+    "model": null,
+    "answer": {
+     "claims": [
+      {
+       "text": "The case has 917 evidence windows in 36 episodes, from 09:08 to 15:10.",
+       "evidence_refs": [
+        "E1"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Motor acceleration peak was outside its baseline band in 209 windows over 9 episodes; the highest score was 5.23 (band -10.8 to 63.3 m/s²).",
+       "evidence_refs": [
+        "E2"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Motor accelerometer temperature relative to ambient was outside its baseline band in 142 windows over 8 episodes; the highest score was 1.59 (band -1.95 to 14.6 K).",
+       "evidence_refs": [
+        "E3"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Motor casing temperature relative to ambient was outside its baseline band in 179 windows over 2 episodes; the highest score was 1.53 (band -1.13 to 13.6 K).",
+       "evidence_refs": [
+        "E4"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Outlet pressure was outside its baseline band in 336 windows over 4 episodes; the highest score was 33.9 (band 42.6 to 43.2 bar).",
+       "evidence_refs": [
+        "E5"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Pump acceleration peak was outside its baseline band in 1 window over 1 episode; the highest score was 7.44 (band 12.2 to 33.5 m/s²).",
+       "evidence_refs": [
+        "E6"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Pump vibration velocity was outside its baseline band in 50 windows over 12 episodes; the highest score was 2.17 (band 0.00385 to 0.00446 m/s).",
+       "evidence_refs": [
+        "E7"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "The pattern in outlet pressure may be consistent with a sustained shift away from its run baseline.",
+       "evidence_refs": [
+        "E5"
+       ],
+       "kind": "interpretation"
+      },
+      {
+       "text": "Scores are robust band exceedances, not calibrated probabilities, and CIRA has no fault labels, so the data cannot establish a fault.",
+       "evidence_refs": [
+        "E5"
+       ],
+       "kind": "limitation"
+      },
+      {
+       "text": "Replay scores use declared per-day inputs (A8) and fixed settling times (A7).",
+       "evidence_refs": [],
+       "kind": "limitation"
+      }
+     ],
+     "suggested_checks": [
+      "Look at the raw 1-minute outlet pressure signal around 09:08.",
+      "Compare outlet pressure with the operating log for this run.",
+      "Check whether the same shift appears in other runs of this pump."
+     ],
+     "draft_note": "Reviewed case 1: 917 evidence windows in 36 episodes. Not a diagnosis; read-only checks listed."
+    },
+    "check": {
+     "passed": true,
+     "reasons": []
+    },
+    "rejected": {
+     "provider": "anthropic",
+     "model": "claude-sonnet-5",
+     "reasons": [
+      "claim 1: times ['09:08'] are not in the cited evidence"
+     ]
+    },
+    "fallback_reason": "rejected by the checker",
+    "evidence": [
+     {
+      "id": "E1",
+      "kind": "case",
+      "signal_name": null,
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "case_id": 1.0,
+       "episodes": 36.0,
+       "windows": 917.0,
+       "run": 0.0
+      },
+      "unit": null,
+      "times": [
+       "09:08",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E2",
+      "kind": "signal",
+      "signal_name": "motor_acceleration_peak",
+      "first_window": "2024-10-30T10:17:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "windows": 209.0,
+       "episodes": 9.0,
+       "max_score": 5.227942636652873,
+       "band_low": -10.82355783500001,
+       "band_high": 63.30618760500001,
+       "band_center": 26.241314885,
+       "median_min": 66.22622681,
+       "median_max": 220.0143433
+      },
+      "unit": "m/s^2",
+      "times": [
+       "10:17",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E3",
+      "kind": "signal",
+      "signal_name": "motor_accelerometer_contact_temperature_rel_ambient",
+      "first_window": "2024-10-30T11:15:00Z",
+      "last_window": "2024-10-30T15:00:00Z",
+      "values": {
+       "windows": 142.0,
+       "episodes": 8.0,
+       "max_score": 1.5929269393266272,
+       "band_low": -1.946847899999998,
+       "band_high": 14.613416659999995,
+       "band_center": 6.3332843799999985,
+       "median_min": 14.7299614,
+       "median_max": 19.52293015
+      },
+      "unit": "K",
+      "times": [
+       "11:15",
+       "15:00"
+      ]
+     },
+     {
+      "id": "E4",
+      "kind": "signal",
+      "signal_name": "motor_casing_temperature_rel_ambient",
+      "first_window": "2024-10-30T11:56:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "windows": 179.0,
+       "episodes": 2.0,
+       "max_score": 1.5272998233918256,
+       "band_low": -1.133600289999979,
+       "band_high": 13.636632989999978,
+       "band_center": 6.251516349999999,
+       "median_min": 13.639659889999997,
+       "median_max": 17.53080369
+      },
+      "unit": "K",
+      "times": [
+       "11:56",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E5",
+      "kind": "signal",
+      "signal_name": "outlet_pressure",
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T15:10:00Z",
+      "values": {
+       "windows": 336.0,
+       "episodes": 4.0,
+       "max_score": 33.90813212823905,
+       "band_low": 42.64912986500002,
+       "band_high": 43.215139384999986,
+       "band_center": 42.932134625,
+       "median_min": 33.33597183,
+       "median_max": 41.98422623
+      },
+      "unit": "bar",
+      "times": [
+       "09:08",
+       "15:10"
+      ]
+     },
+     {
+      "id": "E6",
+      "kind": "signal",
+      "signal_name": "pump_acceleration_peak",
+      "first_window": "2024-10-30T13:18:00Z",
+      "last_window": "2024-10-30T13:25:00Z",
+      "values": {
+       "windows": 1.0,
+       "episodes": 1.0,
+       "max_score": 7.439405250814865,
+       "band_low": 12.224166870000012,
+       "band_high": 33.52561950999999,
+       "band_center": 22.87489319,
+       "median_min": 102.1099625,
+       "median_max": 102.1099625
+      },
+      "unit": "m/s^2",
+      "times": [
+       "13:18",
+       "13:25"
+      ]
+     },
+     {
+      "id": "E7",
+      "kind": "signal",
+      "signal_name": "pump_vibration_velocity",
+      "first_window": "2024-10-30T09:18:00Z",
+      "last_window": "2024-10-30T13:27:00Z",
+      "values": {
+       "windows": 50.0,
+       "episodes": 12.0,
+       "max_score": 2.1679341185034566,
+       "band_low": 0.0038460159999999938,
+       "band_high": 0.0044614240000000055,
+       "band_center": 0.00415372,
+       "median_min": 0.00348701,
+       "median_max": 0.004820802
+      },
+      "unit": "m/s",
+      "times": [
+       "09:18",
+       "13:27"
+      ]
+     }
+    ],
+    "calibration_status": "not_applicable",
+    "context_hash": "9b257b6713d9919e44ae0764e4f0c3a69b4474f7f4a6af3864515a437b788bc6",
+    "latency_ms": 14241.180083015934
+   }
+  },
+  {
+   "case_id": 2,
+   "synthetic": true,
+   "question": "Summarize this case",
+   "response": {
+    "synthetic": true,
+    "model_version": [
+     "c16d150b5d4fbd0c"
+    ],
+    "assumptions": [
+     "A1",
+     "A2",
+     "A3",
+     "A5",
+     "A6",
+     "A7",
+     "A8"
+    ],
+    "case_id": 2,
+    "run_id": 4,
+    "served": "assistant",
+    "label": "Assistant, checked",
+    "provider": "anthropic",
+    "model": "claude-sonnet-5",
+    "answer": {
+     "claims": [
+      {
+       "text": "This case (cira-pump-B, 2024-10-30, case_id 2) is built from synthetic data, covering 39 evidence windows across 4 episodes between 09:08 and 09:54 UTC.",
+       "evidence_refs": [
+        "E1"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "The outlet_pressure signal shows 34 windows and 2 episodes over the same period, with a maximum anomaly score of about 16.09, a scoring band of roughly 42.65-43.22 bar (center ~42.93 bar), and observed medians ranging from about 38.38 to 41.98 bar, which falls below the band.",
+       "evidence_refs": [
+        "E2"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "The pump_vibration_velocity signal shows 5 windows and 2 episodes between 09:18 and 09:45, with a maximum anomaly score of about 1.50, a scoring band of about 0.00385-0.00446 m/s (center ~0.00415 m/s), and observed medians of about 0.00369-0.00384 m/s, close to but slightly below the band.",
+       "evidence_refs": [
+        "E3"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "The scenario label associated with this case is 'B_stuck_pressure', and the outlet_pressure evidence shows the highest anomaly score of the two signals, which may be consistent with a sustained deviation in pressure readings relative to the scoring band, though this is only a label/scenario tag and not a confirmed diagnosis.",
+       "evidence_refs": [
+        "E2"
+       ],
+       "kind": "interpretation"
+      },
+      {
+       "text": "The data cannot confirm whether the elevated outlet_pressure score and the lower vibration score reflect an actual physical condition (such as a stuck or held pressure reading) versus sensor behavior, because the evidence only reports aggregated window statistics (scores, bands, medians) without the underlying raw reading events needed to distinguish a genuinely stuck sensor from a real process change.",
+       "evidence_refs": [
+        "E2",
+        "E3"
+       ],
+       "kind": "limitation"
+      },
+      {
+       "text": "Per the sample-and-hold convention, a run of identical readings in the underlying data is one reading being held, not repeated independent measurements, so any apparent 'stuck' appearance in pressure could reflect a held sensor value rather than a new series of real readings; this cannot be verified from the window-level evidence alone.",
+       "evidence_refs": [
+        "A5",
+        "E2"
+       ],
+       "kind": "limitation"
+      },
+      {
+       "text": "Settling-time assumptions specify that pressure is treated as settled 5 minutes after a run start, vibration 10 minutes, and temperature 30 minutes; these fixed assumptions apply to how the baseline windows in this case would have been constructed, but the evidence here does not include a run-start timestamp for this case to confirm settling was reached before the reported windows.",
+       "evidence_refs": [
+        "A7",
+        "E2",
+        "E3"
+       ],
+       "kind": "limitation"
+      },
+      {
+       "text": "This entire case, including its scenario label 'B_stuck_pressure' and case/signal statistics, is marked as synthetic data (synthetic: true) and calibration_status is not_applicable, so it should not be treated as a real-world operating event.",
+       "evidence_refs": [
+        "E1",
+        "E2",
+        "E3"
+       ],
+       "kind": "limitation"
+      }
+     ],
+     "suggested_checks": [
+      "Review the raw (pre-aggregation) outlet_pressure reading events for the 09:08-09:54 window to check for repeated/held values consistent with a stuck sensor pattern.",
+      "Check the operating-state segment and run-start time for pump B around this window to confirm whether the 5-minute pressure settling period (A7) had elapsed before scoring began.",
+      "Compare this case's outlet_pressure band and medians against other days/episodes for pump B to see if the deviation is consistent with the broader historical pattern.",
+      "Review ingest annotations (stale_suspected, spike_suspected flags) for the outlet_pressure signal in this window, as referenced in A8, to check for flagged data-quality issues."
+     ],
+     "draft_note": null
+    },
+    "check": {
+     "passed": true,
+     "reasons": []
+    },
+    "rejected": null,
+    "fallback_reason": null,
+    "evidence": [
+     {
+      "id": "E1",
+      "kind": "case",
+      "signal_name": null,
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T09:54:00Z",
+      "values": {
+       "case_id": 2.0,
+       "episodes": 4.0,
+       "windows": 39.0,
+       "run": 0.0
+      },
+      "unit": null,
+      "times": [
+       "09:08",
+       "09:54"
+      ]
+     },
+     {
+      "id": "E2",
+      "kind": "signal",
+      "signal_name": "outlet_pressure",
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T09:54:00Z",
+      "values": {
+       "windows": 34.0,
+       "episodes": 2.0,
+       "max_score": 16.091355760236258,
+       "band_low": 42.64912986500002,
+       "band_high": 43.215139384999986,
+       "band_center": 42.932134625,
+       "median_min": 38.37820435,
+       "median_max": 41.981840135
+      },
+      "unit": "bar",
+      "times": [
+       "09:08",
+       "09:54"
+      ]
+     },
+     {
+      "id": "E3",
+      "kind": "signal",
+      "signal_name": "pump_vibration_velocity",
+      "first_window": "2024-10-30T09:18:00Z",
+      "last_window": "2024-10-30T09:45:00Z",
+      "values": {
+       "windows": 5.0,
+       "episodes": 2.0,
+       "max_score": 1.5038121051399755,
+       "band_low": 0.0038460159999999938,
+       "band_high": 0.0044614240000000055,
+       "band_center": 0.00415372,
+       "median_min": 0.003690991,
+       "median_max": 0.003844552
+      },
+      "unit": "m/s",
+      "times": [
+       "09:18",
+       "09:45"
+      ]
+     }
+    ],
+    "calibration_status": "not_applicable",
+    "context_hash": "53fbfeacebe8b5854c3ea6bdab61a8414b51149017e288d5944ecd3fd69b838e",
+    "latency_ms": 15006.570374942385
+   }
+  },
+  {
+   "case_id": 2,
+   "synthetic": true,
+   "question": "Which signal drove it?",
+   "response": {
+    "synthetic": true,
+    "model_version": [
+     "c16d150b5d4fbd0c"
+    ],
+    "assumptions": [
+     "A1",
+     "A2",
+     "A3",
+     "A5",
+     "A6",
+     "A7",
+     "A8"
+    ],
+    "case_id": 2,
+    "run_id": 5,
+    "served": "template",
+    "label": "Evidence summary",
+    "provider": "template",
+    "model": null,
+    "answer": {
+     "claims": [
+      {
+       "text": "This case comes from a SYNTHETIC replay scenario (B_stuck_pressure): it is not evidence about the real pump.",
+       "evidence_refs": [
+        "E1"
+       ],
+       "kind": "limitation"
+      },
+      {
+       "text": "The case has 39 evidence windows in 4 episodes, from 09:08 to 09:54.",
+       "evidence_refs": [
+        "E1"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Outlet pressure was outside its baseline band in 34 windows over 2 episodes; the highest score was 16.1 (band 42.6 to 43.2 bar).",
+       "evidence_refs": [
+        "E2"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Pump vibration velocity was outside its baseline band in 5 windows over 2 episodes; the highest score was 1.50 (band 0.00385 to 0.00446 m/s).",
+       "evidence_refs": [
+        "E3"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "The pattern in outlet pressure may be consistent with a sustained shift away from its run baseline.",
+       "evidence_refs": [
+        "E2"
+       ],
+       "kind": "interpretation"
+      },
+      {
+       "text": "Scores are robust band exceedances, not calibrated probabilities, and CIRA has no fault labels, so the data cannot establish a fault.",
+       "evidence_refs": [
+        "E2"
+       ],
+       "kind": "limitation"
+      },
+      {
+       "text": "Replay scores use declared per-day inputs (A8) and fixed settling times (A7).",
+       "evidence_refs": [],
+       "kind": "limitation"
+      }
+     ],
+     "suggested_checks": [
+      "Look at the raw 1-minute outlet pressure signal around 09:08.",
+      "Compare outlet pressure with the operating log for this run.",
+      "Check whether the same shift appears in other runs of this pump."
+     ],
+     "draft_note": "SYNTHETIC scenario. Reviewed case 2: 39 evidence windows in 4 episodes. Not a diagnosis; read-only checks listed."
+    },
+    "check": {
+     "passed": true,
+     "reasons": []
+    },
+    "rejected": {
+     "provider": "anthropic",
+     "model": "claude-sonnet-5",
+     "reasons": [
+      "claim 1 has numbers ['2'] but does not cite evidence"
+     ]
+    },
+    "fallback_reason": "rejected by the checker",
+    "evidence": [
+     {
+      "id": "E1",
+      "kind": "case",
+      "signal_name": null,
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T09:54:00Z",
+      "values": {
+       "case_id": 2.0,
+       "episodes": 4.0,
+       "windows": 39.0,
+       "run": 0.0
+      },
+      "unit": null,
+      "times": [
+       "09:08",
+       "09:54"
+      ]
+     },
+     {
+      "id": "E2",
+      "kind": "signal",
+      "signal_name": "outlet_pressure",
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T09:54:00Z",
+      "values": {
+       "windows": 34.0,
+       "episodes": 2.0,
+       "max_score": 16.091355760236258,
+       "band_low": 42.64912986500002,
+       "band_high": 43.215139384999986,
+       "band_center": 42.932134625,
+       "median_min": 38.37820435,
+       "median_max": 41.981840135
+      },
+      "unit": "bar",
+      "times": [
+       "09:08",
+       "09:54"
+      ]
+     },
+     {
+      "id": "E3",
+      "kind": "signal",
+      "signal_name": "pump_vibration_velocity",
+      "first_window": "2024-10-30T09:18:00Z",
+      "last_window": "2024-10-30T09:45:00Z",
+      "values": {
+       "windows": 5.0,
+       "episodes": 2.0,
+       "max_score": 1.5038121051399755,
+       "band_low": 0.0038460159999999938,
+       "band_high": 0.0044614240000000055,
+       "band_center": 0.00415372,
+       "median_min": 0.003690991,
+       "median_max": 0.003844552
+      },
+      "unit": "m/s",
+      "times": [
+       "09:18",
+       "09:45"
+      ]
+     }
+    ],
+    "calibration_status": "not_applicable",
+    "context_hash": "53fbfeacebe8b5854c3ea6bdab61a8414b51149017e288d5944ecd3fd69b838e",
+    "latency_ms": 10264.348542084917
+   }
+  },
+  {
+   "case_id": 2,
+   "synthetic": true,
+   "question": "What should I check next?",
+   "response": {
+    "synthetic": true,
+    "model_version": [
+     "c16d150b5d4fbd0c"
+    ],
+    "assumptions": [
+     "A1",
+     "A2",
+     "A3",
+     "A5",
+     "A6",
+     "A7",
+     "A8"
+    ],
+    "case_id": 2,
+    "run_id": 6,
+    "served": "template",
+    "label": "Evidence summary",
+    "provider": "template",
+    "model": null,
+    "answer": {
+     "claims": [
+      {
+       "text": "This case comes from a SYNTHETIC replay scenario (B_stuck_pressure): it is not evidence about the real pump.",
+       "evidence_refs": [
+        "E1"
+       ],
+       "kind": "limitation"
+      },
+      {
+       "text": "The case has 39 evidence windows in 4 episodes, from 09:08 to 09:54.",
+       "evidence_refs": [
+        "E1"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Outlet pressure was outside its baseline band in 34 windows over 2 episodes; the highest score was 16.1 (band 42.6 to 43.2 bar).",
+       "evidence_refs": [
+        "E2"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "Pump vibration velocity was outside its baseline band in 5 windows over 2 episodes; the highest score was 1.50 (band 0.00385 to 0.00446 m/s).",
+       "evidence_refs": [
+        "E3"
+       ],
+       "kind": "observation"
+      },
+      {
+       "text": "The pattern in outlet pressure may be consistent with a sustained shift away from its run baseline.",
+       "evidence_refs": [
+        "E2"
+       ],
+       "kind": "interpretation"
+      },
+      {
+       "text": "Scores are robust band exceedances, not calibrated probabilities, and CIRA has no fault labels, so the data cannot establish a fault.",
+       "evidence_refs": [
+        "E2"
+       ],
+       "kind": "limitation"
+      },
+      {
+       "text": "Replay scores use declared per-day inputs (A8) and fixed settling times (A7).",
+       "evidence_refs": [],
+       "kind": "limitation"
+      }
+     ],
+     "suggested_checks": [
+      "Look at the raw 1-minute outlet pressure signal around 09:08.",
+      "Compare outlet pressure with the operating log for this run.",
+      "Check whether the same shift appears in other runs of this pump."
+     ],
+     "draft_note": "SYNTHETIC scenario. Reviewed case 2: 39 evidence windows in 4 episodes. Not a diagnosis; read-only checks listed."
+    },
+    "check": {
+     "passed": true,
+     "reasons": []
+    },
+    "rejected": {
+     "provider": "anthropic",
+     "model": "claude-sonnet-5",
+     "reasons": [
+      "claim 7: times ['09:08', '09:54'] are not in the cited evidence"
+     ]
+    },
+    "fallback_reason": "rejected by the checker",
+    "evidence": [
+     {
+      "id": "E1",
+      "kind": "case",
+      "signal_name": null,
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T09:54:00Z",
+      "values": {
+       "case_id": 2.0,
+       "episodes": 4.0,
+       "windows": 39.0,
+       "run": 0.0
+      },
+      "unit": null,
+      "times": [
+       "09:08",
+       "09:54"
+      ]
+     },
+     {
+      "id": "E2",
+      "kind": "signal",
+      "signal_name": "outlet_pressure",
+      "first_window": "2024-10-30T09:08:00Z",
+      "last_window": "2024-10-30T09:54:00Z",
+      "values": {
+       "windows": 34.0,
+       "episodes": 2.0,
+       "max_score": 16.091355760236258,
+       "band_low": 42.64912986500002,
+       "band_high": 43.215139384999986,
+       "band_center": 42.932134625,
+       "median_min": 38.37820435,
+       "median_max": 41.981840135
+      },
+      "unit": "bar",
+      "times": [
+       "09:08",
+       "09:54"
+      ]
+     },
+     {
+      "id": "E3",
+      "kind": "signal",
+      "signal_name": "pump_vibration_velocity",
+      "first_window": "2024-10-30T09:18:00Z",
+      "last_window": "2024-10-30T09:45:00Z",
+      "values": {
+       "windows": 5.0,
+       "episodes": 2.0,
+       "max_score": 1.5038121051399755,
+       "band_low": 0.0038460159999999938,
+       "band_high": 0.0044614240000000055,
+       "band_center": 0.00415372,
+       "median_min": 0.003690991,
+       "median_max": 0.003844552
+      },
+      "unit": "m/s",
+      "times": [
+       "09:18",
+       "09:45"
+      ]
+     }
+    ],
+    "calibration_status": "not_applicable",
+    "context_hash": "53fbfeacebe8b5854c3ea6bdab61a8414b51149017e288d5944ecd3fd69b838e",
+    "latency_ms": 13608.344999956898
+   }
+  }
+ ]
+}
