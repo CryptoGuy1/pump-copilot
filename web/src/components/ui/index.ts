@@ -7,3 +7,4 @@ export { SignalName, displayUnit, sig3, useSignalFormat, useSignalLabel, useSign
 export { Card, Table, ValueReadout } from "./data";
 export { Button, SelectField, Tabs, TextAreaField, TextField, type Tab } from "./controls";
 export { EmptyState, ErrorPanel, Loading, Skeleton } from "./feedback";
+export { RepoCommit, RepoFile, useAbout } from "./links";

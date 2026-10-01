@@ -259,6 +259,23 @@ def _case_versions(conn, case_ids) -> list[str]:
 
 # --- the app -----------------------------------------------------------------------------
 
+def citation(src: dict) -> str:
+    """A source's citation from its manifest metadata: the dataset, then its data descriptor
+    (APA-like; authors as family name and initials)."""
+    def names(authors: list[dict]) -> str:
+        n = [f"{a['family']}, {'. '.join(g[0] for g in a['given'].split())}." for a in authors]
+        return n[0] if len(n) == 1 else f"{', '.join(n[:-1])} and {n[-1]}"
+
+    version = f" (version {src['version']})" if src.get("version") else ""
+    text = (f"{names(src['authors'])} ({src['year']}). {src['cited_title']}{version} [dataset]. "
+            f"{src['publisher']}. https://doi.org/{src['doi']}")
+    if d := src.get("descriptor"):
+        text += (f". Data descriptor: {names(d['authors'])} ({d['year']}). {d['title']}. "
+                 f"{d['journal']} {d['volume']}({d['issue']}), {d['article']}. "
+                 f"https://doi.org/{d['doi']}")
+    return text
+
+
 def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                docs_dir: Path | None = None, cors_origins: list[str] | None = None,
                role: str = API_ROLE, data_dir: Path | None = None,
@@ -581,7 +598,11 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                              "flag_counts": {k: sum(v.get(k, 0) for v in flags.values())
                                              for k in ("readings", "stale_suspected",
                                                        "spike_suspected")}})
-        return {"audit_ok": None if audit is None else audit.get("ok"),
+        import yaml
+
+        issues = yaml.safe_load((data / "known_issues.yaml").read_text())["issues"] \
+            if (data / "known_issues.yaml").exists() else []
+        return {"known_issues": issues, "audit_ok": None if audit is None else audit.get("ok"),
                 "audit_issues": None if audit is None else audit.get("issues", []),
                 "asset_days": rows}
 
@@ -932,6 +953,38 @@ def create_app(database_url: str | None = None, reports_dir: Path | None = None,
                 "report": "reports/cira_scoring_eval.md", "zema": zema,
                 "labels": "REAL results are unlabelled review cases, not confirmed faults;"
                           " SYNTHETIC results come from in-memory injections"}
+
+    @app.get("/api/evaluation/chapters", tags=["evaluation"],
+             response_model=M.EvaluationChapters)
+    def evaluation_chapters():
+        """The evaluation page's three chapters (ZeMA, the CIRA detector, the assistant), from
+        the stored results: every number the page shows, how to read it, and where it comes
+        from (report, pre-registration or holdout commit)."""
+        from . import chapters
+
+        return chapters.chapters(reports)
+
+    @app.get("/api/about", tags=["evaluation"], response_model=M.About)
+    def about():
+        """The data sources (data/manifest.yaml, in use only) and the About page's facts."""
+        import yaml
+
+        manifest = yaml.safe_load((data / "manifest.yaml").read_text())["sources"]
+        facts = yaml.safe_load((data / "about.yaml").read_text())
+        sources = [{"id": k, "title": v["title"],
+                    "authors": [f"{a['given']} {a['family']}" for a in v["authors"]],
+                    "citation": citation(v), "landing_page": v["landing_page"],
+                    "license": "CC BY 4.0" if str(v["license"]).lower().replace("-", " ")
+                    == "cc by 4.0" else str(v["license"]),
+                    "license_url": v.get("license_url"), "changes": v.get("changes"),
+                    "role": v["role"]}
+                   for k, v in manifest.items() if k in ("cira", "zema")]
+        a = facts["author"]
+        return {"sources": sources,
+                "repository": facts["repository"] if facts.get("repository_public") else None,
+                "author": {"name": a["name"], "role": a.get("role") or None,
+                           "links": [x for x in a.get("links") or [] if x.get("url")]},
+                **{k: facts[k] for k in ("stack", "ai_assistance")}}
 
     @app.get("/api/signal-names", tags=["asset-day"], response_model=M.SignalNames)
     def signal_names_():

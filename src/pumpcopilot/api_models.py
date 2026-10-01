@@ -315,10 +315,18 @@ class QualityRow(Model):
     flag_counts: dict[str, int]
 
 
+class KnownIssue(Model):
+    title: str
+    detail: str
+    assumption: str = Field(description="the assumption (docs/ASSUMPTIONS.md) that handles it")
+
+
 class DataQuality(Model):
     audit_ok: bool | None
     audit_issues: list[str] | None
     asset_days: list[QualityRow]
+    known_issues: list[KnownIssue] = Field(
+        [], description="known data issues, each tied to its assumption")
 
 
 # --- cases -------------------------------------------------------------------------------
@@ -713,3 +721,180 @@ class AssistantResponse(Provenance):
     calibration_status: str
     context_hash: str
     latency_ms: float
+
+
+# --- evaluation chapters, about, known issues (Step 5b stage 3) ------------------------------
+
+class Prereg(Model):
+    tag: str | None
+    commit: str | None
+
+
+class F1Interval(Model):
+    model: str
+    macro_f1: float
+    lo: float | None
+    hi: float | None
+    n_blocks: int | None
+
+
+class ZemaSplit(Model):
+    split: str
+    headline: F1Interval
+    majority: F1Interval
+
+
+class Confusion(Model):
+    split: str
+    model: str
+    labels: list[str]
+    matrix: list[list[int]] = Field(description="rows: true leakage state; columns: predicted")
+    n: int
+
+
+class Shortcut(Model):
+    table: dict[str, dict[str, int]] | None = Field(description="stable flag -> leakage -> cycles")
+    axes: str | None
+    n_cycles: int | None
+    mutual_information_bits: float | None
+    share_of_leakage_entropy: float | None
+
+
+class ZemaChapter(Model):
+    how_to_read: str
+    contrast: str | None = Field(description="the headline model's random against "
+                                             "chronological macro-F1, in one line")
+    scope_note: str
+    splits: list[ZemaSplit]
+    confusion: Confusion
+    shortcut: Shortcut
+    calibration: CalibrationGrade | None
+    report: str
+    preregistration: Prereg
+
+
+class ModePump(Model):
+    pump: str
+    abstained: str | None
+    cases: int | None
+    cases_per_running_hour: float | None
+    case_time_fraction: float | None
+
+
+class CiraMode(Model):
+    mode: str = Field(description="the internal label")
+    name: str = Field(description="the plain name")
+    pumps: list[ModePump]
+    exploratory: list[ModePump] = Field(description="runs outside the protocol")
+
+
+class DetectionCell(Model):
+    fault: str
+    size: float
+    size_label: str
+    injections: int
+    detected: int
+    detection_rate: float
+    median_delay_s: float | None
+    size_class: Literal["small", "medium", "large"] | None
+
+
+class SyntheticDetection(Model):
+    day: str
+    cells: list[DetectionCell]
+    starts_per_fault: int
+
+
+class CiraChapter(Model):
+    how_to_read: str
+    modes: list[CiraMode]
+    synthetic: SyntheticDetection
+    key_finding: str | None
+    exploratory_note: str
+    report: str
+    preregistration: Prereg
+
+
+class QuestionSet(Model):
+    set: str
+    total: int
+    served_checked: int
+
+
+class AdversarialRates(Model):
+    total: int
+    raw_passed: int
+    final_passed: int
+    final_passed_corrected: int | None = None
+
+
+class AssistantRevision(Model):
+    revision: str
+    checker_version: int
+    questions: QuestionSet
+    holdout_commit: str | None
+    adversarial: AdversarialRates
+
+
+class FlaggedAnswer(Model):
+    run: str
+    set: str
+    id: str
+    where: Literal["claim", "check", "note"]
+    text: str
+    rule_hit: str
+    verdict: str | None = Field(description="a person's reading; unreviewed flags count")
+    why: str | None
+    reviewed_by: str | None
+
+
+class AssistantChapter(Model):
+    how_to_read: str
+    revisions: list[AssistantRevision]
+    instructions_served: int
+    served_answers: int
+    flagged: list[FlaggedAnswer]
+    instructions_rule: str
+    report: str
+
+
+class EvaluationChapters(Model):
+    zema: ZemaChapter | None
+    cira: CiraChapter | None
+    assistant: AssistantChapter | None
+
+
+class Source(Model):
+    id: str
+    title: str
+    authors: list[str] = Field(description="the dataset's creators, as its record lists them")
+    citation: str = Field(description="the dataset, then its data descriptor where there is one")
+    landing_page: str
+    license: str
+    license_url: str | None
+    changes: str | None = Field(description="what this project changed (CC BY 4.0 asks for it)")
+    role: str
+
+
+class StackItem(Model):
+    layer: str
+    what: str
+
+
+class ProfileLink(Model):
+    label: str
+    url: str
+
+
+class Author(Model):
+    name: str
+    role: str | None
+    links: list[ProfileLink]
+
+
+class About(Model):
+    sources: list[Source]
+    repository: str | None = Field(description="null while the repository is private")
+    author: Author
+    stack: list[StackItem]
+    ai_assistance: str

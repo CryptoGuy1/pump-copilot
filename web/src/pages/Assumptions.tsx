@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { useLocation } from "react-router-dom";
 import { Loading, useAssumptions } from "../components/ui";
 
@@ -6,6 +7,7 @@ import { Loading, useAssumptions } from "../components/ui";
  * says, its evidence, the impact if it is wrong and how to revisit it. An assumption chip
  * anywhere in the app opens its entry here. */
 export function Assumptions() {
+  usePageTitle("Assumptions register");
   const q = useAssumptions();
   const { hash } = useLocation();
   const open = decodeURIComponent(hash.replace(/^#/, ""));

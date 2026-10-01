@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/api/about": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * About
+         * @description The data sources (data/manifest.yaml, in use only) and the About page's facts.
+         */
+        get: operations["about_api_about_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/assets": {
         parameters: {
             query?: never;
@@ -353,6 +373,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/evaluation/chapters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Evaluation Chapters
+         * @description The evaluation page's three chapters (ZeMA, the CIRA detector, the assistant), from
+         *     the stored results: every number the page shows, how to read it, and where it comes
+         *     from (report, pre-registration or holdout commit).
+         */
+        get: operations["evaluation_chapters_api_evaluation_chapters_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fleet": {
         parameters: {
             query?: never;
@@ -570,6 +612,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** About */
+        About: {
+            /** Ai Assistance */
+            ai_assistance: string;
+            author: components["schemas"]["Author"];
+            /**
+             * Repository
+             * @description null while the repository is private
+             */
+            repository: string | null;
+            /** Sources */
+            sources: components["schemas"]["Source"][];
+            /** Stack */
+            stack: components["schemas"]["StackItem"][];
+        };
         /** Actor */
         Actor: {
             /**
@@ -577,6 +634,17 @@ export interface components {
              * @description who is acting
              */
             actor: string;
+        };
+        /** AdversarialRates */
+        AdversarialRates: {
+            /** Final Passed */
+            final_passed: number;
+            /** Final Passed Corrected */
+            final_passed_corrected?: number | null;
+            /** Raw Passed */
+            raw_passed: number;
+            /** Total */
+            total: number;
         };
         /** AssetDayQuality */
         AssetDayQuality: {
@@ -663,6 +731,23 @@ export interface components {
              */
             suggested_checks?: string[];
         };
+        /** AssistantChapter */
+        AssistantChapter: {
+            /** Flagged */
+            flagged: components["schemas"]["FlaggedAnswer"][];
+            /** How To Read */
+            how_to_read: string;
+            /** Instructions Rule */
+            instructions_rule: string;
+            /** Instructions Served */
+            instructions_served: number;
+            /** Report */
+            report: string;
+            /** Revisions */
+            revisions: components["schemas"]["AssistantRevision"][];
+            /** Served Answers */
+            served_answers: number;
+        };
         /** AssistantQuestion */
         AssistantQuestion: {
             /**
@@ -726,6 +811,17 @@ export interface components {
              */
             synthetic: boolean;
         };
+        /** AssistantRevision */
+        AssistantRevision: {
+            adversarial: components["schemas"]["AdversarialRates"];
+            /** Checker Version */
+            checker_version: number;
+            /** Holdout Commit */
+            holdout_commit: string | null;
+            questions: components["schemas"]["QuestionSet"];
+            /** Revision */
+            revision: string;
+        };
         /** AssumptionItem */
         AssumptionItem: {
             /** Assumption */
@@ -768,6 +864,15 @@ export interface components {
             span: string[] | null;
             /** Timestamp Assumption */
             timestamp_assumption: string | null;
+        };
+        /** Author */
+        Author: {
+            /** Links */
+            links: components["schemas"]["ProfileLink"][];
+            /** Name */
+            name: string;
+            /** Role */
+            role: string | null;
         };
         /** Band */
         Band: {
@@ -1129,6 +1234,41 @@ export interface components {
             /** Reasons */
             reasons: string[];
         };
+        /** CiraChapter */
+        CiraChapter: {
+            /** Exploratory Note */
+            exploratory_note: string;
+            /** How To Read */
+            how_to_read: string;
+            /** Key Finding */
+            key_finding: string | null;
+            /** Modes */
+            modes: components["schemas"]["CiraMode"][];
+            preregistration: components["schemas"]["Prereg"];
+            /** Report */
+            report: string;
+            synthetic: components["schemas"]["SyntheticDetection"];
+        };
+        /** CiraMode */
+        CiraMode: {
+            /**
+             * Exploratory
+             * @description runs outside the protocol
+             */
+            exploratory: components["schemas"]["ModePump"][];
+            /**
+             * Mode
+             * @description the internal label
+             */
+            mode: string;
+            /**
+             * Name
+             * @description the plain name
+             */
+            name: string;
+            /** Pumps */
+            pumps: components["schemas"]["ModePump"][];
+        };
         /** Claim */
         Claim: {
             /**
@@ -1144,6 +1284,22 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** Confusion */
+        Confusion: {
+            /** Labels */
+            labels: string[];
+            /**
+             * Matrix
+             * @description rows: true leakage state; columns: predicted
+             */
+            matrix: number[][];
+            /** Model */
+            model: string;
+            /** N */
+            n: number;
+            /** Split */
+            split: string;
+        };
         /** DataQuality */
         DataQuality: {
             /** Asset Days */
@@ -1152,6 +1308,12 @@ export interface components {
             audit_issues: string[] | null;
             /** Audit Ok */
             audit_ok: boolean | null;
+            /**
+             * Known Issues
+             * @description known data issues, each tied to its assumption
+             * @default []
+             */
+            known_issues: components["schemas"]["KnownIssue"][];
         };
         /** DataQualityBrief */
         DataQualityBrief: {
@@ -1226,6 +1388,25 @@ export interface components {
             /** Synthetic */
             synthetic: boolean;
         };
+        /** DetectionCell */
+        DetectionCell: {
+            /** Detected */
+            detected: number;
+            /** Detection Rate */
+            detection_rate: number;
+            /** Fault */
+            fault: string;
+            /** Injections */
+            injections: number;
+            /** Median Delay S */
+            median_delay_s: number | null;
+            /** Size */
+            size: number;
+            /** Size Class */
+            size_class: ("small" | "medium" | "large") | null;
+            /** Size Label */
+            size_label: string;
+        };
         /** DispositionIn */
         DispositionIn: {
             /**
@@ -1278,6 +1459,12 @@ export interface components {
             /** Report */
             report: string;
             zema: components["schemas"]["ZemaBenchmark"];
+        };
+        /** EvaluationChapters */
+        EvaluationChapters: {
+            assistant: components["schemas"]["AssistantChapter"] | null;
+            cira: components["schemas"]["CiraChapter"] | null;
+            zema: components["schemas"]["ZemaChapter"] | null;
         };
         /** EvidencePage */
         EvidencePage: {
@@ -1456,6 +1643,19 @@ export interface components {
              */
             window_start: string;
         };
+        /** F1Interval */
+        F1Interval: {
+            /** Hi */
+            hi: number | null;
+            /** Lo */
+            lo: number | null;
+            /** Macro F1 */
+            macro_f1: number;
+            /** Model */
+            model: string;
+            /** N Blocks */
+            n_blocks: number | null;
+        };
         /** FeatureWindow */
         FeatureWindow: {
             /**
@@ -1468,6 +1668,33 @@ export interface components {
              * Format: date-time
              */
             start: string;
+        };
+        /** FlaggedAnswer */
+        FlaggedAnswer: {
+            /** Id */
+            id: string;
+            /** Reviewed By */
+            reviewed_by: string | null;
+            /** Rule Hit */
+            rule_hit: string;
+            /** Run */
+            run: string;
+            /** Set */
+            set: string;
+            /** Text */
+            text: string;
+            /**
+             * Verdict
+             * @description a person's reading; unreviewed flags count
+             */
+            verdict: string | null;
+            /**
+             * Where
+             * @enum {string}
+             */
+            where: "claim" | "check" | "note";
+            /** Why */
+            why: string | null;
         };
         /** Fleet */
         Fleet: {
@@ -1526,6 +1753,18 @@ export interface components {
             status: "ok" | "degraded" | "down";
             worker: components["schemas"]["WorkerHealth"];
         };
+        /** KnownIssue */
+        KnownIssue: {
+            /**
+             * Assumption
+             * @description the assumption (docs/ASSUMPTIONS.md) that handles it
+             */
+            assumption: string;
+            /** Detail */
+            detail: string;
+            /** Title */
+            title: string;
+        };
         /** MinutePoint */
         MinutePoint: {
             /**
@@ -1543,6 +1782,19 @@ export interface components {
             readings: number;
             /** Samples */
             samples: number;
+        };
+        /** ModePump */
+        ModePump: {
+            /** Abstained */
+            abstained: string | null;
+            /** Case Time Fraction */
+            case_time_fraction: number | null;
+            /** Cases */
+            cases: number | null;
+            /** Cases Per Running Hour */
+            cases_per_running_hour: number | null;
+            /** Pump */
+            pump: string;
         };
         /** ModeResult */
         ModeResult: {
@@ -1570,12 +1822,26 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** Prereg */
+        Prereg: {
+            /** Commit */
+            commit: string | null;
+            /** Tag */
+            tag: string | null;
+        };
         /**
          * PresentationState
          * @description The only four states the UI may show. There is intentionally no 'alarm'.
          * @enum {string}
          */
         PresentationState: "normal" | "review_suggested" | "insufficient_evidence" | "data_unavailable";
+        /** ProfileLink */
+        ProfileLink: {
+            /** Label */
+            label: string;
+            /** Url */
+            url: string;
+        };
         /** Pump */
         Pump: {
             /** Asset Id */
@@ -1646,6 +1912,15 @@ export interface components {
              * Format: date
              */
             source_day: string;
+        };
+        /** QuestionSet */
+        QuestionSet: {
+            /** Served Checked */
+            served_checked: number;
+            /** Set */
+            set: string;
+            /** Total */
+            total: number;
         };
         /** RawPoint */
         RawPoint: {
@@ -2041,6 +2316,26 @@ export interface components {
             /** Sessions */
             sessions: components["schemas"]["Session"][];
         };
+        /** Shortcut */
+        Shortcut: {
+            /** Axes */
+            axes: string | null;
+            /** Mutual Information Bits */
+            mutual_information_bits: number | null;
+            /** N Cycles */
+            n_cycles: number | null;
+            /** Share Of Leakage Entropy */
+            share_of_leakage_entropy: number | null;
+            /**
+             * Table
+             * @description stable flag -> leakage -> cycles
+             */
+            table: {
+                [key: string]: {
+                    [key: string]: number;
+                };
+            } | null;
+        };
         /** SignalName */
         SignalName: {
             /**
@@ -2127,6 +2422,36 @@ export interface components {
              */
             source_day: string;
         };
+        /** Source */
+        Source: {
+            /**
+             * Authors
+             * @description the dataset's creators, as its record lists them
+             */
+            authors: string[];
+            /**
+             * Changes
+             * @description what this project changed (CC BY 4.0 asks for it)
+             */
+            changes: string | null;
+            /**
+             * Citation
+             * @description the dataset, then its data descriptor where there is one
+             */
+            citation: string;
+            /** Id */
+            id: string;
+            /** Landing Page */
+            landing_page: string;
+            /** License */
+            license: string;
+            /** License Url */
+            license_url: string | null;
+            /** Role */
+            role: string;
+            /** Title */
+            title: string;
+        };
         /**
          * SourceDataset
          * @enum {string}
@@ -2140,11 +2465,27 @@ export interface components {
              */
             speed: 1 | 10 | 60;
         };
+        /** StackItem */
+        StackItem: {
+            /** Layer */
+            layer: string;
+            /** What */
+            what: string;
+        };
         /**
          * StreamEvent
          * @description One server-sent event: `id:` is the event id, `event:` the type, `data:` the JSON.
          */
         StreamEvent: components["schemas"]["ReplayProgressMessage"] | components["schemas"]["ScoreBatchMessage"] | components["schemas"]["CaseEventMessage"];
+        /** SyntheticDetection */
+        SyntheticDetection: {
+            /** Cells */
+            cells: components["schemas"]["DetectionCell"][];
+            /** Day */
+            day: string;
+            /** Starts Per Fault */
+            starts_per_fault: number;
+        };
         /** TimelineEvent */
         TimelineEvent: {
             /** Actor */
@@ -2249,6 +2590,26 @@ export interface components {
              */
             status: "not_tuned" | "pre-registered, not yet evaluated" | "evaluated";
         };
+        /** ZemaChapter */
+        ZemaChapter: {
+            calibration: components["schemas"]["CalibrationGrade"] | null;
+            confusion: components["schemas"]["Confusion"];
+            /**
+             * Contrast
+             * @description the headline model's random against chronological macro-F1, in one line
+             */
+            contrast: string | null;
+            /** How To Read */
+            how_to_read: string;
+            preregistration: components["schemas"]["Prereg"];
+            /** Report */
+            report: string;
+            /** Scope Note */
+            scope_note: string;
+            shortcut: components["schemas"]["Shortcut"];
+            /** Splits */
+            splits: components["schemas"]["ZemaSplit"][];
+        };
         /** ZemaScore */
         ZemaScore: {
             /** @description measured on the test part of this split, for this model */
@@ -2257,6 +2618,13 @@ export interface components {
             evidence: components["schemas"]["ScoredEvidence"];
             /** Model */
             model: string;
+            /** Split */
+            split: string;
+        };
+        /** ZemaSplit */
+        ZemaSplit: {
+            headline: components["schemas"]["F1Interval"];
+            majority: components["schemas"]["F1Interval"];
             /** Split */
             split: string;
         };
@@ -2320,6 +2688,53 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    about_api_about_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["About"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     assets_api_assets_get: {
         parameters: {
             query?: never;
@@ -3312,6 +3727,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Evaluation"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    evaluation_chapters_api_evaluation_chapters_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationChapters"];
                 };
             };
             /** @description Not Found */

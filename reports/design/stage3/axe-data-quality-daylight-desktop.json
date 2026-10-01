@@ -1,0 +1,16 @@
+{
+  "page": "data-quality",
+  "theme": "daylight",
+  "viewport": "desktop",
+  "url": "http://127.0.0.1:5175/data-quality?theme=daylight",
+  "tags": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa",
+    "wcag22aa"
+  ],
+  "passes": 24,
+  "violations": [],
+  "incomplete": []
+}

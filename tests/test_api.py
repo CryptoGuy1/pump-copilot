@@ -1130,3 +1130,105 @@ def test_the_signal_names_endpoint(client):
     assert names["outlet_pressure"] == {"display_name": "Outlet pressure",
                                         "short_name": "Outlet pres.", "unit": "bar"}
     assert "pump_accelerometer_contact_temperature_rel_ambient" in names
+
+
+# --- evaluation chapters, about, known issues (Step 5b stage 3) -------------------------------
+
+def test_the_evaluation_chapters_come_from_the_stored_results():
+    from pumpcopilot import chapters
+
+    reports = ROOT / "reports"
+    c = chapters.chapters(reports)
+    zema = json.loads((reports / "zema_benchmark.json").read_text())
+    for s in c["zema"]["splits"]:
+        r = zema["splits"][s["split"]][s["headline"]["model"]]
+        assert s["headline"]["macro_f1"] == r["test"]["macro_f1"]
+        assert s["headline"]["lo"] == r["ci95"]["macro_f1"]["lo"]
+    head = zema["splits"]["chronological"][zema["headline"]["chronological"]]["test"]
+    assert c["zema"]["confusion"]["matrix"] == head["confusion"]
+    assert c["zema"]["preregistration"]["commit"] == zema["preregistration"]["commit"]
+    guess = [s["majority"]["macro_f1"] for s in c["zema"]["splits"]]
+    assert f"{min(guess):.2f} to {max(guess):.2f}" in c["zema"]["how_to_read"]
+    heads = {s["split"]: s["headline"]["macro_f1"] for s in c["zema"]["splits"]}
+    assert c["zema"]["contrast"] == (f"Same model, same data: {heads['random']:.3f} on a random "
+                                     f"split, {heads['chronological']:.3f} on a chronological one")
+    cases = json.loads((reports / "cira_cases_all_modes.json").read_text())
+    last = {p["pump"]: p for p in c["cira"]["modes"][-1]["pumps"]}
+    assert last["B"]["case_time_fraction"] == cases["3a-3 within-run steady"]["B"][
+        "case_time_fraction"]
+    assert f"{last['B']['case_time_fraction']:.1%}" in c["cira"]["key_finding"]
+    assert len(c["cira"]["synthetic"]["cells"]) == 15
+    for f in {x["fault"] for x in c["cira"]["synthetic"]["cells"]}:
+        row = sorted((x for x in c["cira"]["synthetic"]["cells"] if x["fault"] == f),
+                     key=lambda x: x["size"])
+        assert [x["size_class"] for x in row] == ["small", "medium", "large"]
+    # the exploratory pump A runs sit apart from the protocol's columns
+    assert all(p["pump"] in ("A", "B") for m in c["cira"]["modes"] for p in m["pumps"])
+    assert [(m["mode"], [p["case_time_fraction"] for p in m["exploratory"]])
+            for m in c["cira"]["modes"] if m["exploratory"]] == [
+        (m, [cases[m]["A (exploratory)"]["case_time_fraction"]])
+        for m in ("3a across-day", "3a-2 across-day")]
+    r2 = json.loads((reports / "assistant_eval_r2.json").read_text())
+    rev = {r["revision"]: r for r in c["assistant"]["revisions"]}
+    assert rev["r2"]["questions"]["served_checked"] == r2["holdout2"]["served"]["assistant"]
+    assert rev["r2"]["adversarial"]["raw_passed"] == r2["adversarial"]["raw_passed_checker"]
+
+
+def test_no_instruction_was_served_and_every_flag_is_shown_with_its_review():
+    """The final checker's rule, applied to every answer the model served in the stored runs,
+    flags one baseline refusal; a person read it as not an instruction. A flag without such a
+    review would count as an instruction served."""
+    from pumpcopilot import chapters
+
+    a = chapters.assistant(ROOT / "reports")
+    assert a["served_answers"] > 0 and a["instructions_served"] == 0
+    assert [(f["run"], f["id"], f["verdict"]) for f in a["flagged"]] == [
+        ("baseline", "control_action-01", "not an instruction")]
+    none = chapters.assistant(ROOT / "reports", reviews_file=ROOT / "no-such-file.yaml")
+    assert none["instructions_served"] == len(none["flagged"]) == 1
+
+
+def test_about_lists_the_sources_in_use_with_their_licences():
+    with TestClient(_app()) as c:
+        about = c.get("/api/about").json()
+    src = {s["id"]: s for s in about["sources"]}
+    assert set(src) == {"cira", "zema"}
+    for s in src.values():
+        assert s["license"] == "CC BY 4.0"
+        assert s["license_url"] == "https://creativecommons.org/licenses/by/4.0/"
+        assert s["changes"] == "raw data unchanged; features and scores derived"
+        assert all(a in s["citation"] for a in (x.split()[-1] for x in s["authors"]))
+    assert src["zema"]["authors"] == ["Nikolai Helwig", "Eliseo Pignanelli", "Andreas Schütze"]
+    assert src["zema"]["citation"].startswith(
+        "Helwig, N., Pignanelli, E. and Schütze, A. (2015). Condition monitoring of hydraulic "
+        "systems [dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5CW21")
+    assert src["cira"]["authors"] == ["Angelo Martone", "Gaetano Zazzaro"]
+    assert "https://doi.org/10.5281/zenodo.18479728" in src["cira"]["citation"]
+    assert "Data descriptor: Martone, A., D’Ambrosio, A., Ferrucci, M., Cembalo, A., Romano, " \
+           "G. and Zazzaro, G. (2025)" in src["cira"]["citation"]
+    assert about["author"]["name"] == "Benjamin Nweke" and about["stack"]
+    assert about["ai_assistance"].startswith("Built by Benjamin Nweke with Claude")
+
+
+def test_the_repository_link_is_hidden_while_the_repository_is_private(tmp_path):
+    import shutil
+
+    import yaml
+
+    facts = yaml.safe_load((ROOT / "data" / "about.yaml").read_text())
+    shutil.copy(ROOT / "data" / "manifest.yaml", tmp_path / "manifest.yaml")
+    shown = {}
+    for public in (False, True):
+        (tmp_path / "about.yaml").write_text(yaml.safe_dump(facts | {"repository_public": public}))
+        with TestClient(_app(data=tmp_path)) as c:
+            shown[public] = c.get("/api/about").json()["repository"]
+    assert shown == {False: None, True: facts["repository"]}
+
+
+def test_known_data_issues_each_point_to_an_assumption():
+    import yaml
+
+    issues = yaml.safe_load((ROOT / "data" / "known_issues.yaml").read_text())["issues"]
+    register = {a["id"] for a in api.parse_assumptions(ROOT / "docs" / "ASSUMPTIONS.md")}
+    assert issues and {i["assumption"] for i in issues} <= register
+    assert {f"A{n}" for n in range(1, 9)} <= {i["assumption"] for i in issues}

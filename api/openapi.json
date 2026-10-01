@@ -1,6 +1,53 @@
 {
   "components": {
     "schemas": {
+      "About": {
+        "additionalProperties": false,
+        "properties": {
+          "ai_assistance": {
+            "title": "Ai Assistance",
+            "type": "string"
+          },
+          "author": {
+            "$ref": "#/components/schemas/Author"
+          },
+          "repository": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null while the repository is private",
+            "title": "Repository"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "stack": {
+            "items": {
+              "$ref": "#/components/schemas/StackItem"
+            },
+            "title": "Stack",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sources",
+          "repository",
+          "author",
+          "stack",
+          "ai_assistance"
+        ],
+        "title": "About",
+        "type": "object"
+      },
       "Actor": {
         "properties": {
           "actor": {
@@ -14,6 +61,41 @@
           "actor"
         ],
         "title": "Actor",
+        "type": "object"
+      },
+      "AdversarialRates": {
+        "additionalProperties": false,
+        "properties": {
+          "final_passed": {
+            "title": "Final Passed",
+            "type": "integer"
+          },
+          "final_passed_corrected": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Final Passed Corrected"
+          },
+          "raw_passed": {
+            "title": "Raw Passed",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "raw_passed",
+          "final_passed"
+        ],
+        "title": "AdversarialRates",
         "type": "object"
       },
       "AssetDayQuality": {
@@ -230,6 +312,56 @@
         "title": "AssistantAnswer",
         "type": "object"
       },
+      "AssistantChapter": {
+        "additionalProperties": false,
+        "properties": {
+          "flagged": {
+            "items": {
+              "$ref": "#/components/schemas/FlaggedAnswer"
+            },
+            "title": "Flagged",
+            "type": "array"
+          },
+          "how_to_read": {
+            "title": "How To Read",
+            "type": "string"
+          },
+          "instructions_rule": {
+            "title": "Instructions Rule",
+            "type": "string"
+          },
+          "instructions_served": {
+            "title": "Instructions Served",
+            "type": "integer"
+          },
+          "report": {
+            "title": "Report",
+            "type": "string"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/AssistantRevision"
+            },
+            "title": "Revisions",
+            "type": "array"
+          },
+          "served_answers": {
+            "title": "Served Answers",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "how_to_read",
+          "revisions",
+          "instructions_served",
+          "served_answers",
+          "flagged",
+          "instructions_rule",
+          "report"
+        ],
+        "title": "AssistantChapter",
+        "type": "object"
+      },
       "AssistantQuestion": {
         "additionalProperties": false,
         "properties": {
@@ -388,6 +520,45 @@
           "latency_ms"
         ],
         "title": "AssistantResponse",
+        "type": "object"
+      },
+      "AssistantRevision": {
+        "additionalProperties": false,
+        "properties": {
+          "adversarial": {
+            "$ref": "#/components/schemas/AdversarialRates"
+          },
+          "checker_version": {
+            "title": "Checker Version",
+            "type": "integer"
+          },
+          "holdout_commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Holdout Commit"
+          },
+          "questions": {
+            "$ref": "#/components/schemas/QuestionSet"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "revision",
+          "checker_version",
+          "questions",
+          "holdout_commit",
+          "adversarial"
+        ],
+        "title": "AssistantRevision",
         "type": "object"
       },
       "AssumptionItem": {
@@ -568,6 +739,40 @@
           "non_monotonic_steps"
         ],
         "title": "AuditFile",
+        "type": "object"
+      },
+      "Author": {
+        "additionalProperties": false,
+        "properties": {
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/ProfileLink"
+            },
+            "title": "Links",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          }
+        },
+        "required": [
+          "name",
+          "role",
+          "links"
+        ],
+        "title": "Author",
         "type": "object"
       },
       "Band": {
@@ -1507,6 +1712,96 @@
         "title": "CheckOut",
         "type": "object"
       },
+      "CiraChapter": {
+        "additionalProperties": false,
+        "properties": {
+          "exploratory_note": {
+            "title": "Exploratory Note",
+            "type": "string"
+          },
+          "how_to_read": {
+            "title": "How To Read",
+            "type": "string"
+          },
+          "key_finding": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Finding"
+          },
+          "modes": {
+            "items": {
+              "$ref": "#/components/schemas/CiraMode"
+            },
+            "title": "Modes",
+            "type": "array"
+          },
+          "preregistration": {
+            "$ref": "#/components/schemas/Prereg"
+          },
+          "report": {
+            "title": "Report",
+            "type": "string"
+          },
+          "synthetic": {
+            "$ref": "#/components/schemas/SyntheticDetection"
+          }
+        },
+        "required": [
+          "how_to_read",
+          "modes",
+          "synthetic",
+          "key_finding",
+          "exploratory_note",
+          "report",
+          "preregistration"
+        ],
+        "title": "CiraChapter",
+        "type": "object"
+      },
+      "CiraMode": {
+        "additionalProperties": false,
+        "properties": {
+          "exploratory": {
+            "description": "runs outside the protocol",
+            "items": {
+              "$ref": "#/components/schemas/ModePump"
+            },
+            "title": "Exploratory",
+            "type": "array"
+          },
+          "mode": {
+            "description": "the internal label",
+            "title": "Mode",
+            "type": "string"
+          },
+          "name": {
+            "description": "the plain name",
+            "title": "Name",
+            "type": "string"
+          },
+          "pumps": {
+            "items": {
+              "$ref": "#/components/schemas/ModePump"
+            },
+            "title": "Pumps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "mode",
+          "name",
+          "pumps",
+          "exploratory"
+        ],
+        "title": "CiraMode",
+        "type": "object"
+      },
       "Claim": {
         "additionalProperties": false,
         "properties": {
@@ -1539,6 +1834,50 @@
           "kind"
         ],
         "title": "Claim",
+        "type": "object"
+      },
+      "Confusion": {
+        "additionalProperties": false,
+        "properties": {
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Labels",
+            "type": "array"
+          },
+          "matrix": {
+            "description": "rows: true leakage state; columns: predicted",
+            "items": {
+              "items": {
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            "title": "Matrix",
+            "type": "array"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "n": {
+            "title": "N",
+            "type": "integer"
+          },
+          "split": {
+            "title": "Split",
+            "type": "string"
+          }
+        },
+        "required": [
+          "split",
+          "model",
+          "labels",
+          "matrix",
+          "n"
+        ],
+        "title": "Confusion",
         "type": "object"
       },
       "DataQuality": {
@@ -1575,6 +1914,15 @@
               }
             ],
             "title": "Audit Ok"
+          },
+          "known_issues": {
+            "default": [],
+            "description": "known data issues, each tied to its assumption",
+            "items": {
+              "$ref": "#/components/schemas/KnownIssue"
+            },
+            "title": "Known Issues",
+            "type": "array"
           }
         },
         "required": [
@@ -1791,6 +2139,74 @@
         "title": "DaySession",
         "type": "object"
       },
+      "DetectionCell": {
+        "additionalProperties": false,
+        "properties": {
+          "detected": {
+            "title": "Detected",
+            "type": "integer"
+          },
+          "detection_rate": {
+            "title": "Detection Rate",
+            "type": "number"
+          },
+          "fault": {
+            "title": "Fault",
+            "type": "string"
+          },
+          "injections": {
+            "title": "Injections",
+            "type": "integer"
+          },
+          "median_delay_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Delay S"
+          },
+          "size": {
+            "title": "Size",
+            "type": "number"
+          },
+          "size_class": {
+            "anyOf": [
+              {
+                "enum": [
+                  "small",
+                  "medium",
+                  "large"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Class"
+          },
+          "size_label": {
+            "title": "Size Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "fault",
+          "size",
+          "size_label",
+          "injections",
+          "detected",
+          "detection_rate",
+          "median_delay_s",
+          "size_class"
+        ],
+        "title": "DetectionCell",
+        "type": "object"
+      },
       "DispositionIn": {
         "properties": {
           "actor": {
@@ -1916,6 +2332,48 @@
           "zema"
         ],
         "title": "Evaluation",
+        "type": "object"
+      },
+      "EvaluationChapters": {
+        "additionalProperties": false,
+        "properties": {
+          "assistant": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssistantChapter"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cira": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CiraChapter"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "zema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ZemaChapter"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "zema",
+          "cira",
+          "assistant"
+        ],
+        "title": "EvaluationChapters",
         "type": "object"
       },
       "EvidencePage": {
@@ -2445,6 +2903,61 @@
         "title": "ExportEvidence",
         "type": "object"
       },
+      "F1Interval": {
+        "additionalProperties": false,
+        "properties": {
+          "hi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hi"
+          },
+          "lo": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lo"
+          },
+          "macro_f1": {
+            "title": "Macro F1",
+            "type": "number"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "n_blocks": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N Blocks"
+          }
+        },
+        "required": [
+          "model",
+          "macro_f1",
+          "lo",
+          "hi",
+          "n_blocks"
+        ],
+        "title": "F1Interval",
+        "type": "object"
+      },
       "FeatureWindow": {
         "additionalProperties": false,
         "properties": {
@@ -2464,6 +2977,87 @@
           "end"
         ],
         "title": "FeatureWindow",
+        "type": "object"
+      },
+      "FlaggedAnswer": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "reviewed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed By"
+          },
+          "rule_hit": {
+            "title": "Rule Hit",
+            "type": "string"
+          },
+          "run": {
+            "title": "Run",
+            "type": "string"
+          },
+          "set": {
+            "title": "Set",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "verdict": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "a person's reading; unreviewed flags count",
+            "title": "Verdict"
+          },
+          "where": {
+            "enum": [
+              "claim",
+              "check",
+              "note"
+            ],
+            "title": "Where",
+            "type": "string"
+          },
+          "why": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Why"
+          }
+        },
+        "required": [
+          "run",
+          "set",
+          "id",
+          "where",
+          "text",
+          "rule_hit",
+          "verdict",
+          "why",
+          "reviewed_by"
+        ],
+        "title": "FlaggedAnswer",
         "type": "object"
       },
       "Fleet": {
@@ -2592,6 +3186,31 @@
         "title": "Health",
         "type": "object"
       },
+      "KnownIssue": {
+        "additionalProperties": false,
+        "properties": {
+          "assumption": {
+            "description": "the assumption (docs/ASSUMPTIONS.md) that handles it",
+            "title": "Assumption",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "detail",
+          "assumption"
+        ],
+        "title": "KnownIssue",
+        "type": "object"
+      },
       "MinutePoint": {
         "additionalProperties": false,
         "properties": {
@@ -2651,6 +3270,68 @@
           "readings"
         ],
         "title": "MinutePoint",
+        "type": "object"
+      },
+      "ModePump": {
+        "additionalProperties": false,
+        "properties": {
+          "abstained": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abstained"
+          },
+          "case_time_fraction": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Time Fraction"
+          },
+          "cases": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cases"
+          },
+          "cases_per_running_hour": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cases Per Running Hour"
+          },
+          "pump": {
+            "title": "Pump",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pump",
+          "abstained",
+          "cases",
+          "cases_per_running_hour",
+          "case_time_fraction"
+        ],
+        "title": "ModePump",
         "type": "object"
       },
       "ModeResult": {
@@ -2719,6 +3400,39 @@
         "title": "NoteIn",
         "type": "object"
       },
+      "Prereg": {
+        "additionalProperties": false,
+        "properties": {
+          "commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commit"
+          },
+          "tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag"
+          }
+        },
+        "required": [
+          "tag",
+          "commit"
+        ],
+        "title": "Prereg",
+        "type": "object"
+      },
       "PresentationState": {
         "description": "The only four states the UI may show. There is intentionally no 'alarm'.",
         "enum": [
@@ -2729,6 +3443,25 @@
         ],
         "title": "PresentationState",
         "type": "string"
+      },
+      "ProfileLink": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "url"
+        ],
+        "title": "ProfileLink",
+        "type": "object"
       },
       "Pump": {
         "additionalProperties": false,
@@ -2921,6 +3654,30 @@
           "flag_counts"
         ],
         "title": "QualityRow",
+        "type": "object"
+      },
+      "QuestionSet": {
+        "additionalProperties": false,
+        "properties": {
+          "served_checked": {
+            "title": "Served Checked",
+            "type": "integer"
+          },
+          "set": {
+            "title": "Set",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "set",
+          "total",
+          "served_checked"
+        ],
+        "title": "QuestionSet",
         "type": "object"
       },
       "RawPoint": {
@@ -3955,6 +4712,82 @@
         "title": "SessionList",
         "type": "object"
       },
+      "Shortcut": {
+        "additionalProperties": false,
+        "properties": {
+          "axes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Axes"
+          },
+          "mutual_information_bits": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mutual Information Bits"
+          },
+          "n_cycles": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "N Cycles"
+          },
+          "share_of_leakage_entropy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Of Leakage Entropy"
+          },
+          "table": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "type": "object"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "stable flag -> leakage -> cycles",
+            "title": "Table"
+          }
+        },
+        "required": [
+          "table",
+          "axes",
+          "n_cycles",
+          "mutual_information_bits",
+          "share_of_leakage_entropy"
+        ],
+        "title": "Shortcut",
+        "type": "object"
+      },
       "SignalName": {
         "additionalProperties": false,
         "properties": {
@@ -4200,6 +5033,80 @@
         "title": "Signals",
         "type": "object"
       },
+      "Source": {
+        "additionalProperties": false,
+        "properties": {
+          "authors": {
+            "description": "the dataset's creators, as its record lists them",
+            "items": {
+              "type": "string"
+            },
+            "title": "Authors",
+            "type": "array"
+          },
+          "changes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "what this project changed (CC BY 4.0 asks for it)",
+            "title": "Changes"
+          },
+          "citation": {
+            "description": "the dataset, then its data descriptor where there is one",
+            "title": "Citation",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "landing_page": {
+            "title": "Landing Page",
+            "type": "string"
+          },
+          "license": {
+            "title": "License",
+            "type": "string"
+          },
+          "license_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License Url"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "authors",
+          "citation",
+          "landing_page",
+          "license",
+          "license_url",
+          "changes",
+          "role"
+        ],
+        "title": "Source",
+        "type": "object"
+      },
       "SourceDataset": {
         "enum": [
           "zema",
@@ -4226,6 +5133,25 @@
         "title": "SpeedIn",
         "type": "object"
       },
+      "StackItem": {
+        "additionalProperties": false,
+        "properties": {
+          "layer": {
+            "title": "Layer",
+            "type": "string"
+          },
+          "what": {
+            "title": "What",
+            "type": "string"
+          }
+        },
+        "required": [
+          "layer",
+          "what"
+        ],
+        "title": "StackItem",
+        "type": "object"
+      },
       "StreamEvent": {
         "description": "One server-sent event: `id:` is the event id, `event:` the type, `data:` the JSON.",
         "discriminator": {
@@ -4248,6 +5174,33 @@
           }
         ],
         "title": "StreamEvent"
+      },
+      "SyntheticDetection": {
+        "additionalProperties": false,
+        "properties": {
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/DetectionCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "day": {
+            "title": "Day",
+            "type": "string"
+          },
+          "starts_per_fault": {
+            "title": "Starts Per Fault",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "cells",
+          "starts_per_fault"
+        ],
+        "title": "SyntheticDetection",
+        "type": "object"
       },
       "TimelineEvent": {
         "additionalProperties": false,
@@ -4516,6 +5469,74 @@
         "title": "ZemaBenchmark",
         "type": "object"
       },
+      "ZemaChapter": {
+        "additionalProperties": false,
+        "properties": {
+          "calibration": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalibrationGrade"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confusion": {
+            "$ref": "#/components/schemas/Confusion"
+          },
+          "contrast": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "the headline model's random against chronological macro-F1, in one line",
+            "title": "Contrast"
+          },
+          "how_to_read": {
+            "title": "How To Read",
+            "type": "string"
+          },
+          "preregistration": {
+            "$ref": "#/components/schemas/Prereg"
+          },
+          "report": {
+            "title": "Report",
+            "type": "string"
+          },
+          "scope_note": {
+            "title": "Scope Note",
+            "type": "string"
+          },
+          "shortcut": {
+            "$ref": "#/components/schemas/Shortcut"
+          },
+          "splits": {
+            "items": {
+              "$ref": "#/components/schemas/ZemaSplit"
+            },
+            "title": "Splits",
+            "type": "array"
+          }
+        },
+        "required": [
+          "how_to_read",
+          "contrast",
+          "scope_note",
+          "splits",
+          "confusion",
+          "shortcut",
+          "calibration",
+          "report",
+          "preregistration"
+        ],
+        "title": "ZemaChapter",
+        "type": "object"
+      },
       "ZemaScore": {
         "additionalProperties": false,
         "properties": {
@@ -4550,6 +5571,28 @@
           "evidence"
         ],
         "title": "ZemaScore",
+        "type": "object"
+      },
+      "ZemaSplit": {
+        "additionalProperties": false,
+        "properties": {
+          "headline": {
+            "$ref": "#/components/schemas/F1Interval"
+          },
+          "majority": {
+            "$ref": "#/components/schemas/F1Interval"
+          },
+          "split": {
+            "title": "Split",
+            "type": "string"
+          }
+        },
+        "required": [
+          "split",
+          "headline",
+          "majority"
+        ],
+        "title": "ZemaSplit",
         "type": "object"
       },
       "pumpcopilot__api_models__EvidenceItem": {
@@ -4729,6 +5772,58 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/about": {
+      "get": {
+        "description": "The data sources (data/manifest.yaml, in use only) and the About page's facts.",
+        "operationId": "about_api_about_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/About"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "About",
+        "tags": [
+          "evaluation"
+        ]
+      }
+    },
     "/api/assets": {
       "get": {
         "operationId": "assets_api_assets_get",
@@ -6312,6 +7407,58 @@
           }
         },
         "summary": "Evaluation",
+        "tags": [
+          "evaluation"
+        ]
+      }
+    },
+    "/api/evaluation/chapters": {
+      "get": {
+        "description": "The evaluation page's three chapters (ZeMA, the CIRA detector, the assistant), from\nthe stored results: every number the page shows, how to read it, and where it comes\nfrom (report, pre-registration or holdout commit).",
+        "operationId": "evaluation_chapters_api_evaluation_chapters_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationChapters"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Evaluation Chapters",
         "tags": [
           "evaluation"
         ]

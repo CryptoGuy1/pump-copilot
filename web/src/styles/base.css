@@ -87,7 +87,7 @@ p { margin: var(--space-3) 0; }
 .shell-footer :focus-visible { outline-color: var(--nav-focus); }
 
 /* pages that are not redesigned yet sit on one surface */
-.shell-main > section:not(.fleet):not(.gallery):not(.asset-day):not(.case-detail) {
+.shell-main > section:not(.fleet):not(.gallery):not(.asset-day):not(.case-detail):not(.evaluation):not(.about):not(.replay):not(.data-quality):not(.not-found) {
   background: var(--surface); border: var(--border-1) solid var(--border);
   border-radius: var(--radius-lg); padding: var(--space-5) var(--space-7);
 }
@@ -131,7 +131,7 @@ pre { white-space: pre-wrap; background: var(--inset); padding: var(--space-3);
   .nav-links { flex-direction: column; gap: 0; }
   .nav-tools { margin-left: 0; }
   .shell-main { padding: var(--space-4); }
-  .shell-main > section:not(.fleet):not(.gallery):not(.asset-day):not(.case-detail) { padding: var(--space-4); }
+  .shell-main > section:not(.fleet):not(.gallery):not(.asset-day):not(.case-detail):not(.evaluation):not(.about):not(.replay):not(.data-quality):not(.not-found) { padding: var(--space-4); }
   .page-provenance { padding: var(--space-2) var(--space-5); }
 }
 @media (min-width: 721px) { .nav-collapsible { display: contents; } }

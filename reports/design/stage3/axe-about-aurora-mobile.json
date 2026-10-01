@@ -1,0 +1,16 @@
+{
+  "page": "about",
+  "theme": "aurora",
+  "viewport": "mobile",
+  "url": "http://127.0.0.1:5175/about?theme=aurora",
+  "tags": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa",
+    "wcag22aa"
+  ],
+  "passes": 23,
+  "violations": [],
+  "incomplete": []
+}

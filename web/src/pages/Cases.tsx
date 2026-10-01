@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Link, useSearchParams } from "react-router-dom";
 import { call, client } from "../api/client";
 import { Loading, Synthetic, fmtTime } from "../components/common";
@@ -9,6 +10,7 @@ import { usePageProvenance } from "../pageProvenance";
 type Status = "open" | "acknowledged" | "dispositioned" | "closed";
 
 export function Cases() {
+  usePageTitle("Cases");
   const [params, setParams] = useSearchParams();
   const query = {
     asset_id: params.get("asset_id") ?? undefined,

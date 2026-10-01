@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { type ReactNode, useState } from "react";
 import { Link } from "react-router-dom";
 import { call, client } from "../api/client";
@@ -272,6 +273,7 @@ function Gallery() {
 }
 
 export function Design() {
+  usePageTitle("Design system");
   const fleet = useQuery({ queryKey: ["fleet"], queryFn: () => call(client.GET("/api/fleet")) });
   const sessions = fleet.data?.pumps.flatMap((p) => p.sessions) ?? [];
   usePageProvenance(fleet.data && {

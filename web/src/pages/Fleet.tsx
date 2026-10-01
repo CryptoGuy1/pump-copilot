@@ -1,4 +1,5 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { Link } from "react-router-dom";
 import { ApiError, call, client, type Schema } from "../api/client";
 import { fmtTime } from "../components/common";
@@ -26,6 +27,7 @@ const byNumber = (a: string, b: string) => Number(a.slice(1)) - Number(b.slice(1
 const uniq = (xs: string[]) => [...new Set(xs)];
 
 export function Fleet() {
+  usePageTitle("Fleet overview");
   const q = useQuery({ queryKey: ["fleet"], queryFn: () => call(client.GET("/api/fleet")) });
   const pumps = q.data?.pumps ?? [];
   // the session behind each pump's own state: its latest real one (computed on the server)

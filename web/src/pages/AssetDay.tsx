@@ -7,6 +7,7 @@ import { ChartGroup, type Line, type Span, StateStrip, TimeChart, signalColor, t
 import { A8Notice, fmtTime } from "../components/common";
 import { EmptyState, Loading, Synthetic, Tabs, useSignalFormat, useSignalLabel }
   from "../components/ui";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { usePageProvenance } from "../pageProvenance";
 
 type ScoreRow = Schema<"ScoreRow">;
@@ -26,6 +27,7 @@ function reviewSpans(rows: ScoreRow[]): Span[] {
 
 export function AssetDay() {
   const { asset = "", day = "" } = useParams();
+  usePageTitle(`${asset} · ${day}`);
   const [params, setParams] = useSearchParams();
   const session = params.get("session") ? Number(params.get("session")) : undefined;
   const path = { asset_id: asset, source_day: day };

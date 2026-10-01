@@ -3,16 +3,54 @@
 sources:
   zema:
     title: Condition monitoring of hydraulic systems (UCI 447)
-    citation: Helwig, Pignanelli and Schutze. UCI Machine Learning Repository. DOI 10.24432/C5CW21
+    # Citation metadata from UCI's own dataset record (archive.ics.uci.edu/api/dataset?id=447,
+    # retrieved 2026-09-30), which lists three creators; its "Schtze" has lost the umlaut and is
+    # restored here. The DataCite record for the DOI lists one malformed creator ("Nikolai
+    # Helwig, Eliseo Pignanelli") and no third author, so it is not used for the list.
+    cited_title: Condition monitoring of hydraulic systems
+    authors:
+      - {given: Nikolai, family: Helwig}
+      - {given: Eliseo, family: Pignanelli}
+      - {given: Andreas, family: Schütze}
+    year: 2015
+    publisher: UCI Machine Learning Repository
+    doi: 10.24432/C5CW21
     landing_page: https://archive.ics.uci.edu/dataset/447/condition+monitoring+of+hydraulic+systems
     download: {kind: url, url: "https://archive.ics.uci.edu/static/public/447/condition+monitoring+of+hydraulic+systems.zip"}
     license: CC BY 4.0
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    changes: raw data unchanged; features and scores derived
     expected_sha256: null   # pin after first verified download
     role: supervised benchmark (hydraulic test rig pump leakage state only)
 
   cira:
     title: Centrifugal Pump Dataset, CIRA
-    citation: Martone and Zazzaro. Zenodo. Data descriptor in Data 2025, 10(6), 91, DOI 10.3390/data10060091
+    # Citation metadata from the Zenodo record (zenodo.org/api/records/18479728) and, for the
+    # data descriptor, the DOI's Crossref metadata (doi.org/10.3390/data10060091); retrieved
+    # 2026-09-30.
+    cited_title: Centrifugal Pump Dataset
+    authors:
+      - {given: Angelo, family: Martone, orcid: 0000-0003-1837-1734}
+      - {given: Gaetano, family: Zazzaro, orcid: 0000-0001-6042-6650}
+    year: 2026
+    publisher: Zenodo
+    version: "2"
+    doi: 10.5281/zenodo.18479728
+    descriptor:
+      title: Sensor-Based Monitoring Data from an Industrial System of Centrifugal Pumps
+      authors:
+        - {given: Angelo, family: Martone}
+        - {given: Alessia, family: D’Ambrosio}
+        - {given: Michele, family: Ferrucci}
+        - {given: Assuntina, family: Cembalo}
+        - {given: Gianpaolo, family: Romano}
+        - {given: Gaetano, family: Zazzaro}
+      year: 2025
+      journal: Data
+      volume: 10
+      issue: 6
+      article: 91
+      doi: 10.3390/data10060091
     landing_page: https://zenodo.org/records/18479728
     download: {kind: zenodo, record_id: "18479728"}
     # Versions of concept record 15301819, listed via the Zenodo API (retrieved 2026-09-24);
@@ -34,6 +72,8 @@ sources:
           READMEs say pump C was turned off on 2024-10-30, so this file is not used and not
           downloaded. Its contents have not been inspected.
     license: cc-by-4.0  # from Zenodo metadata, retrieved 2026-09-24; the data descriptor also states CC-BY 4.0
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    changes: raw data unchanged; features and scores derived
     expected_sha256: null
     role: real centrifugal pump telemetry replay; normal operation only, no fault labels
 

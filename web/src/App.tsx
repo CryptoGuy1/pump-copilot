@@ -3,6 +3,7 @@ import { useLayoutEffect, useState } from "react";
 import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { type StreamEvent, useStream } from "./hooks/useStream";
 import { PageProvenanceBar, PageProvenanceProvider } from "./pageProvenance";
+import { About } from "./pages/About";
 import { AssetDay } from "./pages/AssetDay";
 import { Assumptions } from "./pages/Assumptions";
 import { CaseDetail } from "./pages/CaseDetail";
@@ -11,6 +12,7 @@ import { DataQuality } from "./pages/DataQuality";
 import { Design } from "./pages/Design";
 import { Evaluation } from "./pages/Evaluation";
 import { Fleet } from "./pages/Fleet";
+import { NotFound } from "./pages/NotFound";
 import { Replay } from "./pages/Replay";
 import { THEMES, type Theme, ThemeContext, applyTheme, readTheme } from "./theme";
 
@@ -36,7 +38,7 @@ function useLiveInvalidation() {
 
 const PAGES = [["/", "Fleet"], ["/cases", "Cases"], ["/replay", "Replay"],
                ["/evaluation", "Evaluation"], ["/data-quality", "Data quality"],
-               ["/assumptions", "Assumptions"]] as const;
+               ["/assumptions", "Assumptions"], ["/about", "About"]] as const;
 
 const LIVE = { open: "Live", connecting: "Connecting…", reconnecting: "Reconnecting…",
                closed: "Offline" } as const;
@@ -101,6 +103,8 @@ export function App() {
             <Route path="/data-quality" element={<DataQuality />} />
             <Route path="/assumptions" element={<Assumptions />} />
             <Route path="/design" element={<Design />} />
+            <Route path="/about" element={<About />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
       </>}</PageProvenanceProvider>

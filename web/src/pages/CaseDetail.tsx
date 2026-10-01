@@ -8,6 +8,7 @@ import { ChartGroup, type Span, TimeChart, signalColor, toSeconds, utc }
 import { A8Notice, fmtTime, useActor } from "../components/common";
 import { Button, Card, Loading, SignalName, StateBadge, Synthetic, Table, useSignalFormat,
          useSignalLabel } from "../components/ui";
+import { usePageTitle } from "../hooks/usePageTitle";
 import { usePageProvenance } from "../pageProvenance";
 
 const DISPOSITIONS = ["monitor", "known condition, no action", "data quality issue",
@@ -235,6 +236,7 @@ function SignalChart({ sig, s, i, hl, synthetic }:
 
 export function CaseDetail() {
   const id = Number(useParams().id);
+  usePageTitle(`Case #${id}`);
   const q = useQuery({ queryKey: ["case", id], queryFn: () =>
     call(client.GET("/api/cases/{case_id}", { params: { path: { case_id: id } } })) });
   const ev = useEvidence(id);

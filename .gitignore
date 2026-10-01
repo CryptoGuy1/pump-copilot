@@ -7,3 +7,6 @@ __pycache__/
 .claude/settings.local.json
 data/cache/
 .env
+
+# macOS folder metadata
+.DS_Store

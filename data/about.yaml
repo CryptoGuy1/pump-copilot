@@ -1,0 +1,21 @@
+# The About page's facts that are not numbers (the numbers come from the evaluation results).
+repository: https://github.com/CryptoGuy1/pump-copilot
+# While the repository is private, its link is not shown (About, and the report and commit
+# links on the evaluation page show plain text). Set to true when it is public.
+repository_public: false
+# The author section. Fill in the role line and profile links; empty ones are not shown.
+author:
+  name: Benjamin Nweke
+  role: ""
+  links: []   # e.g. - {label: GitHub, url: "https://github.com/..."}
+stack:
+  - {layer: Storage, what: "PostgreSQL with TimescaleDB (hypertables, continuous aggregates)"}
+  - {layer: Pipeline, what: "Python: pandas, NumPy, scikit-learn; a replay worker"}
+  - {layer: API, what: "FastAPI and Pydantic, read-only database role, server-sent events"}
+  - {layer: Web, what: "React, TypeScript, Vite, TanStack Query, uPlot; IBM Plex"}
+  - {layer: Assistant, what: "Claude through tool use, behind a checker and an allowlist"}
+  - {layer: Checks, what: "pytest, Vitest, Playwright and axe-core"}
+ai_assistance: >-
+  Built by Benjamin Nweke with Claude as a coding assistant. The project owner set the scope,
+  made every design and evaluation decision, reviewed each result, and confirmed the judgement
+  calls recorded in the repository.

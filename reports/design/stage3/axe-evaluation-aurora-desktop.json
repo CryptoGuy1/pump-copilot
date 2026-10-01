@@ -1,0 +1,16 @@
+{
+  "page": "evaluation",
+  "theme": "aurora",
+  "viewport": "desktop",
+  "url": "http://127.0.0.1:5175/evaluation?theme=aurora",
+  "tags": [
+    "wcag2a",
+    "wcag2aa",
+    "wcag21a",
+    "wcag21aa",
+    "wcag22aa"
+  ],
+  "passes": 29,
+  "violations": [],
+  "incomplete": []
+}
