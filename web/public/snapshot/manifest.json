@@ -1,6 +1,6 @@
 {
- "exported_at": "2026-10-01T20:14:38Z",
- "commit": "5cc3a930b94034b4cb3bb33c6c1a6584dcc5a27f",
+ "exported_at": "2026-10-01T23:30:40Z",
+ "commit": "49b27af7588290ae37dd37a68b7c8d65b517a4cd",
  "commit_dirty": false,
  "sessions": [
   {
@@ -32,7 +32,7 @@
  "answers_recorded_at": "2026-10-01T19:20:15Z",
  "answers": 6,
  "files": 62,
- "bytes": 5671606,
+ "bytes": 5671646,
  "not_included": [
   "live stream (/api/stream) and worker health (/api/health)",
   "raw-resolution signals, and asset-days that were not replayed",
