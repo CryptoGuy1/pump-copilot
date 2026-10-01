@@ -74,3 +74,9 @@ def test_scripts_load_dot_env_only_through_the_api(script, expect):
     assert expect in text
     assert "source .env" not in text and ". ./.env" not in text and "dotenv" not in text.replace(
         "--no-dotenv", "")
+
+
+def test_no_test_can_load_the_developers_env_file():
+    from pumpcopilot import cli
+
+    assert cli.ENV_FILE != ROOT / ".env" and not cli.ENV_FILE.exists()

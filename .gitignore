@@ -1,6 +1,7 @@
 data/raw/
 data/manifest.lock.json
-reports/*.json
+# throwaway outputs; every other file under reports/ is a stored result and is tracked
+reports/scratch/
 __pycache__/
 .venv/
 *.egg-info/

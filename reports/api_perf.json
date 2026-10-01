@@ -1,0 +1,42 @@
+{
+  "fleet overview": {
+    "path": "/api/fleet",
+    "n": 100,
+    "p50_ms": 43.5,
+    "p95_ms": 75.0,
+    "max_ms": 118.3,
+    "bytes": 2584
+  },
+  "asset-day B 2024-10-30, all signals at 1 min": {
+    "path": "/api/assets/cira-pump-B/days/2024-10-30/signals?resolution=1m",
+    "n": 100,
+    "p50_ms": 88.7,
+    "p95_ms": 121.6,
+    "max_ms": 154.6,
+    "bytes": 601207
+  },
+  "case detail, case 1 (917 evidence windows)": {
+    "path": "/api/cases/1",
+    "n": 100,
+    "p50_ms": 32.3,
+    "p95_ms": 49.7,
+    "max_ms": 85.8,
+    "bytes": 47123
+  },
+  "case detail, case 3 (1 evidence windows)": {
+    "path": "/api/cases/3",
+    "n": 100,
+    "p50_ms": 13.5,
+    "p95_ms": 23.4,
+    "max_ms": 38.4,
+    "bytes": 4289
+  },
+  "case evidence page, case 1 (100 of 917)": {
+    "path": "/api/cases/1/evidence",
+    "n": 100,
+    "p50_ms": 16.7,
+    "p95_ms": 22.6,
+    "max_ms": 30.2,
+    "bytes": 33151
+  }
+}

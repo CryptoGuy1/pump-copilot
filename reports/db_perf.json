@@ -1,0 +1,16 @@
+{
+  "asset_id": "cira-pump-B",
+  "source_day": "2024-06-11",
+  "hour_start": "2024-06-11 10:00:00+00:00",
+  "repeats": 5,
+  "day_1m": {
+    "rows": 5980,
+    "median_ms": 16.0,
+    "best_ms": 15.2
+  },
+  "hour_raw": {
+    "rows": 34290,
+    "median_ms": 70.7,
+    "best_ms": 57.9
+  }
+}

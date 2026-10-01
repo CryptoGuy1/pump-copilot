@@ -1,0 +1,25 @@
+{
+  "pieces_checked": 94,
+  "databases": {
+    "pumpcopilot": {
+      "assistant_runs": 80,
+      "matches": 0
+    },
+    "pumpcopilot_e2e": {
+      "assistant_runs": 7,
+      "matches": 0
+    }
+  },
+  "files": {
+    "reports": {
+      "files": 35,
+      "matches": 0
+    },
+    "web/test-results": {
+      "files": 1,
+      "matches": 0
+    }
+  },
+  "git_index_matches": 0,
+  "clean": true
+}

@@ -73,7 +73,7 @@ def test_api_command_binds_to_loopback_only(monkeypatch):
 
     seen = {}
     monkeypatch.setattr("uvicorn.run", lambda app, **kw: seen.update(kw))
-    cli.main(["api", "--port", "8123"])
+    cli.main(["api", "--port", "8123", "--no-dotenv"])
     assert seen["host"] == "127.0.0.1" and seen["port"] == 8123
     with pytest.raises(SystemExit):
         cli.main(["api", "--host", "0.0.0.0"])

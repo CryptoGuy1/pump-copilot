@@ -1,0 +1,12 @@
+{
+  "provider": "template",
+  "total": 50,
+  "passed": 50,
+  "pass_rate": 1.0,
+  "served": {
+    "assistant": 0,
+    "template": 50
+  },
+  "fake_outputs_rejected": 0,
+  "failures": []
+}

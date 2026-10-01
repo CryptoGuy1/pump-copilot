@@ -1,0 +1,24 @@
+{
+  "session_id": 1,
+  "asset_id": "cira-pump-B",
+  "source_day": "2024-10-30",
+  "speed": 60,
+  "readings": 81,
+  "readings_in_no_scored_window": 2908,
+  "n": 81,
+  "p50_s": 8.299693,
+  "p95_s": 19.533026,
+  "max_s": 23.499693,
+  "steady": {
+    "n": 0,
+    "p50_s": null,
+    "p95_s": null,
+    "max_s": null
+  },
+  "backlog": {
+    "n": 81,
+    "p50_s": 8.299693,
+    "p95_s": 19.533026,
+    "max_s": 23.499693
+  }
+}

@@ -1,6 +1,9 @@
 """Synthetic fixtures shaped like the real sources. They test our code, not the data."""
 
+import contextlib
 import os
+import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -10,6 +13,77 @@ import pytest
 from pumpcopilot import zema
 
 N_CYCLES = 30
+
+
+# --- every file the tests read must be tracked by Git ----------------------------------------
+# A test that reads a file only this machine has passes here and fails in CI. An audit hook
+# records every file inside the repository opened for reading during the run; at the end the
+# run fails if Git does not track one of them. Local by design: the raw data (only the real-data
+# CI job downloads it) and tool caches.
+REPO = Path(__file__).resolve().parents[1]
+LOCAL_BY_DESIGN = (".venv/", ".git/", ".pytest_cache/", ".ruff_cache/", "web/node_modules/",
+                   "data/raw/", "data/cache/", "src/pumpcopilot.egg-info/")
+_recorders: list[set] = []
+READ: set = set()
+_recorders.append(READ)
+
+
+def _audit(event, args):
+    if event != "open" or not _recorders:
+        return
+    path, mode, flags = args
+    if path is None or isinstance(path, int):
+        return
+    if isinstance(mode, str):
+        if any(c in mode for c in "wax+"):
+            return
+    elif isinstance(flags, int) and flags & os.O_ACCMODE != os.O_RDONLY:
+        return
+    try:
+        p = Path(os.fsdecode(path))
+        p = p if p.is_absolute() else Path.cwd() / p
+        rel = os.path.relpath(os.path.normpath(p), REPO)
+    except Exception:  # noqa: BLE001 (an audit hook must never raise)
+        return
+    if not rel.startswith("..") and "__pycache__" not in rel:
+        for r in _recorders:
+            r.add(rel.replace(os.sep, "/"))
+
+
+sys.addaudithook(_audit)
+
+
+def tracked_files() -> set[str]:
+    out = subprocess.run(["git", "-C", str(REPO), "ls-files", "-z"], capture_output=True,
+                         check=True).stdout.decode()
+    return set(filter(None, out.split("\0")))
+
+
+def untracked_reads(reads: set[str]) -> list[str]:
+    tracked = tracked_files()
+    return sorted(r for r in reads if r not in tracked and (REPO / r).is_file()
+                  and not r.startswith(LOCAL_BY_DESIGN))
+
+
+@contextlib.contextmanager
+def recording_reads():
+    """Every repository file opened for reading inside the block."""
+    seen: set = set()
+    _recorders.append(seen)
+    try:
+        yield seen
+    finally:
+        _recorders.remove(seen)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    bad = untracked_reads(READ)
+    if bad:
+        tr = session.config.pluginmanager.get_plugin("terminalreporter")
+        if tr:
+            tr.write_line("Tests read files that Git does not track (they would be missing in "
+                          "CI): " + ", ".join(bad), red=True)
+        session.exitstatus = 1
 
 
 # CI sets PUMPCOPILOT_NO_SKIPS=1: every test must run there, so a skip (for example a
@@ -24,6 +98,15 @@ def pytest_runtest_makereport(item, call):
     if NO_SKIPS and report.skipped and not hasattr(report, "wasxfail"):
         report.outcome = "failed"
         report.longrepr = f"skipped with PUMPCOPILOT_NO_SKIPS=1: {report.longrepr}"
+
+
+@pytest.fixture(autouse=True)
+def _never_the_real_env_file(monkeypatch, tmp_path):
+    """No test may load the developer's .env (it holds the real API key): the CLI's .env is a
+    file that does not exist. Tests of .env handling set their own."""
+    from pumpcopilot import cli
+
+    monkeypatch.setattr(cli, "ENV_FILE", tmp_path / "no-such.env")
 
 
 @pytest.fixture(autouse=True)

@@ -32,6 +32,8 @@ from typing import Literal
 import httpx2 as httpx  # the HTTP package the Anthropic SDK uses
 from pydantic import BaseModel, ConfigDict, Field
 
+from .provenance import project_path
+
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "data" / "assistant.yaml"
 ADVERSARIAL = ROOT / "data" / "assistant_adversarial.yaml"
@@ -1296,7 +1298,7 @@ def key_scan(key: str, db_names=("pumpcopilot", "pumpcopilot_e2e"),
             out["databases"][name] = {"error": type(e).__name__}
     for root in roots or [ROOT / "reports", ROOT / "web" / "test-results"]:
         files = [f for f in Path(root).rglob("*") if f.is_file() and f.name != ".env"]
-        out["files"][str(root)] = {"files": len(files), "matches": sum(
+        out["files"][project_path(root)] = {"files": len(files), "matches": sum(
             hits(f.read_bytes().decode("utf-8", "ignore")) for f in files)}
     tracked = subprocess.run(["git", "-C", str(ROOT), "grep", "--cached", "-I", "-l", "-F",
                               "-e", key], capture_output=True, text=True).stdout.split()
