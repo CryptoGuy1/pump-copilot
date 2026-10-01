@@ -8,6 +8,17 @@ from pathlib import Path
 from typing import Any
 
 CHUNK = 1 << 20
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def project_path(path: Path | str) -> str:
+    """A path as reports record it: relative to the project root, never absolute (a report
+    must not carry a home directory). A path outside the project keeps its name only."""
+    p = Path(path).resolve()
+    try:
+        return p.relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return p.name
 
 
 def file_digest(path: Path, algo: str = "sha256") -> str:

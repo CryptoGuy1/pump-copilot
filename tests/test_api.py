@@ -918,6 +918,7 @@ def real():
 
 
 @pytest.mark.db
+@pytest.mark.real_data
 def test_every_get_endpoint_validates_against_its_model_on_real_data(real):
     from pumpcopilot import api_models
 

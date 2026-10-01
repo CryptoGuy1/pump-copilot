@@ -1,0 +1,1255 @@
+{
+  "ok": true,
+  "issues": [],
+  "pumps": [
+    "A",
+    "B",
+    "C"
+  ],
+  "days": [
+    "2024-04-10",
+    "2024-06-11",
+    "2024-10-30"
+  ],
+  "absent_asset_days": [
+    {
+      "pump": "C",
+      "day": "2024-10-30",
+      "explained": "pump off that day per dataset listing"
+    }
+  ],
+  "site_gaps": [
+    {
+      "day": "2024-06-11",
+      "after": "2024-06-11 10:11:10+00:00",
+      "seconds": 172.0,
+      "pumps": [
+        "A",
+        "B",
+        "C"
+      ]
+    }
+  ],
+  "headers_by_file": {
+    "A_2024-04-10.csv": [
+      "A_ACR_Mot.PV",
+      "A_ACR_Mot.SV",
+      "A_ACR_Mot.TV",
+      "A_ACR_Pmp.PV",
+      "A_ACR_Pmp.SV",
+      "A_ACR_Pmp.TV",
+      "A_Pres.PV",
+      "A_Temp.PV",
+      "Barometer",
+      "Temperature"
+    ],
+    "A_2024-06-11.csv": [
+      "A_ACR_Mot.PV",
+      "A_ACR_Mot.SV",
+      "A_ACR_Mot.TV",
+      "A_ACR_Pmp.PV",
+      "A_ACR_Pmp.SV",
+      "A_ACR_Pmp.TV",
+      "A_Pres.PV",
+      "A_Temp.PV",
+      "Barometer",
+      "Temperature"
+    ],
+    "A_2024-10-30.csv": [
+      "A_ACR_Mot.PV",
+      "A_ACR_Mot.SV",
+      "A_ACR_Mot.TV",
+      "A_ACR_Pmp.PV",
+      "A_ACR_Pmp.SV",
+      "A_ACR_Pmp.TV",
+      "A_Pres.PV",
+      "A_Temp.PV",
+      "Barometer",
+      "Temperature"
+    ],
+    "B_2024-04-10.csv": [
+      "B_ACR_Mot.PV",
+      "B_ACR_Mot.SV",
+      "B_ACR_Mot.TV",
+      "B_ACR_Pmp.PV",
+      "B_ACR_Pmp.SV",
+      "B_ACR_Pmp.TV",
+      "B_Pres.PV",
+      "B_Temp.PV",
+      "Barometer",
+      "Temperature"
+    ],
+    "B_2024-06-11.csv": [
+      "B_ACR_Mot.PV",
+      "B_ACR_Mot.SV",
+      "B_ACR_Mot.TV",
+      "B_ACR_Pmp.PV",
+      "B_ACR_Pmp.SV",
+      "B_ACR_Pmp.TV",
+      "B_Pres.PV",
+      "B_Temp.PV",
+      "Barometer",
+      "Temperature"
+    ],
+    "B_2024-10-30.csv": [
+      "B_ACR_Mot.PV",
+      "B_ACR_Mot.SV",
+      "B_ACR_Mot.TV",
+      "B_ACR_Pmp.PV",
+      "B_ACR_Pmp.SV",
+      "B_ACR_Pmp.TV",
+      "B_Pres.PV",
+      "B_Temp.PV",
+      "Barometer",
+      "Temperature"
+    ],
+    "C_2024-04-10.csv": [
+      "C_ACR_Mot.PV",
+      "C_ACR_Mot.SV",
+      "C_ACR_Mot.TV",
+      "C_ACR_Pmp.PV",
+      "C_ACR_Pmp.SV",
+      "C_ACR_Pmp.TV",
+      "C_Pres.PV",
+      "C_Temp.PV",
+      "Barometer",
+      "Temperature"
+    ],
+    "C_2024-06-11.csv": [
+      "C_ACR_Mot.PV",
+      "C_ACR_Mot.SV",
+      "C_ACR_Mot.TV",
+      "C_ACR_Pmp.PV",
+      "C_ACR_Pmp.SV",
+      "C_ACR_Pmp.TV",
+      "C_Pres.PV",
+      "C_Temp.PV",
+      "Barometer",
+      "Temperature"
+    ]
+  },
+  "files": [
+    {
+      "file": "A_2024-04-10.csv",
+      "pump": "A",
+      "day": "2024-04-10",
+      "sha256": "d933211d68206cef84c0cfc833bc410dc7933328529cd7be59494b5f353b8a6b",
+      "format": {
+        "delimiter": ",",
+        "decimal": "."
+      },
+      "rows": 4980,
+      "blank_rows": 1,
+      "timestamp_column": "Timestamp",
+      "timestamp_assumption": "UTC marker present; README says no timezone; confirm with authors",
+      "unparseable_timestamps": 0,
+      "duplicate_timestamps": 0,
+      "non_monotonic_steps": 0,
+      "span": [
+        "2024-04-10 12:00:00+00:00",
+        "2024-04-10 13:59:59+00:00"
+      ],
+      "cadence_segments": [
+        {
+          "start": "2024-04-10 12:00:00+00:00",
+          "end": "2024-04-10 12:46:15+00:00",
+          "cadence_s": 5.0,
+          "steps": 555
+        },
+        {
+          "start": "2024-04-10 12:46:15+00:00",
+          "end": "2024-04-10 13:59:59+00:00",
+          "cadence_s": 1.0,
+          "steps": 4424
+        }
+      ],
+      "gaps_over_factor": {
+        "factor": 5.0,
+        "count": 0,
+        "site_level": 0,
+        "items": []
+      },
+      "columns": {
+        "A_ACR_Mot.PV": {
+          "non_numeric": 0,
+          "missing": 13,
+          "min": 0.0006846094038337,
+          "p50": 0.0017365416279062,
+          "max": 0.0033908267505466,
+          "most_common_value_share": 0.3426615663378297,
+          "longest_constant_run": 1702,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Mot.SV": {
+          "non_numeric": 0,
+          "missing": 13,
+          "min": 0.3879573345184326,
+          "p50": 0.4267530441284179,
+          "max": 456.6257629394531,
+          "most_common_value_share": 0.6629756392188444,
+          "longest_constant_run": 1799,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Mot.TV": {
+          "non_numeric": 0,
+          "missing": 13,
+          "min": 17.9765625,
+          "p50": 29.0625,
+          "max": 31.3671875,
+          "most_common_value_share": 0.3458828266559291,
+          "longest_constant_run": 1702,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Pmp.PV": {
+          "non_numeric": 0,
+          "missing": 33,
+          "min": 0.0002118395059369,
+          "p50": 0.0005087681347504,
+          "max": 0.0038885774556547,
+          "most_common_value_share": 0.33596118859915103,
+          "longest_constant_run": 1662,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Pmp.SV": {
+          "non_numeric": 0,
+          "missing": 33,
+          "min": 0.4453493654727936,
+          "p50": 0.5263220071792603,
+          "max": 291.62286376953125,
+          "most_common_value_share": 0.5819688700222357,
+          "longest_constant_run": 1740,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Pmp.TV": {
+          "non_numeric": 0,
+          "missing": 33,
+          "min": 18.21875,
+          "p50": 22.625,
+          "max": 26.578125,
+          "most_common_value_share": 0.33596118859915103,
+          "longest_constant_run": 1662,
+          "placeholder_hits": 0
+        },
+        "A_Pres.PV": {
+          "non_numeric": 0,
+          "missing": 18,
+          "min": 0.4401741027832031,
+          "p50": 0.4517708420753479,
+          "max": 41.97823715209961,
+          "most_common_value_share": 0.012494961708988311,
+          "longest_constant_run": 62,
+          "placeholder_hits": 0
+        },
+        "A_Temp.PV": {
+          "non_numeric": 0,
+          "missing": 75,
+          "min": 17.92901611328125,
+          "p50": 27.241363525390625,
+          "max": 31.08349609375,
+          "most_common_value_share": 0.012640163098878695,
+          "longest_constant_run": 62,
+          "placeholder_hits": 0
+        },
+        "Barometer": {
+          "non_numeric": 0,
+          "missing": 15,
+          "min": 1017.8830909729004,
+          "p50": 1018.074836730957,
+          "max": 1018.2712459564208,
+          "most_common_value_share": 0.005035246727089627,
+          "longest_constant_run": 14,
+          "placeholder_hits": 0
+        },
+        "Temperature": {
+          "non_numeric": 0,
+          "missing": 14,
+          "min": 19.171247482299805,
+          "p50": 19.950756072998047,
+          "max": 20.770994186401367,
+          "most_common_value_share": 0.003624647603705195,
+          "longest_constant_run": 16,
+          "placeholder_hits": 0
+        }
+      },
+      "issues": []
+    },
+    {
+      "file": "A_2024-06-11.csv",
+      "pump": "A",
+      "day": "2024-06-11",
+      "sha256": "a3e37c5fda40bc4fe039f9c5e8a0fb71595aa96aa05fd78b86c057c00c1bf6f8",
+      "format": {
+        "delimiter": ",",
+        "decimal": "."
+      },
+      "rows": 21429,
+      "blank_rows": 0,
+      "timestamp_column": "Timestamp",
+      "timestamp_assumption": "UTC marker present; README says no timezone; confirm with authors",
+      "unparseable_timestamps": 0,
+      "duplicate_timestamps": 0,
+      "non_monotonic_steps": 0,
+      "span": [
+        "2024-06-11 10:00:00+00:00",
+        "2024-06-11 15:59:59+00:00"
+      ],
+      "cadence_segments": [
+        {
+          "start": "2024-06-11 10:00:00+00:00",
+          "end": "2024-06-11 15:59:59+00:00",
+          "cadence_s": 1.0,
+          "steps": 21428
+        }
+      ],
+      "gaps_over_factor": {
+        "factor": 5.0,
+        "count": 0,
+        "site_level": 1,
+        "items": []
+      },
+      "columns": {
+        "A_ACR_Mot.PV": {
+          "non_numeric": 0,
+          "missing": 458,
+          "min": 0.000617185,
+          "p50": 0.001669239,
+          "max": 0.003453474,
+          "most_common_value_share": 0.08592818654332172,
+          "longest_constant_run": 1802,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Mot.SV": {
+          "non_numeric": 0,
+          "missing": 458,
+          "min": 0.387957335,
+          "p50": 0.465548784,
+          "max": 17.49687576,
+          "most_common_value_share": 0.2522054265414143,
+          "longest_constant_run": 3601,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Mot.TV": {
+          "non_numeric": 0,
+          "missing": 458,
+          "min": 23.765625,
+          "p50": 38.4609375,
+          "max": 47.7421875,
+          "most_common_value_share": 0.08621429593247819,
+          "longest_constant_run": 1802,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Pmp.PV": {
+          "non_numeric": 0,
+          "missing": 471,
+          "min": 0.000256356,
+          "p50": 0.000668384,
+          "max": 0.004265541,
+          "most_common_value_share": 0.08607691573623437,
+          "longest_constant_run": 1804,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Pmp.SV": {
+          "non_numeric": 0,
+          "missing": 471,
+          "min": 0.445349365,
+          "p50": 0.526322007,
+          "max": 60.08167648,
+          "most_common_value_share": 0.34044279034258995,
+          "longest_constant_run": 1815,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Pmp.TV": {
+          "non_numeric": 0,
+          "missing": 471,
+          "min": 27.1484375,
+          "p50": 41.484375,
+          "max": 43.9609375,
+          "most_common_value_share": 0.08607691573623437,
+          "longest_constant_run": 1804,
+          "placeholder_hits": 0
+        },
+        "A_Pres.PV": {
+          "non_numeric": 0,
+          "missing": 306,
+          "min": 0.493149877,
+          "p50": 0.692095935,
+          "max": 43.12921524,
+          "most_common_value_share": 0.003077214410831795,
+          "longest_constant_run": 65,
+          "placeholder_hits": 0
+        },
+        "A_Temp.PV": {
+          "non_numeric": 0,
+          "missing": 474,
+          "min": 23.96282959,
+          "p50": 37.33108521,
+          "max": 47.36291504,
+          "most_common_value_share": 0.003435934144595562,
+          "longest_constant_run": 72,
+          "placeholder_hits": 0
+        },
+        "Barometer": {
+          "non_numeric": 0,
+          "missing": 341,
+          "min": 1010.080194,
+          "p50": 1011.550903,
+          "max": 1012.456846,
+          "most_common_value_share": 0.0011855083459787557,
+          "longest_constant_run": 25,
+          "placeholder_hits": 0
+        },
+        "Temperature": {
+          "non_numeric": 0,
+          "missing": 2211,
+          "min": 25.28267288,
+          "p50": 26.15024948,
+          "max": 27.84572601,
+          "most_common_value_share": 0.0010927255697783327,
+          "longest_constant_run": 21,
+          "placeholder_hits": 0
+        }
+      },
+      "issues": []
+    },
+    {
+      "file": "A_2024-10-30.csv",
+      "pump": "A",
+      "day": "2024-10-30",
+      "sha256": "6e21db77dd29501b7147d53e1894157486f73964ae26a51b7aa9dcd7e3f02e1d",
+      "format": {
+        "delimiter": ";",
+        "decimal": ","
+      },
+      "rows": 21600,
+      "blank_rows": 0,
+      "timestamp_column": "Timestamp",
+      "timestamp_assumption": "UTC marker present; README says no timezone; confirm with authors",
+      "unparseable_timestamps": 0,
+      "duplicate_timestamps": 0,
+      "non_monotonic_steps": 0,
+      "span": [
+        "2024-10-30 10:30:00+00:00",
+        "2024-10-30 16:29:59+00:00"
+      ],
+      "cadence_segments": [
+        {
+          "start": "2024-10-30 10:30:00+00:00",
+          "end": "2024-10-30 16:29:59+00:00",
+          "cadence_s": 1.0,
+          "steps": 21599
+        }
+      ],
+      "gaps_over_factor": {
+        "factor": 5.0,
+        "count": 0,
+        "site_level": 0,
+        "items": []
+      },
+      "columns": {
+        "A_ACR_Mot.PV": {
+          "non_numeric": 0,
+          "missing": 2,
+          "min": 0.000822983,
+          "p50": 0.001809182,
+          "max": 0.00394508,
+          "most_common_value_share": 0.050143531808500785,
+          "longest_constant_run": 1083,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Mot.SV": {
+          "non_numeric": 0,
+          "missing": 2,
+          "min": 0.387957335,
+          "p50": 0.543140233,
+          "max": 24.24733162,
+          "most_common_value_share": 0.17844244837484952,
+          "longest_constant_run": 1083,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Mot.TV": {
+          "non_numeric": 0,
+          "missing": 2,
+          "min": 20.6015625,
+          "p50": 43.8203125,
+          "max": 54.296875,
+          "most_common_value_share": 0.050143531808500785,
+          "longest_constant_run": 1083,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Pmp.PV": {
+          "non_numeric": 0,
+          "missing": 6,
+          "min": 0.000255156,
+          "p50": 0.000941134,
+          "max": 0.0042442,
+          "most_common_value_share": 0.05117162174678151,
+          "longest_constant_run": 1105,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Pmp.SV": {
+          "non_numeric": 0,
+          "missing": 6,
+          "min": 0.445349365,
+          "p50": 0.566808283,
+          "max": 42.875,
+          "most_common_value_share": 0.1990830786329536,
+          "longest_constant_run": 2109,
+          "placeholder_hits": 0
+        },
+        "A_ACR_Pmp.TV": {
+          "non_numeric": 0,
+          "missing": 6,
+          "min": 25.609375,
+          "p50": 40.015625,
+          "max": 44.609375,
+          "most_common_value_share": 0.05117162174678151,
+          "longest_constant_run": 1105,
+          "placeholder_hits": 0
+        },
+        "A_Pres.PV": {
+          "non_numeric": 0,
+          "missing": 0,
+          "min": 0.424722493,
+          "p50": 0.708381653,
+          "max": 42.48711014,
+          "most_common_value_share": 0.0030092592592592593,
+          "longest_constant_run": 65,
+          "placeholder_hits": 0
+        },
+        "A_Temp.PV": {
+          "non_numeric": 0,
+          "missing": 0,
+          "min": 20.88192749,
+          "p50": 42.02615356,
+          "max": 55.03961182,
+          "most_common_value_share": 0.003148148148148148,
+          "longest_constant_run": 68,
+          "placeholder_hits": 0
+        },
+        "Barometer": {
+          "non_numeric": 0,
+          "missing": 0,
+          "min": 1019.886694,
+          "p50": 1020.166445,
+          "max": 1021.703844,
+          "most_common_value_share": 0.005740740740740741,
+          "longest_constant_run": 66,
+          "placeholder_hits": 0
+        },
+        "Temperature": {
+          "non_numeric": 0,
+          "missing": 0,
+          "min": 19.95969391,
+          "p50": 24.18109894,
+          "max": 25.10772133,
+          "most_common_value_share": 0.0030555555555555557,
+          "longest_constant_run": 66,
+          "placeholder_hits": 0
+        }
+      },
+      "issues": []
+    },
+    {
+      "file": "B_2024-04-10.csv",
+      "pump": "B",
+      "day": "2024-04-10",
+      "sha256": "1b8946f1f490e732a5a060911404f1ea7aa379baea04ac009e0a30f2d49e30c7",
+      "format": {
+        "delimiter": ",",
+        "decimal": "."
+      },
+      "rows": 4980,
+      "blank_rows": 1,
+      "timestamp_column": "Timestamp",
+      "timestamp_assumption": "UTC marker present; README says no timezone; confirm with authors",
+      "unparseable_timestamps": 0,
+      "duplicate_timestamps": 0,
+      "non_monotonic_steps": 0,
+      "span": [
+        "2024-04-10 12:00:00+00:00",
+        "2024-04-10 13:59:59+00:00"
+      ],
+      "cadence_segments": [
+        {
+          "start": "2024-04-10 12:00:00+00:00",
+          "end": "2024-04-10 12:46:15+00:00",
+          "cadence_s": 5.0,
+          "steps": 555
+        },
+        {
+          "start": "2024-04-10 12:46:15+00:00",
+          "end": "2024-04-10 13:59:59+00:00",
+          "cadence_s": 1.0,
+          "steps": 4424
+        }
+      ],
+      "gaps_over_factor": {
+        "factor": 5.0,
+        "count": 0,
+        "site_level": 0,
+        "items": []
+      },
+      "columns": {
+        "B_ACR_Mot.PV": {
+          "non_numeric": 0,
+          "missing": 54,
+          "min": 0.0004509222053457,
+          "p50": 0.0007233170908875,
+          "max": 0.0015173190040513,
+          "most_common_value_share": 0.3225740966301259,
+          "longest_constant_run": 1589,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Mot.SV": {
+          "non_numeric": 0,
+          "missing": 54,
+          "min": 0.4282707273960113,
+          "p50": 0.5061381459236145,
+          "max": 20.44019317626953,
+          "most_common_value_share": 0.6149005278116119,
+          "longest_constant_run": 1614,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Mot.TV": {
+          "non_numeric": 0,
+          "missing": 54,
+          "min": 18.203125,
+          "p50": 19.3046875,
+          "max": 19.421875,
+          "most_common_value_share": 0.3225740966301259,
+          "longest_constant_run": 1589,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Pmp.PV": {
+          "non_numeric": 0,
+          "missing": 23,
+          "min": 0.0,
+          "p50": 0.0008850576705299,
+          "max": 0.0041648694314062,
+          "most_common_value_share": 0.31410127092999796,
+          "longest_constant_run": 1557,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Pmp.SV": {
+          "non_numeric": 0,
+          "missing": 23,
+          "min": 0.0,
+          "p50": 0.4841247200965881,
+          "max": 26.223419189453125,
+          "most_common_value_share": 0.5811983054266694,
+          "longest_constant_run": 1724,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Pmp.TV": {
+          "non_numeric": 0,
+          "missing": 137,
+          "min": 18.3125,
+          "p50": 20.9609375,
+          "max": 22.8515625,
+          "most_common_value_share": 0.3214949411521784,
+          "longest_constant_run": 1557,
+          "placeholder_hits": 0
+        },
+        "B_Pres.PV": {
+          "non_numeric": 0,
+          "missing": 3,
+          "min": 0.4643563628196716,
+          "p50": 0.4784925282001495,
+          "max": 43.2112922668457,
+          "most_common_value_share": 0.014064697609001406,
+          "longest_constant_run": 70,
+          "placeholder_hits": 0
+        },
+        "B_Temp.PV": {
+          "non_numeric": 0,
+          "missing": 171,
+          "min": 18.2098388671875,
+          "p50": 19.04608154296875,
+          "max": 21.5748291015625,
+          "most_common_value_share": 0.01289249324183822,
+          "longest_constant_run": 62,
+          "placeholder_hits": 0
+        },
+        "Barometer": {
+          "non_numeric": 0,
+          "missing": 15,
+          "min": 1017.8830909729004,
+          "p50": 1018.074836730957,
+          "max": 1018.2712459564208,
+          "most_common_value_share": 0.005035246727089627,
+          "longest_constant_run": 14,
+          "placeholder_hits": 0
+        },
+        "Temperature": {
+          "non_numeric": 0,
+          "missing": 14,
+          "min": 19.171247482299805,
+          "p50": 19.950756072998047,
+          "max": 20.770994186401367,
+          "most_common_value_share": 0.003624647603705195,
+          "longest_constant_run": 16,
+          "placeholder_hits": 0
+        }
+      },
+      "issues": []
+    },
+    {
+      "file": "B_2024-06-11.csv",
+      "pump": "B",
+      "day": "2024-06-11",
+      "sha256": "7580d0379cf119cec08946b159313e6973554084dca9919276f24e9bce41d833",
+      "format": {
+        "delimiter": ",",
+        "decimal": "."
+      },
+      "rows": 35829,
+      "blank_rows": 0,
+      "timestamp_column": "Timestamp",
+      "timestamp_assumption": "UTC marker present; README says no timezone; confirm with authors",
+      "unparseable_timestamps": 0,
+      "duplicate_timestamps": 0,
+      "non_monotonic_steps": 0,
+      "span": [
+        "2024-06-11 06:00:00+00:00",
+        "2024-06-11 15:59:59+00:00"
+      ],
+      "cadence_segments": [
+        {
+          "start": "2024-06-11 06:00:00+00:00",
+          "end": "2024-06-11 15:59:59+00:00",
+          "cadence_s": 1.0,
+          "steps": 35828
+        }
+      ],
+      "gaps_over_factor": {
+        "factor": 5.0,
+        "count": 0,
+        "site_level": 1,
+        "items": []
+      },
+      "columns": {
+        "B_ACR_Mot.PV": {
+          "non_numeric": 0,
+          "missing": 477,
+          "min": 0.000343291,
+          "p50": 0.000978697,
+          "max": 0.00199146,
+          "most_common_value_share": 0.05097307083050464,
+          "longest_constant_run": 1802,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Mot.SV": {
+          "non_numeric": 0,
+          "missing": 477,
+          "min": 0.428270727,
+          "p50": 25.8519783,
+          "max": 55.71412659,
+          "most_common_value_share": 0.2514992079656031,
+          "longest_constant_run": 5472,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Mot.TV": {
+          "non_numeric": 0,
+          "missing": 477,
+          "min": 21.6484375,
+          "p50": 37.34375,
+          "max": 41.5859375,
+          "most_common_value_share": 0.051595383570943655,
+          "longest_constant_run": 1802,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Pmp.PV": {
+          "non_numeric": 0,
+          "missing": 622,
+          "min": 0.0,
+          "p50": 0.0028681,
+          "max": 0.00408113,
+          "most_common_value_share": 0.05118300338000966,
+          "longest_constant_run": 1802,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Pmp.SV": {
+          "non_numeric": 0,
+          "missing": 622,
+          "min": 0.0,
+          "p50": 21.74526596,
+          "max": 70.6822052,
+          "most_common_value_share": 0.24069077172153264,
+          "longest_constant_run": 3599,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Pmp.TV": {
+          "non_numeric": 0,
+          "missing": 1799,
+          "min": 21.3984375,
+          "p50": 42.0,
+          "max": 46.0625,
+          "most_common_value_share": 0.05295327652071701,
+          "longest_constant_run": 1802,
+          "placeholder_hits": 0
+        },
+        "B_Pres.PV": {
+          "non_numeric": 0,
+          "missing": 288,
+          "min": 0.511853635,
+          "p50": 41.35305786,
+          "max": 46.7089119,
+          "most_common_value_share": 0.0033201091696913425,
+          "longest_constant_run": 118,
+          "placeholder_hits": 0
+        },
+        "B_Temp.PV": {
+          "non_numeric": 0,
+          "missing": 479,
+          "min": 21.92010498,
+          "p50": 35.06433105,
+          "max": 39.71588135,
+          "most_common_value_share": 0.0018387553041018388,
+          "longest_constant_run": 65,
+          "placeholder_hits": 0
+        },
+        "Barometer": {
+          "non_numeric": 0,
+          "missing": 340,
+          "min": 1009.607239,
+          "p50": 1011.611843,
+          "max": 1012.61549,
+          "most_common_value_share": 0.0007607991208543493,
+          "longest_constant_run": 25,
+          "placeholder_hits": 0
+        },
+        "Temperature": {
+          "non_numeric": 0,
+          "missing": 464,
+          "min": 22.25283241,
+          "p50": 25.88534164,
+          "max": 28.75349426,
+          "most_common_value_share": 0.0005938074367312315,
+          "longest_constant_run": 21,
+          "placeholder_hits": 0
+        }
+      },
+      "issues": []
+    },
+    {
+      "file": "B_2024-10-30.csv",
+      "pump": "B",
+      "day": "2024-10-30",
+      "sha256": "946809da66d73d3d9a3a370dfad9765f06ee43f5f283d437e0db781509b6eeb9",
+      "format": {
+        "delimiter": ",",
+        "decimal": "."
+      },
+      "rows": 29700,
+      "blank_rows": 0,
+      "timestamp_column": "Timestamp",
+      "timestamp_assumption": "UTC marker present; README says no timezone; confirm with authors",
+      "unparseable_timestamps": 0,
+      "duplicate_timestamps": 0,
+      "non_monotonic_steps": 0,
+      "span": [
+        "2024-10-30 08:15:00+00:00",
+        "2024-10-30 16:29:59+00:00"
+      ],
+      "cadence_segments": [
+        {
+          "start": "2024-10-30 08:15:00+00:00",
+          "end": "2024-10-30 16:29:59+00:00",
+          "cadence_s": 1.0,
+          "steps": 29699
+        }
+      ],
+      "gaps_over_factor": {
+        "factor": 5.0,
+        "count": 0,
+        "site_level": 0,
+        "items": []
+      },
+      "columns": {
+        "B_ACR_Mot.PV": {
+          "non_numeric": 0,
+          "missing": 3,
+          "min": 0.000444567,
+          "p50": 0.001443921,
+          "max": 0.001938979,
+          "most_common_value_share": 0.055493820924672525,
+          "longest_constant_run": 1648,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Mot.SV": {
+          "non_numeric": 0,
+          "missing": 3,
+          "min": 0.467204422,
+          "p50": 86.62747955,
+          "max": 227.878952,
+          "most_common_value_share": 0.13038354042495875,
+          "longest_constant_run": 1648,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Mot.TV": {
+          "non_numeric": 0,
+          "missing": 3,
+          "min": 17.71875,
+          "p50": 39.5625,
+          "max": 43.4140625,
+          "most_common_value_share": 0.055493820924672525,
+          "longest_constant_run": 1648,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Pmp.PV": {
+          "non_numeric": 0,
+          "missing": 67,
+          "min": 0.000629347,
+          "p50": 0.003880902,
+          "max": 0.00728042,
+          "most_common_value_share": 0.055242466169473224,
+          "longest_constant_run": 1637,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Pmp.SV": {
+          "non_numeric": 0,
+          "missing": 67,
+          "min": 0.443780959,
+          "p50": 19.72808266,
+          "max": 637.1080933,
+          "most_common_value_share": 0.08078831032969999,
+          "longest_constant_run": 1637,
+          "placeholder_hits": 0
+        },
+        "B_ACR_Pmp.TV": {
+          "non_numeric": 0,
+          "missing": 67,
+          "min": 17.609375,
+          "p50": 41.4140625,
+          "max": 44.7578125,
+          "most_common_value_share": 0.055242466169473224,
+          "longest_constant_run": 1637,
+          "placeholder_hits": 0
+        },
+        "B_Pres.PV": {
+          "non_numeric": 0,
+          "missing": 0,
+          "min": 0.45982486,
+          "p50": 40.02799606,
+          "max": 43.1010704,
+          "most_common_value_share": 0.002255892255892256,
+          "longest_constant_run": 67,
+          "placeholder_hits": 0
+        },
+        "B_Temp.PV": {
+          "non_numeric": 0,
+          "missing": 0,
+          "min": 18.99737549,
+          "p50": 36.91516113,
+          "max": 41.28903198,
+          "most_common_value_share": 0.004074074074074074,
+          "longest_constant_run": 69,
+          "placeholder_hits": 0
+        },
+        "Barometer": {
+          "non_numeric": 0,
+          "missing": 19443,
+          "min": 1021.407156,
+          "p50": 1022.177086,
+          "max": 1022.532339,
+          "most_common_value_share": 0.012089304864970264,
+          "longest_constant_run": 65,
+          "placeholder_hits": 0
+        },
+        "Temperature": {
+          "non_numeric": 0,
+          "missing": 19443,
+          "min": 19.00797462,
+          "p50": 21.49548531,
+          "max": 23.24269485,
+          "most_common_value_share": 0.006434630008774495,
+          "longest_constant_run": 66,
+          "placeholder_hits": 0
+        }
+      },
+      "issues": []
+    },
+    {
+      "file": "C_2024-04-10.csv",
+      "pump": "C",
+      "day": "2024-04-10",
+      "sha256": "091cdcb26ce2847debc4d91192420049f870aad868f65262596c235c1db77c9d",
+      "format": {
+        "delimiter": ",",
+        "decimal": "."
+      },
+      "rows": 4980,
+      "blank_rows": 1,
+      "timestamp_column": "Timestamp",
+      "timestamp_assumption": "UTC marker present; README says no timezone; confirm with authors",
+      "unparseable_timestamps": 0,
+      "duplicate_timestamps": 0,
+      "non_monotonic_steps": 0,
+      "span": [
+        "2024-04-10 12:00:00+00:00",
+        "2024-04-10 13:59:59+00:00"
+      ],
+      "cadence_segments": [
+        {
+          "start": "2024-04-10 12:00:00+00:00",
+          "end": "2024-04-10 12:46:15+00:00",
+          "cadence_s": 5.0,
+          "steps": 555
+        },
+        {
+          "start": "2024-04-10 12:46:15+00:00",
+          "end": "2024-04-10 13:59:59+00:00",
+          "cadence_s": 1.0,
+          "steps": 4424
+        }
+      ],
+      "gaps_over_factor": {
+        "factor": 5.0,
+        "count": 0,
+        "site_level": 0,
+        "items": []
+      },
+      "columns": {
+        "C_ACR_Mot.PV": {
+          "non_numeric": 0,
+          "missing": 34,
+          "min": 0.0005794441094622,
+          "p50": 0.0011973107466474,
+          "max": 0.0032152666244655,
+          "most_common_value_share": 0.30084917104731096,
+          "longest_constant_run": 1488,
+          "placeholder_hits": 0
+        },
+        "C_ACR_Mot.SV": {
+          "non_numeric": 0,
+          "missing": 34,
+          "min": 0.3843879699707031,
+          "p50": 0.422826737165451,
+          "max": 31.865760803222656,
+          "most_common_value_share": 0.5279013344116458,
+          "longest_constant_run": 1488,
+          "placeholder_hits": 0
+        },
+        "C_ACR_Mot.TV": {
+          "non_numeric": 0,
+          "missing": 34,
+          "min": 18.7890625,
+          "p50": 23.203125,
+          "max": 24.859375,
+          "most_common_value_share": 0.30084917104731096,
+          "longest_constant_run": 1488,
+          "placeholder_hits": 0
+        },
+        "C_ACR_Pmp.PV": {
+          "non_numeric": 0,
+          "missing": 11,
+          "min": 0.0002243328199256,
+          "p50": 0.0005415718769654,
+          "max": 0.0040886513888835,
+          "most_common_value_share": 0.2954316763936406,
+          "longest_constant_run": 1468,
+          "placeholder_hits": 0
+        },
+        "C_ACR_Pmp.SV": {
+          "non_numeric": 0,
+          "missing": 11,
+          "min": 0.3755754232406616,
+          "p50": 0.4131329655647278,
+          "max": 37.67021179199219,
+          "most_common_value_share": 0.6113906218555041,
+          "longest_constant_run": 1540,
+          "placeholder_hits": 0
+        },
+        "C_ACR_Pmp.TV": {
+          "non_numeric": 0,
+          "missing": 11,
+          "min": 18.65625,
+          "p50": 22.546875,
+          "max": 23.140625,
+          "most_common_value_share": 0.2954316763936406,
+          "longest_constant_run": 1468,
+          "placeholder_hits": 0
+        },
+        "C_Pres.PV": {
+          "non_numeric": 0,
+          "missing": 2,
+          "min": 0.4422781467437744,
+          "p50": 0.4518049359321594,
+          "max": 43.30134582519531,
+          "most_common_value_share": 0.013057452792286059,
+          "longest_constant_run": 65,
+          "placeholder_hits": 0
+        },
+        "C_Temp.PV": {
+          "non_numeric": 0,
+          "missing": 76,
+          "min": 18.82196044921875,
+          "p50": 25.44769287109375,
+          "max": 28.556884765625,
+          "most_common_value_share": 0.01264274061990212,
+          "longest_constant_run": 62,
+          "placeholder_hits": 0
+        },
+        "Barometer": {
+          "non_numeric": 0,
+          "missing": 15,
+          "min": 1017.8830909729004,
+          "p50": 1018.074836730957,
+          "max": 1018.2712459564208,
+          "most_common_value_share": 0.005035246727089627,
+          "longest_constant_run": 14,
+          "placeholder_hits": 0
+        },
+        "Temperature": {
+          "non_numeric": 0,
+          "missing": 14,
+          "min": 19.171247482299805,
+          "p50": 19.950756072998047,
+          "max": 20.770994186401367,
+          "most_common_value_share": 0.003624647603705195,
+          "longest_constant_run": 16,
+          "placeholder_hits": 0
+        }
+      },
+      "issues": []
+    },
+    {
+      "file": "C_2024-06-11.csv",
+      "pump": "C",
+      "day": "2024-06-11",
+      "sha256": "1f31a341e5ca0a924828e048ce3e1b56a66543c74387317a6bdb33eb30879853",
+      "format": {
+        "delimiter": ",",
+        "decimal": "."
+      },
+      "rows": 21429,
+      "blank_rows": 0,
+      "timestamp_column": "Timestamp",
+      "timestamp_assumption": "UTC marker present; README says no timezone; confirm with authors",
+      "unparseable_timestamps": 0,
+      "duplicate_timestamps": 0,
+      "non_monotonic_steps": 0,
+      "span": [
+        "2024-06-11 10:00:00+00:00",
+        "2024-06-11 15:59:59+00:00"
+      ],
+      "cadence_segments": [
+        {
+          "start": "2024-06-11 10:00:00+00:00",
+          "end": "2024-06-11 15:59:59+00:00",
+          "cadence_s": 1.0,
+          "steps": 21428
+        }
+      ],
+      "gaps_over_factor": {
+        "factor": 5.0,
+        "count": 0,
+        "site_level": 1,
+        "items": []
+      },
+      "columns": {
+        "C_ACR_Mot.PV": {
+          "non_numeric": 0,
+          "missing": 383,
+          "min": 0.000736623,
+          "p50": 0.001118673,
+          "max": 0.002091501,
+          "most_common_value_share": 0.08562197092084006,
+          "longest_constant_run": 1802,
+          "placeholder_hits": 0
+        },
+        "C_ACR_Mot.SV": {
+          "non_numeric": 0,
+          "missing": 383,
+          "min": 0.422826737,
+          "p50": 0.461265534,
+          "max": 19.41159058,
+          "most_common_value_share": 0.6327093034305806,
+          "longest_constant_run": 7914,
+          "placeholder_hits": 0
+        },
+        "C_ACR_Mot.TV": {
+          "non_numeric": 0,
+          "missing": 383,
+          "min": 24.03125,
+          "p50": 31.328125,
+          "max": 36.2734375,
+          "most_common_value_share": 0.08562197092084006,
+          "longest_constant_run": 1802,
+          "placeholder_hits": 0
+        },
+        "C_ACR_Pmp.PV": {
+          "non_numeric": 0,
+          "missing": 438,
+          "min": 0.00039888,
+          "p50": 0.000591421,
+          "max": 0.002735642,
+          "most_common_value_share": 0.08584631508741841,
+          "longest_constant_run": 1802,
+          "placeholder_hits": 0
+        },
+        "C_ACR_Pmp.SV": {
+          "non_numeric": 0,
+          "missing": 438,
+          "min": 0.375575423,
+          "p50": 0.413132966,
+          "max": 55.28469849,
+          "most_common_value_share": 0.5144109380210566,
+          "longest_constant_run": 5399,
+          "placeholder_hits": 0
+        },
+        "C_ACR_Pmp.TV": {
+          "non_numeric": 0,
+          "missing": 438,
+          "min": 23.8125,
+          "p50": 38.1171875,
+          "max": 43.7421875,
+          "most_common_value_share": 0.08589395455195084,
+          "longest_constant_run": 1803,
+          "placeholder_hits": 0
+        },
+        "C_Pres.PV": {
+          "non_numeric": 0,
+          "missing": 453,
+          "min": 0.496668577,
+          "p50": 0.672459066,
+          "max": 42.82395172,
+          "most_common_value_share": 0.005434782608695652,
+          "longest_constant_run": 75,
+          "placeholder_hits": 0
+        },
+        "C_Temp.PV": {
+          "non_numeric": 0,
+          "missing": 420,
+          "min": 23.88955688,
+          "p50": 31.94158936,
+          "max": 37.98513794,
+          "most_common_value_share": 0.005616640487410157,
+          "longest_constant_run": 68,
+          "placeholder_hits": 0
+        },
+        "Barometer": {
+          "non_numeric": 0,
+          "missing": 341,
+          "min": 1010.080194,
+          "p50": 1011.550903,
+          "max": 1012.456846,
+          "most_common_value_share": 0.0011855083459787557,
+          "longest_constant_run": 25,
+          "placeholder_hits": 0
+        },
+        "Temperature": {
+          "non_numeric": 0,
+          "missing": 2211,
+          "min": 25.28267288,
+          "p50": 26.15024948,
+          "max": 27.84572601,
+          "most_common_value_share": 0.0010927255697783327,
+          "longest_constant_run": 21,
+          "placeholder_hits": 0
+        }
+      },
+      "issues": []
+    }
+  ]
+}

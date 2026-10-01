@@ -35,7 +35,10 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-markers = ["db: needs a reachable Postgres/Timescale at DATABASE_URL (skipped otherwise)"]
+markers = [
+  "db: needs a reachable Postgres/Timescale at DATABASE_URL (skipped otherwise)",
+  "real_data: needs the real CIRA data loaded and replayed (scripts/ci_real_data.sh)",
+]
 
 [tool.ruff]
 line-length = 100

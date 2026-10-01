@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .provenance import file_digest, record_hash
+from .provenance import file_digest, project_path, record_hash
 from .schema import ChannelMeta, CycleLabels, CycleRecord
 
 EXPECTED_CYCLES = 2205
@@ -138,7 +138,7 @@ def audit(raw_dir: Path, expected_cycles: int = EXPECTED_CYCLES) -> dict:
     }
     runs = run_lengths(leak)
     return {
-        "root": str(root),
+        "root": project_path(root),
         "issues": issues,
         "ok": not issues,
         "channels": channels,

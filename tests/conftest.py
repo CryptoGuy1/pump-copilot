@@ -1,5 +1,6 @@
 """Synthetic fixtures shaped like the real sources. They test our code, not the data."""
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -9,6 +10,20 @@ import pytest
 from pumpcopilot import zema
 
 N_CYCLES = 30
+
+
+# CI sets PUMPCOPILOT_NO_SKIPS=1: every test must run there, so a skip (for example a
+# database that is not reachable) fails the test instead of passing quietly.
+NO_SKIPS = os.environ.get("PUMPCOPILOT_NO_SKIPS") == "1"
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+    if NO_SKIPS and report.skipped and not hasattr(report, "wasxfail"):
+        report.outcome = "failed"
+        report.longrepr = f"skipped with PUMPCOPILOT_NO_SKIPS=1: {report.longrepr}"
 
 
 @pytest.fixture(autouse=True)

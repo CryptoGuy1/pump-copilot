@@ -174,7 +174,9 @@ Deliberate departures, each recorded where it was decided:
     ([A6](ASSUMPTIONS.md#a6-b_2024-10-30-ran-until-151028-table-1s-110556-shutdown-is-not-used)).
     Each is an assumption with its evidence, impact if wrong and how to revisit it.
 
-Not delivered in this build: the client brief, CI, the Azure path and the Raspberry Pi gateway,
-model and data cards, the video, the five simulated end-to-end cases and the 10-minute
-disconnect test. Replay latency was measured at 60× (median about 1 s once baselines are formed;
+Delivered since: the [client brief](client_brief.md) (fictional), CI on every push and pull
+request, and model cards ([CIRA detector](model_card_cira_detector.md),
+[ZeMA](model_card_zema.md)) and data cards ([CIRA](data_card_cira.md), [ZeMA](data_card_zema.md)).
+Not delivered in this build: the Azure path and the Raspberry Pi gateway, the video, the five
+simulated end-to-end cases and the 10-minute disconnect test. Replay latency was measured at 60× (median about 1 s once baselines are formed;
 [replay report](../reports/replay_4a.md)).

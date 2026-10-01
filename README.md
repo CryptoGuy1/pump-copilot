@@ -1,5 +1,7 @@
 # Industrial Asset Intelligence and Operations Copilot
 
+[![CI](https://github.com/CryptoGuy1/pump-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/CryptoGuy1/pump-copilot/actions/workflows/ci.yml)
+
 Read-only decision support prototype for a refinery-style pump service. Portfolio demonstration
 on public data; no refinery data, no plant alarms, no control actions.
 
@@ -68,6 +70,11 @@ src/pumpcopilot/scoring.py     features, robust baseline, ScoredEvidence, inject
 migrations/                    numbered SQL: telemetry/readings hypertables, segments, runs, 1-min view
 docs/adr/                      decisions that adjust the original scope
 docs/SCOPE.md                  summary of the original project scope
+docs/client_brief.md           the fictional client brief the demonstration is framed by
+docs/model_card_*.md           model cards: the CIRA detector and the ZeMA classifier
+docs/data_card_*.md            data cards: CIRA and ZeMA
+.github/workflows/ci.yml       CI: ruff, pytest on TimescaleDB, vitest, type check, build; on master,
+                               weekly and on demand, also real CIRA data (load, replay, verify)
 docs/ASSUMPTIONS.md            assumptions register: evidence, impact if wrong, how to revisit
 ```
 

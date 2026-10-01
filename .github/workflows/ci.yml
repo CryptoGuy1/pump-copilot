@@ -1,0 +1,98 @@
+name: CI
+
+# Every push and pull request: ruff, pytest (every database test, on TimescaleDB), vitest, the
+# type check and the build. Pushes to master, a weekly run and manual runs also load the real
+# CIRA data, replay a day and run the real-data contract test.
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"  # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DATABASE_URL: postgresql://pump:pump_dev_only@localhost:5432/pumpcopilot
+  # every selected test must run: a skip (an unreachable database, missing data) fails
+  PUMPCOPILOT_NO_SKIPS: "1"
+
+jobs:
+  python:
+    name: Python (ruff, pytest on TimescaleDB)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # all commits and tags: tests check the pre-registration commits
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Ruff
+        run: ruff check .
+      # The database is started from docker-compose.yml, not as a service container: the
+      # server needs "-c timescaledb.telemetry_level=off" on its command line (a test checks
+      # the setting's source), and service containers cannot be given a command.
+      - name: Start TimescaleDB
+        run: ./scripts/ci_start_db.sh
+      - name: Pytest (all but the real-data test, which is deselected, not skipped)
+        run: pytest -q -rs -m "not real_data"
+
+  real-data:
+    name: Real CIRA data (load, replay, verify, contract test)
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+      || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Start TimescaleDB
+        run: ./scripts/ci_start_db.sh
+      # The download is cached by the manifest's hash (which pins the Zenodo record and
+      # version); acquire still checks every file against Zenodo's checksums.
+      - name: Cache the CIRA download
+        uses: actions/cache@v4
+        with:
+          path: data/raw/cira
+          key: cira-raw-${{ hashFiles('data/manifest.yaml') }}
+      - name: Load and replay the real CIRA data
+        run: ./scripts/ci_real_data.sh
+      - name: Pytest (real-data test)
+        run: pytest -q -rs -m real_data
+
+  web:
+    name: Web (vitest, type check, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Vitest
+        run: npx vitest run
+      - name: Type check
+        run: npm run typecheck
+      - name: Build
+        run: npm run build
