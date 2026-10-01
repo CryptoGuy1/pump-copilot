@@ -10,3 +10,6 @@ data/cache/
 
 # macOS folder metadata
 .DS_Store
+
+# Local reference documents (the original scope); never committed
+docs/*.docx
