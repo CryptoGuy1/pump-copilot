@@ -893,7 +893,8 @@ class Author(Model):
 
 class About(Model):
     sources: list[Source]
-    repository: str | None = Field(description="null while the repository is private")
+    repository: str | None = Field(
+        description="null when data/about.yaml sets repository_public: false")
     author: Author
     stack: list[StackItem]
     ai_assistance: str

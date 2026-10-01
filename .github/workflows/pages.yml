@@ -2,8 +2,10 @@ name: Pages
 
 # The static snapshot (Step 7b), built from the committed snapshot files and deployed to GitHub
 # Pages. No secrets: nothing calls the API or a model. See README "Static snapshot".
-# Manual only: nothing is published until someone runs it (Actions > Pages > Run workflow).
+# On every push to master, and by hand (Actions > Pages > Run workflow).
 on:
+  push:
+    branches: [master]
   workflow_dispatch:
 
 permissions:

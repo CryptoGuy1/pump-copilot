@@ -20,7 +20,7 @@
                 "type": "null"
               }
             ],
-            "description": "null while the repository is private",
+            "description": "null when data/about.yaml sets repository_public: false",
             "title": "Repository"
           },
           "sources": {

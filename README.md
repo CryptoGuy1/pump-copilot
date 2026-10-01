@@ -167,8 +167,8 @@ export DATABASE_URL=postgresql://pump:pump_dev_only@localhost:5432/pumpcopilot_s
 pumpcopilot snapshot record    # once: 6 real model requests, hard cap 6 (reports/snapshot_answers.json)
 pumpcopilot snapshot export    # the files and web/public/snapshot/manifest.json
 ```
-[.github/workflows/pages.yml](.github/workflows/pages.yml) builds and deploys it when run by hand;
-it needs no secrets.
+[.github/workflows/pages.yml](.github/workflows/pages.yml) builds and deploys it on every push to
+master (or by hand); it needs no secrets.
 
 ## Repository layout
 

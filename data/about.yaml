@@ -1,8 +1,8 @@
 # The About page's facts that are not numbers (the numbers come from the evaluation results).
 repository: https://github.com/CryptoGuy1/pump-copilot
-# While the repository is private, its link is not shown (About, and the report and commit
-# links on the evaluation page show plain text). Set to true when it is public.
-repository_public: false
+# Whether to link the repository: the About page's repository link, and the report and commit
+# links on the evaluation page (plain text when false).
+repository_public: true
 # The author section. Fill in the role line and profile links; empty ones are not shown.
 author:
   name: Benjamin Nweke

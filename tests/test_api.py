@@ -1227,7 +1227,7 @@ def test_about_lists_the_sources_in_use_with_their_licences():
     assert about["ai_assistance"].startswith("Built by Benjamin Nweke with Claude")
 
 
-def test_the_repository_link_is_hidden_while_the_repository_is_private(tmp_path):
+def test_the_repository_link_follows_the_repository_public_flag(tmp_path):
     import shutil
 
     import yaml

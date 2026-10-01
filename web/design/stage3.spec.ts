@@ -44,7 +44,7 @@ async function ready(page: Page, name: string) {
       .first()).toBeAttached();
     await expect(page.locator(".author-name")).toHaveText("Benjamin Nweke");
     await expect(page.getByTestId("page-provenance")).toHaveText("About this project");
-    // the repository link only while the About facts give one (null while it is private)
+    // the repository link only when the About facts give one (repository_public)
     const about = await (await page.request.get("/api/about")).json();
     await expect(page.getByText(/^Repository:/)).toHaveCount(about.repository ? 1 : 0);
   } else if (name === "replay") {

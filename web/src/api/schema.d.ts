@@ -619,7 +619,7 @@ export interface components {
             author: components["schemas"]["Author"];
             /**
              * Repository
-             * @description null while the repository is private
+             * @description null when data/about.yaml sets repository_public: false
              */
             repository: string | null;
             /** Sources */
