@@ -1,6 +1,6 @@
 // Serves the static snapshot build (dist-snapshot/) the way GitHub Pages serves a project site:
-// under /pump-copilot/, a directory's index.html for a directory, and 404.html with status 404
-// for any path that has no file (which is how the app's deep links work there).
+// under /pump-copilot/, a file as is, /x from x.html, a directory's index.html, and 404.html
+// with status 404 for any path that has no file (how other deep links still work there).
 import { createServer } from "node:http";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { extname, join, normalize, resolve } from "node:path";
@@ -23,8 +23,12 @@ createServer((req, res) => {
   if (path.startsWith(BASE)) {
     let file = normalize(join(ROOT, path.slice(BASE.length)));
     if (file.startsWith(ROOT)) {
-      if (existsSync(file) && statSync(file).isDirectory()) file = join(file, "index.html");
       if (existsSync(file) && statSync(file).isFile()) return send(res, 200, file);
+      if (!path.endsWith("/") && existsSync(`${file}.html`)) return send(res, 200, `${file}.html`);
+      if (existsSync(join(file, "index.html"))) {
+        if (!path.endsWith("/")) { res.writeHead(301, { Location: `${path}/` }); return res.end(); }
+        return send(res, 200, join(file, "index.html"));
+      }
     }
   }
   send(res, 404, join(ROOT, "404.html"));

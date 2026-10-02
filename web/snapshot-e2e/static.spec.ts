@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { staticRoutes } from "../scripts/static-routes";
 
 // Step 7b: the static snapshot. Every route renders from a deep link; nothing is requested from
 // outside the site (and nothing from an API); every action is disabled; axe passes in every
@@ -163,5 +164,28 @@ test("screenshots for the README", async ({ page }) => {
     if (then) await then();
     await page.waitForTimeout(300);
     await page.screenshot({ path: resolve(OUT, `${name}-industrial-desktop.png`) });
+  }
+});
+
+// Each route has its own page in the build (generated from the router's routes), so a link to
+// it returns 200, not Pages' 404.html, with sharing tags that name that page.
+test("every route returns HTTP 200 with its own sharing tags", async ({ request }) => {
+  const pages = "https://cryptoguy1.github.io/pump-copilot/";
+  const routes = staticRoutes(resolve(import.meta.dirname, "../public/snapshot"));
+  expect(routes).toEqual(expect.arrayContaining(["/", "/evaluation", "/about", "/cases",
+    "/data-quality", "/assumptions", "/replay", "/design",
+    ...manifest.sessions.map((s: { asset_id: string; source_day: string }) =>
+      `/assets/${s.asset_id}/${s.source_day}`)]));
+  expect(routes.filter((r) => r.startsWith("/cases/")).length).toBeGreaterThan(0);
+  for (const route of routes) {
+    const r = await request.get(route.slice(1), { maxRedirects: 0 });
+    expect(r.status(), route).toBe(200);
+    const html = await r.text();
+    const meta = (attr: string, key: string) =>
+      html.match(new RegExp(`<meta ${attr}="${key}" content="([^"]*)"`))?.[1];
+    expect(meta("property", "og:url"), route).toBe(pages + route.slice(1));
+    expect(meta("property", "og:image"), route).toBe(`${pages}og.png`);
+    expect(meta("name", "twitter:image"), route).toBe(`${pages}og.png`);
+    expect(meta("name", "twitter:card"), route).toBe("summary_large_image");
   }
 });

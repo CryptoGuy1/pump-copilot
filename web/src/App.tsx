@@ -14,6 +14,7 @@ import { Evaluation } from "./pages/Evaluation";
 import { Fleet } from "./pages/Fleet";
 import { NotFound } from "./pages/NotFound";
 import { Replay } from "./pages/Replay";
+import { ROUTES } from "./routes";
 import { SNAPSHOT, snapshotDate, useSnapshotManifest } from "./snapshot";
 import { THEMES, type Theme, ThemeContext, applyTheme, readTheme } from "./theme";
 
@@ -114,16 +115,16 @@ export function App() {
         </header>
         <main id="main" className="shell-main" tabIndex={-1}>
           <Routes>
-            <Route path="/" element={<Fleet />} />
-            <Route path="/assets/:asset/:day" element={<AssetDay />} />
-            <Route path="/cases" element={<Cases />} />
-            <Route path="/cases/:id" element={<CaseDetail />} />
-            <Route path="/replay" element={<Replay />} />
-            <Route path="/evaluation" element={<Evaluation />} />
-            <Route path="/data-quality" element={<DataQuality />} />
-            <Route path="/assumptions" element={<Assumptions />} />
-            <Route path="/design" element={<Design />} />
-            <Route path="/about" element={<About />} />
+            <Route path={ROUTES.fleet} element={<Fleet />} />
+            <Route path={ROUTES.assetDay} element={<AssetDay />} />
+            <Route path={ROUTES.cases} element={<Cases />} />
+            <Route path={ROUTES.case} element={<CaseDetail />} />
+            <Route path={ROUTES.replay} element={<Replay />} />
+            <Route path={ROUTES.evaluation} element={<Evaluation />} />
+            <Route path={ROUTES.dataQuality} element={<DataQuality />} />
+            <Route path={ROUTES.assumptions} element={<Assumptions />} />
+            <Route path={ROUTES.design} element={<Design />} />
+            <Route path={ROUTES.about} element={<About />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

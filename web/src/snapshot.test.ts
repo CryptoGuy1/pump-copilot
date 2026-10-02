@@ -56,3 +56,13 @@ describe("the recorded answers' summary line", () => {
     expect(recordedSummary([r("assistant")])).toBe("All 1 recorded answers passed the checker.");
   });
 });
+
+describe("the router's routes", () => {
+  it("all come from src/routes.ts (so the static build writes a page for each)", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const app = readFileSync(resolve(process.cwd(), "src/App.tsx"), "utf8");  // run from web/
+    const literal = [...app.matchAll(/<Route path="([^"]+)"/g)].map((m) => m[1]);
+    expect(literal).toEqual(["*"]);  // only the not-found route is written out
+  });
+});

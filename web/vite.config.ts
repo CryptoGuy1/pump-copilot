@@ -1,8 +1,9 @@
 /// <reference types="vitest/config" />
 import react from "@vitejs/plugin-react";
-import { copyFileSync, rmSync } from "node:fs";
-import { resolve } from "node:path";
+import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { type Plugin, defineConfig } from "vite";
+import { staticRoutes } from "./scripts/static-routes";
 
 // The browser talks to /api on the dev server, which proxies to the API on 127.0.0.1.
 // PUMPCOPILOT_API picks another API (the end-to-end test runs its own on port 8001).
@@ -17,10 +18,11 @@ export const PAGES_URL = "https://cryptoguy1.github.io/pump-copilot/";
 
 function snapshotSite(): Plugin {
   let outDir = "dist";
+  let root = ".";
   return {
     name: "pumpcopilot-snapshot-site",
     apply: "build",
-    configResolved(c) { outDir = resolve(c.root, c.build.outDir); },
+    configResolved(c) { outDir = resolve(c.root, c.build.outDir); root = c.root; },
     // sharing previews need absolute URLs
     transformIndexHtml(html) {
       if (!SNAPSHOT) return html;
@@ -37,6 +39,16 @@ function snapshotSite(): Plugin {
         // GitHub Pages serves 404.html for any path it has no file for: the app then reads the
         // address itself, so deep links work
         copyFileSync(resolve(outDir, "index.html"), resolve(outDir, "404.html"));
+        // and a page at every route the snapshot has data for, so a link to one returns 200
+        // with its own og:url (Pages serves /evaluation from evaluation.html)
+        const html = readFileSync(resolve(outDir, "index.html"), "utf8");
+        for (const route of staticRoutes(resolve(root, "public/snapshot"))) {
+          if (route === "/") continue;
+          const file = resolve(outDir, `${route.slice(1)}.html`);
+          mkdirSync(dirname(file), { recursive: true });
+          writeFileSync(file, html.replace(/(<meta property="og:url" content=")[^"]*(")/,
+                                           `$1${PAGES_URL}${route.slice(1)}$2`));
+        }
       } else {
         rmSync(resolve(outDir, "snapshot"), { recursive: true, force: true });
       }
